@@ -13,33 +13,33 @@
 <style>
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
-  --bg: #e9f1ff;
+  --bg: #eef2f4;
   --card: #ffffff;
-  --sea: #a9d8f5;
+  --sea: #cddde5;
   --land: #f6f8f5;
-  --border: #7da0d6;
-  --ink: #15213f;
-  --muted: #53638c;
-  --line: #c4d3f0;
-  --guess: #ff3d71;
-  --truth: #0b9a63;
+  --border: #9fb3bc;
+  --ink: #14262e;
+  --muted: #587079;
+  --line: #d3dde2;
+  --guess: #d4380d;
+  --truth: #148a5c;
   --btn-ink: #ffffff;
-  --btn: #2f5bff;
+  --btn: #14262e;
   --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
   --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1330; --card: #1a2352; --sea: #14204d; --land: #223f4a; --border: #4a5fa8;
-    --ink: #eef1ff; --muted: #9aa8d6; --line: #2c3a75; --guess: #ffc247; --truth: #4ad6a0;
-    --btn-ink: #0e1330; --btn: #7b97ff; color-scheme: dark;
+    --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
+    --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --truth: #4ad6a0;
+    --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1330; --card: #1a2352; --sea: #14204d; --land: #223f4a; --border: #4a5fa8;
-  --ink: #eef1ff; --muted: #9aa8d6; --line: #2c3a75; --guess: #ffc247; --truth: #4ad6a0;
-  --btn-ink: #0e1330; --btn: #eef1ff; color-scheme: dark;
+  --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
+  --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --truth: #4ad6a0;
+  --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
@@ -89,11 +89,6 @@ td.t { min-width: 0; }
 @media (max-width: 440px) { #photo { width: 64px; height: 64px; } #mono { font-size: 22px; } #title { font-size: 21px; } #extract { font-size: 14.5px; } }
 @media (prefers-reduced-motion: no-preference) { .pin { animation: pop 0.18s ease-out; transform-box: fill-box; transform-origin: center; } }
 @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.brand { background: linear-gradient(90deg, #2f5bff, #ff3d71 60%, #ffb400); -webkit-background-clip: text; background-clip: text; color: transparent; }
-#card { border-left: 6px solid var(--accent, #2f5bff); }
-#card.perso { --accent: #9b4dff; } #card.lieu { --accent: #00a6a6; }
-.chip { color: var(--accent, var(--muted)); font-weight: 600; }
-button.main { background: linear-gradient(135deg, var(--btn), #8a4dff); color: #fff; }
 .pts { font-weight: 700; }
 </style>
 
@@ -312,8 +307,14 @@ let rounds = [], idx = 0, total = 0, guess = null, revealed = false, results = [
 const wrap = $('mapwrap');
 const dark = matchMedia('(prefers-color-scheme: dark)').matches;
 const map = L.map('map', { minZoom: 2, maxZoom: 12, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/' + (dark ? 'dark_nolabels' : 'voyager_nolabels') + '/{z}/{x}/{y}{r}.png',
-  { noWrap: true, subdomains: 'abcd', maxZoom: 12, attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+/* Fond principal : relief coloré Esri sans noms de lieux. Si ce fond ne se charge pas, bascule sur OpenStreetMap (avec noms). */
+let fell = false;
+const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+  { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
+base.on('tileerror', () => {
+  if (fell) return; fell = true; map.removeLayer(base);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, maxZoom: 12, attribution: '© OpenStreetMap' }).addTo(map);
+});
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
 function resetView() { layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
