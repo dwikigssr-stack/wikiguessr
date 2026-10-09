@@ -22,6 +22,7 @@
   --muted: #587079;
   --line: #d3dde2;
   --guess: #d4380d;
+  --p2: #2b6cb0;
   --truth: #148a5c;
   --btn-ink: #ffffff;
   --btn: #14262e;
@@ -32,13 +33,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
-    --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --truth: #4ad6a0;
+    --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --truth: #4ad6a0;
     --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
-  --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --truth: #4ad6a0;
+  --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --truth: #4ad6a0;
   --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
 }
 [hidden] { display: none !important; }
@@ -50,6 +51,13 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
 .controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.p1 { color: var(--guess); }
+.p2 { color: var(--p2); }
+#who { font-weight: 700; }
+#handoff { position: absolute; inset: 0; z-index: 1500; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
+#handoff h2 { font-family: var(--font-display); font-size: 26px; margin: 0; }
+#handoff p { margin: 0; color: var(--muted); max-width: 36ch; }
+#handoff button { max-width: 320px; }
 #clock.low b { color: var(--guess); }
 #timebar { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 1000; background: var(--line); pointer-events: none; }
 #timebar i { display: block; height: 100%; width: 100%; background: var(--ink); }
@@ -107,6 +115,10 @@ td.t { min-width: 0; }
         <option value="perso">Personnalités</option>
         <option value="sport">Sport</option>
       </select>
+      <select id="players" aria-label="Nombre de joueurs">
+        <option value="1">1 joueur</option>
+        <option value="2">Duel (2 joueurs)</option>
+      </select>
       <select id="timer" aria-label="Temps par manche">
         <option value="0">Sans limite</option>
         <option value="60">60 s</option>
@@ -114,7 +126,7 @@ td.t { min-width: 0; }
         <option value="15">15 s</option>
       </select>
     </div>
-    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span>Manche <b id="rnd">1</b>/5</span><span><b id="tot">0</b> pts</span></div>
+    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/5</span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span></span></div>
   </header>
   <section id="card" aria-live="polite">
     <div id="photo"><span id="mono"></span><img id="img" alt="" hidden></div>
@@ -127,6 +139,11 @@ td.t { min-width: 0; }
   <div id="mapwrap">
     <div id="map" aria-label="Carte du monde. Touchez pour placer votre repère."></div>
     <div id="timebar" hidden><i id="timefill"></i></div>
+    <div id="handoff" hidden>
+      <h2 id="hotitle">Au tour du Joueur 2</h2>
+      <p>Le Joueur 1 a joué. Passez l'appareil au Joueur 2 sans montrer l'écran.</p>
+      <button class="main" id="ready">Joueur 2 est prêt</button>
+    </div>
     <div class="zoom"><button id="zin" aria-label="Zoom avant">+</button><button id="zout" aria-label="Zoom arrière">&minus;</button></div>
     <div class="hint" id="hint">Touchez la carte pour poser un repère</div>
   </div>
@@ -140,7 +157,7 @@ td.t { min-width: 0; }
   </div>
   <div id="final" hidden>
     <div class="of">Partie terminée</div>
-    <div><div class="big" id="ftot"></div><div class="of">sur 25 000 points</div></div>
+    <div><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
     <h2 id="frank"></h2>
     <div class="tablewrap"><table><tbody id="frows"></tbody></table></div>
     <div class="of" id="fbest"></div>
@@ -432,9 +449,21 @@ const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n)
 function resetView() { layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
 function fitTo(a, b) { map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
 const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
+function fitAll(r) {
+  const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, g.o]));
+  if (pts.length === 1) map.setView(pts[0], 4); else map.fitBounds(pts, { padding: [50, 50], maxZoom: 8 });
+}
 function drawOverlay() {
   layer.clearLayers();
   const cur = rounds[idx];
+  if (players === 2) {
+    if (revealed && cur) {
+      dg.forEach(g => { if (g) L.polyline([[g.a, g.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer); });
+      dot(cssv('--truth'), cur).addTo(layer);
+      dg.forEach((g, i) => { if (g) dot(cssv(i ? '--p2' : '--guess'), g).addTo(layer); });
+    } else if (guess) dot(cssv(turn ? '--p2' : '--guess'), guess).addTo(layer);
+    return;
+  }
   if (revealed && cur) {
     if (guess) L.polyline([[guess.a, guess.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
     dot(cssv('--truth'), cur).addTo(layer);
@@ -456,12 +485,15 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 function start() {
   const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
   rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
-  $('final').hidden = true; $('tot').textContent = '0';
+  players = +$('players').value; dtot = [0, 0]; dres = [];
+  $('solo').hidden = players === 2; $('duo').hidden = players !== 2; $('who').hidden = players !== 2;
+  $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0'; $('t1').textContent = '0'; $('t2').textContent = '0';
   load();
 }
 function load() {
   const r = rounds[idx];
-  guess = null; revealed = false;
+  guess = null; revealed = false; turn = 0; dg = [null, null]; waiting = false;
+  $('handoff').hidden = true; updateWho();
   $('rnd').textContent = idx + 1;
   $('chip').textContent = r.k === 'perso' ? 'Personnalité · ' + r.c + ' · lieu de naissance' : r.c;
   $('title').textContent = r.t;
@@ -490,8 +522,71 @@ function setPhoto(r) {
     } catch (e) {}
   }
 }
+/* ---- duel en écran partagé : même manche pour les deux, J1 puis J2, repères cachés jusqu'à la comparaison ---- */
+let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], waiting = false;
+function updateWho() {
+  const w = $('who');
+  w.textContent = players === 2 ? 'Joueur ' + (turn + 1) : '';
+  w.className = turn ? 'p2' : 'p1';
+  $('hint').textContent = players === 2 ? 'Joueur ' + (turn + 1) + ' : touchez la carte pour poser un repère' : 'Touchez la carte pour poser un repère';
+}
+const dtext = x => x === null ? 'temps écoulé' : fmt(x) + ' km';
+function duelSubmit(force) {
+  if (revealed || waiting) return;
+  if (!guess && !force) return;
+  stopTimer();
+  dg[turn] = guess;
+  if (turn === 0) {
+    waiting = true; guess = null; drawOverlay();
+    $('go').disabled = true; $('handoff').hidden = false;
+    return;
+  }
+  revealed = true;
+  const r = rounds[idx];
+  const d = dg.map(g => g ? km(g.a, g.o, r.a, r.o) : null), p = d.map(x => x === null ? 0 : points(x));
+  dtot[0] += p[0]; dtot[1] += p[1]; dres.push({ t: r.t, d, p });
+  $('t1').textContent = fmt(dtot[0]); $('t2').textContent = fmt(dtot[1]);
+  $('dist').textContent = p[0] > p[1] ? 'Manche pour le Joueur 1' : p[1] > p[0] ? 'Manche pour le Joueur 2' : 'Égalité sur cette manche';
+  $('pts').textContent = '+' + fmt(p[0]) + ' / +' + fmt(p[1]) + ' pts';
+  $('where').textContent = '';
+  const s = document.createElement('span');
+  s.textContent = 'J1 : ' + dtext(d[0]) + ' · J2 : ' + dtext(d[1]) + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
+  const a = document.createElement('a');
+  a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
+  a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
+  $('where').append(s, a);
+  $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir le résultat';
+  $('go').hidden = true; $('result').hidden = false;
+  drawOverlay(); fitAll(r);
+}
+function ready() {
+  $('handoff').hidden = true; waiting = false; turn = 1; guess = null;
+  resetView(); $('go').disabled = true; $('hint').hidden = false;
+  updateWho(); startTimer();
+}
+function finishDuel() {
+  const [a, b] = dtot;
+  $('ftot').style.fontSize = '40px';
+  $('ftot').textContent = fmt(a) + ' – ' + fmt(b);
+  $('fof').textContent = 'Joueur 1 – Joueur 2';
+  $('frank').textContent = a > b ? 'Victoire du Joueur 1 !' : b > a ? 'Victoire du Joueur 2 !' : 'Égalité parfaite !';
+  const tb = $('frows'); tb.textContent = '';
+  const head = document.createElement('tr');
+  ['Manche', 'Joueur 1', 'Joueur 2'].forEach((h, i) => { const c = document.createElement('td'); c.className = i ? 'n' : 't'; c.textContent = h; c.style.color = 'var(--muted)'; head.appendChild(c); });
+  tb.appendChild(head);
+  for (const r of dres) {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t;
+    const c2 = document.createElement('td'); c2.className = 'n'; c2.textContent = dtext(r.d[0]) + ' · ' + fmt(r.p[0]);
+    const c3 = document.createElement('td'); c3.className = 'n'; c3.textContent = dtext(r.d[1]) + ' · ' + fmt(r.p[1]);
+    if (r.p[0] > r.p[1]) c2.style.fontWeight = '700'; else if (r.p[1] > r.p[0]) c3.style.fontWeight = '700';
+    tr.append(c1, c2, c3); tb.appendChild(tr);
+  }
+  $('fbest').textContent = '';
+  $('final').hidden = false;
+}
 function place(lat, lon) {
-  if (revealed) return;
+  if (revealed || waiting) return;
   lon = ((lon + 540) % 360) - 180;
   guess = { a: lat, o: lon };
   $('go').disabled = false; $('hint').hidden = true;
@@ -512,7 +607,7 @@ function startTimer() {
     $('sec').textContent = Math.ceil(left / 1000);
     $('timefill').style.width = (100 * left / (timeLimit * 1000)) + '%';
     $('clock').classList.toggle('low', low); $('timebar').classList.toggle('low', low);
-    if (left <= 0) { stopTimer(); if (!revealed) { if (guess) reveal(); else timeUp(); } }
+    if (left <= 0) { stopTimer(); if (!revealed) { if (players === 2) duelSubmit(true); else if (guess) reveal(); else timeUp(); } }
   };
   paint(); tick = setInterval(paint, 200);
 }
@@ -560,6 +655,8 @@ function rank(t) {
 function finish() {
   stopTimer();
   $('clock').hidden = true; $('timebar').hidden = true;
+  if (players === 2) return finishDuel();
+  $('ftot').style.fontSize = ''; $('fof').textContent = 'sur 25 000 points';
   $('ftot').textContent = fmt(total);
   $('frank').textContent = rank(total);
   const tb = $('frows'); tb.textContent = '';
@@ -584,12 +681,15 @@ $('zin').onclick = () => map.zoomIn();
 $('zout').onclick = () => map.zoomOut();
 $('mode').onchange = e => { mode = e.target.value; start(); };
 $('timer').onchange = e => { timeLimit = +e.target.value; start(); };
-$('go').onclick = reveal;
+$('players').onchange = () => start();
+$('ready').onclick = ready;
+$('go').onclick = () => players === 2 ? duelSubmit() : reveal();
 $('next').onclick = advance;
 $('again').onclick = start;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || !$('final').hidden) return;
-  if (!revealed) reveal(); else advance();
+  if (waiting) return;
+  if (!revealed) { if (players === 2) duelSubmit(); else reveal(); } else advance();
 });
 new ResizeObserver(() => map.invalidateSize()).observe(wrap);
 start();
