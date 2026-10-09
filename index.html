@@ -50,7 +50,18 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
-.controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+#home { position: absolute; inset: 0; z-index: 3000; background: var(--bg); overflow-y: auto; display: flex; padding: 24px 16px; }
+.homebox { margin: auto; width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 22px; }
+.logo { font: 700 clamp(46px, 13vw, 88px)/0.95 var(--font-display); letter-spacing: -0.03em; margin: 0; }
+.tag { margin: 0; font-size: 16px; line-height: 1.45; color: var(--muted); max-width: 46ch; }
+.opt { display: flex; flex-direction: column; gap: 8px; }
+.optname { font: 500 11.5px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { flex: 1 1 auto; font: 500 14px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+.note { font: 12px var(--font-mono); color: var(--muted); }
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
 #who { font-weight: 700; }
@@ -119,24 +130,7 @@ td.t { min-width: 0; }
 <div id="app">
   <header>
     <div class="brand">Wikiguessr</div>
-    <div class="controls">
-      <select id="mode" aria-label="Type de questions">
-        <option value="mixte">Tout</option>
-        <option value="lieux">Lieux</option>
-        <option value="perso">Personnalités</option>
-        <option value="sport">Sport</option>
-      </select>
-      <select id="players" aria-label="Nombre de joueurs">
-        <option value="1">1 joueur</option>
-        <option value="2">Duel (2 joueurs)</option>
-      </select>
-      <select id="timer" aria-label="Temps par manche">
-        <option value="0">Sans limite</option>
-        <option value="60">60 s</option>
-        <option value="30">30 s</option>
-        <option value="15">15 s</option>
-      </select>
-    </div>
+    <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
     <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/5</span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span></span></div>
   </header>
   <section id="card" aria-live="polite">
@@ -182,6 +176,40 @@ td.t { min-width: 0; }
     <div class="tablewrap"><table><tbody id="frows"></tbody></table></div>
     <div class="of" id="fbest"></div>
     <button class="main" id="again">Rejouer</button>
+    <button class="main alt" id="tomenu">Changer les réglages</button>
+  </div>
+  <div id="home">
+    <div class="homebox">
+      <h1 class="logo">Wikiguessr</h1>
+      <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
+      <div class="opt">
+        <div class="optname">Mode de jeu</div>
+        <div class="seg" data-key="players">
+          <button type="button" data-v="1" aria-pressed="true">Solo</button>
+          <button type="button" data-v="2" aria-pressed="false">Duel à deux</button>
+        </div>
+      </div>
+      <div class="opt">
+        <div class="optname">Temps par manche</div>
+        <div class="seg" data-key="time">
+          <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
+          <button type="button" data-v="60" aria-pressed="false">60 s</button>
+          <button type="button" data-v="30" aria-pressed="false">30 s</button>
+          <button type="button" data-v="15" aria-pressed="false">15 s</button>
+        </div>
+        <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
+      </div>
+      <div class="opt">
+        <div class="optname">Questions</div>
+        <div class="seg" data-key="mode">
+          <button type="button" data-v="mixte" aria-pressed="true">Tout</button>
+          <button type="button" data-v="lieux" aria-pressed="false">Lieux</button>
+          <button type="button" data-v="perso" aria-pressed="false">Personnalités</button>
+          <button type="button" data-v="sport" aria-pressed="false">Sport</button>
+        </div>
+      </div>
+      <button class="main" id="launch">Lancer la partie</button>
+    </div>
   </div>
 </div>
 
@@ -520,7 +548,7 @@ function start() {
   $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
   const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
   rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
-  players = +$('players').value; dtot = [0, 0]; dres = [];
+  players = sel.players; dtot = [0, 0]; dres = [];
   $('solo').hidden = players === 2; $('duo').hidden = players !== 2; $('who').hidden = players !== 2;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0'; $('t1').textContent = '0'; $('t2').textContent = '0';
   load();
@@ -538,7 +566,7 @@ function load() {
   $('result').hidden = true; $('hint').hidden = false;
   resetView();
   $('card').className = r.k;
-  if (idx === 0 && (players === 2 || timeLimit)) countdown(); else startTimer();
+  if (idx === 0) countdown(); else startTimer();
 }
 /* Photo : champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r) {
@@ -734,24 +762,45 @@ function finish() {
 map.on('click', e => place(e.latlng.lat, e.latlng.lng));
 $('zin').onclick = () => map.zoomIn();
 $('zout').onclick = () => map.zoomOut();
-$('mode').onchange = e => { mode = e.target.value; start(); };
-$('timer').onchange = e => { timeLimit = +e.target.value; start(); };
-/* En duel, la vitesse compte : sans chrono elle ne serait pas mesurée, on propose donc 30 s par défaut. */
-$('players').onchange = e => {
-  if (e.target.value === '2' && timeLimit === 0) { timeLimit = 30; $('timer').value = '30'; }
+/* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
+const sel = { players: 1, time: 0, mode: 'mixte' };
+function choose(key, val) {
+  sel[key] = key === 'mode' ? val : +val;
+  document.querySelectorAll('.seg[data-key="' + key + '"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
+}
+document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  choose(g.dataset.key, b.dataset.v);
+  /* En duel la vitesse compte : sans chrono elle ne serait pas mesurée, on propose donc 30 s. */
+  if (g.dataset.key === 'players' && sel.players === 2 && sel.time === 0) choose('time', 30);
+}));
+function showHome() {
+  stopTimer(); endCountdown();
+  $('final').hidden = true; $('handoff').hidden = true;
+  $('home').hidden = false;
+}
+$('launch').onclick = () => {
+  mode = sel.mode; timeLimit = sel.time;
+  $('home').hidden = true;
   start();
 };
+$('menu').onclick = () => {
+  const running = $('final').hidden && (results.length || dres.length || guess);
+  if (running && !confirm('Quitter la partie en cours et revenir au menu ?')) return;
+  showHome();
+};
+$('tomenu').onclick = showHome;
 $('ready').onclick = ready;
 $('go').onclick = () => players === 2 ? duelSubmit() : reveal();
 $('next').onclick = advance;
 $('again').onclick = start;
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' || !$('final').hidden) return;
-  if (waiting) return;
+  if (e.key !== 'Enter' || !$('final').hidden || !$('home').hidden) return;
+  if (waiting || counting) return;
   if (!revealed) { if (players === 2) duelSubmit(); else reveal(); } else advance();
 });
 new ResizeObserver(() => map.invalidateSize()).observe(wrap);
-start();
+map.setView([25, 10], 2); /* la partie démarre depuis l'écran d'accueil */
 </script>
 
 </body>
