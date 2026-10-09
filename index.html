@@ -99,6 +99,7 @@ td.t { min-width: 0; }
       <option value="mixte">Tout</option>
       <option value="lieux">Lieux</option>
       <option value="perso">Personnalités</option>
+      <option value="sport">Sport</option>
     </select>
     <div class="meta"><span>Manche <b id="rnd">1</b>/5</span><span><b id="tot">0</b> pts</span></div>
   </header>
@@ -295,7 +296,100 @@ const PEOPLE = [
 {t:"Christophe Colomb",c:"Histoire",x:"Navigateur qui atteint les Amériques en 1492 pour le compte de l'Espagne, alors qu'il n'est pas né dans ce pays.",p:"Gênes, Italie",a:44.4056,o:8.9463},
 {t:"Coco Chanel",c:"Mode",x:"Couturière à l'origine du tailleur, de la petite robe noire et du parfum N°5. Elle a grandi dans un orphelinat.",p:"Saumur, France",a:47.2600,o:-0.0770}
 ];
-const ALL = DATA.map(d => Object.assign(d, { k: 'lieu' })).concat(PEOPLE.map(d => Object.assign(d, { k: 'perso' })));
+/* Sport : stades (lieux) et sportifs (lieu de naissance). Coordonnées issues de Wikidata (P625, et P19 pour les sportifs). */
+const STADES = [
+{t:"Stade Maracanã",c:"Stade",x:"Stade de football géant inauguré pour la Coupe du monde 1950, où l'équipe locale perdit la finale devant près de 200 000 spectateurs. Il a aussi accueilli la finale de 2014.",p:"Rio de Janeiro, Brésil",a:-22.9122,o:-43.2303},
+{t:"Camp Nou",c:"Stade",x:"Plus grand stade d'Europe par sa capacité, d'environ 100 000 places, ouvert en 1957 et domicile d'un club aux couleurs bleu et grenat.",p:"Barcelone, Espagne",a:41.3808,o:2.1228},
+{t:"Stade de Wembley",c:"Stade",x:"Stade national de football de son pays, doté d'une arche d'acier de 133 mètres, reconstruit en 2007 à l'emplacement de l'ancien stade aux deux tours.",p:"Londres, Royaume-Uni",a:51.5556,o:-0.2794},
+{t:"Allianz Arena",c:"Stade",x:"Stade à la façade gonflable en coussins translucides qui change de couleur, ouvert en 2005 pour deux clubs de la ville.",p:"Munich, Allemagne",a:48.2188,o:11.6248},
+{t:"Stade de France",c:"Stade",x:"Stade national de 80 000 places inauguré en 1998 pour la Coupe du monde, avec un toit elliptique suspendu. Il a accueilli la finale de cette édition.",p:"Saint-Denis, France",a:48.9244,o:2.3600},
+{t:"Stade Santiago-Bernabéu",c:"Stade",x:"Stade de football à toit rétractable, nommé d'après un ancien président du club blanc qui y joue, dont les joueurs sont surnommés « les Merengues ».",p:"Madrid, Espagne",a:40.4531,o:-3.6884},
+{t:"Old Trafford",c:"Stade",x:"Surnommé « le Théâtre des rêves », plus grand stade de club de football de son pays, domicile d'un club aux maillots rouges.",p:"Manchester, Royaume-Uni",a:53.4631,o:-2.2914},
+{t:"Anfield",c:"Stade",x:"Stade de football dont la tribune du fond est célèbre pour son chant « You'll Never Walk Alone », domicile d'un club aux maillots rouges d'un grand port.",p:"Liverpool, Royaume-Uni",a:53.4308,o:-2.9608},
+{t:"Stade Giuseppe-Meazza",c:"Stade",x:"Stade de football partagé par deux clubs rivaux, connu pour ses tours cylindriques en béton et nommé d'après un ancien joueur.",p:"Milan, Italie",a:45.4781,o:9.1239},
+{t:"Stade Azteca",c:"Stade",x:"Premier stade à avoir accueilli deux finales de Coupe du monde (1970 et 1986), théâtre de la « main de Dieu » de Maradona, à plus de 2 200 mètres d'altitude.",p:"Mexico, Mexique",a:19.3031,o:-99.1506},
+{t:"La Bombonera",c:"Stade",x:"Stade en forme de boîte de chocolats aux tribunes très raides, domicile d'un club bleu et or où a joué Maradona.",p:"Buenos Aires, Argentine",a:-34.6356,o:-58.3646},
+{t:"Stade olympique de 1936",w:"Olympiastadion (Berlin)",c:"Stade",x:"Stade monumental inauguré pour les Jeux de 1936, où Jesse Owens remporta quatre médailles d'or. La finale du Mondial 2006 s'y est aussi jouée.",p:"Berlin, Allemagne",a:52.5147,o:13.2394},
+{t:"Nid d'oiseau",w:"Stade national de Pékin",c:"Stade",x:"Stade de 91 000 places à l'armature d'acier entrelacée, conçu par deux architectes suisses pour les Jeux olympiques de 2008.",p:"Pékin, Chine",a:39.9915,o:116.3905},
+{t:"Stade olympique de 1972",w:"Stade olympique de Munich",c:"Stade",x:"Stade au toit de toile tendue suspendu à des mâts, construit pour les Jeux de 1972, marqués par un attentat, et théâtre de la finale du Mondial 1974.",p:"Munich, Allemagne",a:48.1731,o:11.5467},
+{t:"Stade olympique de 1960",w:"Stade olympique de Rome",c:"Stade",x:"Stade inauguré pour les Jeux de 1960, partagé par deux clubs de football de la ville, dans un grand complexe sportif du bord du fleuve.",p:"Rome, Italie",a:41.9339,o:12.4547},
+{t:"Stade panathénaïque",c:"Stade",x:"Stade entièrement en marbre blanc, en forme de fer à cheval, où se tinrent les premiers Jeux olympiques modernes en 1896.",p:"Athènes, Grèce",a:37.9683,o:23.7411},
+{t:"Stade olympique de 1976",w:"Stade olympique de Montréal",c:"Stade",x:"Stade des Jeux de 1976 surnommé « le Big O », surmonté d'une tour inclinée de 165 mètres, la plus haute du monde pour une tour de ce type.",p:"Montréal, Canada",a:45.5578,o:-73.5516},
+{t:"Stade Roland-Garros",c:"Stade",x:"Stade de tennis où se joue chaque printemps un tournoi du Grand Chelem sur terre battue, nommé d'après un aviateur pionnier.",p:"Paris, France",a:48.8463,o:2.2494},
+{t:"Stade Loujniki",c:"Stade",x:"Stade de la finale de la Coupe du monde 2018, situé dans un méandre d'un fleuve, ancien stade des Jeux de 1980.",p:"Moscou, Russie",a:55.7158,o:37.5536},
+{t:"MCG",w:"Melbourne Cricket Ground",c:"Stade",x:"Stade de cricket de plus de 90 000 places, ouvert en 1853, qui accueillit la finale des Jeux olympiques de 1956.",p:"Melbourne, Australie",a:-37.8199,o:144.9834},
+{t:"Eden Gardens",c:"Stade",x:"Stade de cricket mythique de plus de 60 000 places, l'un des plus grands du monde, ouvert en 1864 au bord d'un fleuve.",p:"Calcutta, Inde",a:22.5644,o:88.3433},
+{t:"Soccer City",c:"Stade",x:"Stade en forme de calebasse africaine, qui accueillit l'ouverture et la finale du Mondial 2010.",p:"Johannesburg, Afrique du Sud",a:-26.2348,o:27.9824},
+{t:"Stade de Lusail",c:"Stade",x:"Stade doré de 80 000 places, théâtre de la finale du Mondial 2022, remportée aux tirs au but par Messi et ses coéquipiers.",p:"Lusail, Qatar",a:25.4209,o:51.4904},
+{t:"Yankee Stadium",c:"Stade",x:"Stade de baseball surnommé « la maison que Ruth a bâtie », domicile d'un club aux rayures bleues, ouvert en 1923 puis reconstruit en 2009.",p:"New York, États-Unis",a:40.8296,o:-73.9264},
+{t:"Stade Vélodrome",c:"Stade",x:"Stade de football d'un grand port méditerranéen, rénové pour l'Euro 2016, domicile d'un club bleu ciel et blanc.",p:"Marseille, France",a:43.2692,o:5.3949},
+{t:"Parc des Princes",c:"Stade",x:"Stade en béton à l'architecture en anneau ouvert sur la ville, au pied du périphérique, domicile d'un club rouge et bleu.",p:"Paris, France",a:48.8414,o:2.2530},
+{t:"Twickenham Stadium",c:"Stade",x:"Stade de plus de 80 000 places consacré au rugby à XV, dans la banlieue sud-ouest d'une capitale.",p:"Londres, Royaume-Uni",a:51.4561,o:-0.3417},
+{t:"Millennium Stadium",c:"Stade",x:"Stade de rugby à toit rétractable ouvert en 1999, installé en plein centre-ville au bord d'une rivière, dans la capitale d'une nation du Royaume-Uni.",p:"Cardiff, Pays de Galles",a:51.4781,o:-3.1825},
+{t:"Signal Iduna Park",c:"Stade",x:"Stade qui abrite la plus grande tribune de supporters debout d'Europe, le « Mur jaune », pour environ 25 000 fans.",p:"Dortmund, Allemagne",a:51.4925,o:7.4517},
+{t:"Ernst-Happel-Stadion",c:"Stade",x:"Stade national de football nommé d'après un entraîneur, qui a accueilli la finale de l'Euro 2008.",p:"Vienne, Autriche",a:48.2072,o:16.4208},
+{t:"Madison Square Garden",c:"Stade",x:"Salle omnisports surnommée « la Mecque du basket », célèbre pour ses combats de boxe, dont celui de 1971 entre Ali et Frazier.",p:"New York, États-Unis",a:40.7505,o:-73.9935},
+{t:"Estadio Centenario",c:"Stade",x:"Stade ouvert en 1930 pour la première finale de Coupe du monde de football, remportée par le pays hôte.",p:"Montevideo, Uruguay",a:-34.8944,o:-56.1528},
+{t:"Stade olympique de 2012",w:"Stade olympique de Londres",c:"Stade",x:"Stade de 80 000 places bâti pour les Jeux de 2012 dans un ancien quartier industriel, où Usain Bolt a gagné trois médailles d'or.",p:"Londres, Royaume-Uni",a:51.5386,o:-0.0164},
+{t:"Stade olympique Atatürk",c:"Stade",x:"Stade de la finale de la Ligue des champions 2005, où un club anglais remonta trois buts de retard contre un club italien avant de gagner aux tirs au but.",p:"Istanbul, Turquie",a:41.0745,o:28.7657}
+];
+
+/* Sportifs : on situe le lieu de naissance. */
+const SPORTIFS = [
+{t:"Michael Jordan",c:"Basket",x:"Basketteur six fois champion NBA avec les Bulls de Chicago, devenu une marque mondiale grâce à ses chaussures « Air ».",p:"Brooklyn, New York, États-Unis",a:40.6508,o:-73.9497},
+{t:"Michael Phelps",c:"Natation",x:"Nageur aux 23 médailles d'or olympiques, record absolu, dont huit en une seule édition, à Pékin en 2008.",p:"Baltimore, Maryland, États-Unis",a:39.2864,o:-76.6150},
+{t:"Serena Williams",c:"Tennis",x:"Joueuse de tennis aux 23 titres du Grand Chelem en simple, qui a grandi en Californie. Elle est née dans une ville industrielle du Midwest.",p:"Saginaw, Michigan, États-Unis",a:43.4199,o:-83.9500},
+{t:"Novak Djokovic",c:"Tennis",x:"Joueur de tennis recordman de titres du Grand Chelem chez les hommes, dix fois vainqueur de l'Open d'Australie. Il est né dans la capitale de son pays.",p:"Belgrade, Serbie",a:44.8178,o:20.4569},
+{t:"Tiger Woods",c:"Golf",x:"Golfeur vainqueur de 15 tournois majeurs, qui a repris la compétition après de graves blessures. Il porte traditionnellement une tenue rouge le dimanche.",p:"Cypress, Californie, États-Unis",a:33.8183,o:-118.0392},
+{t:"Carl Lewis",c:"Athlétisme",x:"Athlète aux neuf médailles d'or olympiques entre 1984 et 1996, en sprint et en saut en longueur.",p:"Birmingham, Alabama, États-Unis",a:33.5175,o:-86.8094},
+{t:"Nadia Comăneci",c:"Gymnastique",x:"Gymnaste de 14 ans, première à obtenir la note parfaite de 10 aux Jeux de 1976, que le tableau d'affichage ne pouvait pas afficher.",p:"Onești, Roumanie",a:46.2500,o:26.7667},
+{t:"Jesse Owens",c:"Athlétisme",x:"Athlète noir américain, quadruple médaillé d'or aux Jeux de 1936, organisés sous le régime nazi.",p:"Oakville, Alabama, États-Unis",a:34.4450,o:-87.1610},
+{t:"Johan Cruyff",c:"Football",x:"Meneur de jeu au numéro 14 et symbole du « football total », triple Ballon d'or, puis entraîneur d'un grand club catalan.",p:"Amsterdam, Pays-Bas",a:52.3403,o:4.9433},
+{t:"Michel Platini",c:"Football",x:"Milieu de terrain, triple Ballon d'or (1983-1985), meilleur buteur de l'Euro 1984, puis président de l'UEFA. Il a grandi dans une ville sidérurgique.",p:"Jœuf, France",a:49.2297,o:6.0089},
+{t:"Kylian Mbappé",c:"Football",x:"Attaquant champion du monde à 19 ans en 2018, auteur d'un triplé en finale en 2022. Il a grandi en banlieue.",p:"Paris, France",a:48.8567,o:2.3522},
+{t:"Lewis Hamilton",c:"Sport automobile",x:"Pilote de Formule 1 sept fois champion du monde, premier pilote noir de la discipline.",p:"Stevenage, Royaume-Uni",a:51.9017,o:-0.2019},
+{t:"Michael Schumacher",c:"Sport automobile",x:"Pilote de Formule 1 sept fois champion du monde, dont cinq titres consécutifs avec Ferrari de 2000 à 2004.",p:"Hürth, Allemagne",a:50.8775,o:6.8761},
+{t:"Eddy Merckx",c:"Cyclisme",x:"Cycliste surnommé « le Cannibale », cinq victoires au Tour de France et record de victoires d'étapes.",p:"Meensel-Kiezegem, Belgique",a:50.8961,o:4.9244},
+{t:"Bernard Hinault",c:"Cyclisme",x:"Cycliste surnommé « le Blaireau », cinq victoires au Tour de France, dernier Français à l'avoir gagné, en 1985.",p:"Yffiniac, France",a:48.4850,o:-2.6775},
+{t:"Teddy Riner",c:"Judo",x:"Judoka multiple champion olympique et recordman de titres de champion du monde, chez les plus de 100 kg.",p:"Les Abymes, Guadeloupe",a:16.2706,o:-61.5047},
+{t:"Marie-José Pérec",c:"Athlétisme",x:"Sprinteuse, championne olympique du 400 m en 1992 et en 1996, et du 200 m en 1996.",p:"Basse-Terre, Guadeloupe",a:15.9969,o:-61.7328},
+{t:"Tony Parker",c:"Basket",x:"Meneur de jeu quatre fois champion NBA avec les Spurs, MVP des Finales 2007, devenu ensuite président d'un club.",p:"Bruges, Belgique",a:51.2089,o:3.2242},
+{t:"Kobe Bryant",c:"Basket",x:"Basketteur de toute une carrière aux Lakers, cinq titres NBA, surnommé « Black Mamba ». Il a passé une partie de son enfance en Italie.",p:"Philadelphie, États-Unis",a:39.9528,o:-75.1636},
+{t:"LeBron James",c:"Basket",x:"Basketteur quadruple champion NBA avec trois équipes différentes, meilleur marqueur de l'histoire de la ligue.",p:"Akron, Ohio, États-Unis",a:41.0731,o:-81.5178},
+{t:"Haile Gebrselassie",c:"Athlétisme",x:"Coureur de fond, deux fois champion olympique du 10 000 m, qui a battu plus de vingt records du monde.",p:"Assella, Éthiopie",a:7.9500,o:39.1167},
+{t:"Eliud Kipchoge",c:"Athlétisme",x:"Marathonien double champion olympique, premier à courir un marathon en moins de deux heures (1 h 59 min 40 s) en 2019, lors d'un essai hors compétition.",p:"Kapsisiywa, Kenya",a:0.3275,o:35.0544},
+{t:"Pierre de Coubertin",c:"Olympisme",x:"Pédagogue et baron, rénovateur des Jeux olympiques modernes et fondateur du Comité international olympique en 1894.",p:"Paris, France",a:48.8567,o:2.3522},
+{t:"Jean-Claude Killy",c:"Ski",x:"Skieur alpin triple champion olympique aux Jeux de 1968 à Grenoble (descente, géant et slalom).",p:"Saint-Cloud, France",a:48.8464,o:2.2153},
+{t:"Simone Biles",c:"Gymnastique",x:"Gymnaste la plus titrée de l'histoire des championnats du monde, dont plusieurs mouvements portent le nom.",p:"Columbus, Ohio, États-Unis",a:39.9622,o:-83.0006},
+{t:"Yannick Noah",c:"Tennis",x:"Joueur de tennis vainqueur de Roland-Garros en 1983, puis capitaine de l'équipe de France de Coupe Davis. Il a passé son enfance en Afrique, où vivait son père footballeur.",p:"Sedan, France",a:49.7019,o:4.9403},
+{t:"Zlatan Ibrahimović",c:"Football",x:"Attaquant à la carrière internationale (Ajax, Barcelone, Milan, PSG, Manchester United), connu pour ses buts acrobatiques et sa confiance en lui.",p:"Malmö, Suède",a:55.5783,o:13.0542},
+{t:"Franz Beckenbauer",c:"Football",x:"Défenseur surnommé « Der Kaiser », champion du monde comme joueur (1974) puis comme sélectionneur (1990).",p:"Munich, Allemagne",a:48.1375,o:11.5750},
+{t:"Ronaldo",w:"Ronaldo (football)",c:"Football",x:"Attaquant surnommé « le Phénomène », double champion du monde (1994 et 2002) avec son pays, longtemps meilleur buteur de l'histoire de la Coupe du monde.",p:"Itaguaí, Brésil",a:-22.8519,o:-43.7750},
+{t:"Ronaldinho",c:"Football",x:"Meneur de jeu aux dribbles chantants, Ballon d'or 2005 et champion du monde 2002, au sourire légendaire.",p:"Porto Alegre, Brésil",a:-30.0328,o:-51.2300},
+{t:"Neymar",c:"Football",x:"Attaquant transféré pour 222 millions d'euros en 2017 au PSG, champion olympique en 2016 avec son pays.",p:"Mogi das Cruzes, Brésil",a:-23.5228,o:-46.1931},
+{t:"Mohamed Salah",c:"Football",x:"Attaquant de Liverpool, plusieurs fois meilleur buteur de Premier League, très populaire dans son pays natal, un village du nord.",p:"Nagrig, Égypte",a:30.9725,o:30.8669},
+{t:"Sadio Mané",c:"Football",x:"Attaquant vainqueur de la Ligue des champions 2019 avec Liverpool et de la CAN 2022 avec son pays. Il a grandi dans un village.",p:"Bambali, Sénégal",a:12.6042,o:-15.6614},
+{t:"Björn Borg",c:"Tennis",x:"Joueur de tennis aux cinq victoires consécutives à Wimbledon (1976-1980), célèbre pour son calme et son bandeau.",p:"Stockholm, Suède",a:59.3294,o:18.0686},
+{t:"Michael Johnson",w:"Michael Johnson (athlète)",c:"Athlétisme",x:"Sprinteur aux chaussures dorées, qui réussit le doublé 200 m - 400 m aux Jeux d'Atlanta en 1996.",p:"Dallas, Texas, États-Unis",a:32.7792,o:-96.8089},
+{t:"Sébastien Loeb",c:"Sport automobile",x:"Pilote de rallye neuf fois champion du monde consécutif entre 2004 et 2012.",p:"Haguenau, France",a:48.8167,o:7.7878},
+{t:"Laure Manaudou",c:"Natation",x:"Nageuse championne olympique du 400 m nage libre en 2004, à Athènes, puis recordwoman du monde en dos.",p:"Villeurbanne, France",a:45.7661,o:4.8794},
+{t:"Wayne Gretzky",c:"Hockey sur glace",x:"Joueur de hockey sur glace surnommé « La Merveille », meilleur marqueur de l'histoire de la LNH avec le numéro 99.",p:"Brantford, Ontario, Canada",a:43.1408,o:-80.2631},
+{t:"Babe Ruth",c:"Baseball",x:"Joueur de baseball surnommé « le Bambino », qui a transformé son sport par ses coups de circuit dans les années 1920.",p:"Baltimore, Maryland, États-Unis",a:39.2864,o:-76.6150},
+{t:"Sachin Tendulkar",c:"Cricket",x:"Batteur de cricket surnommé « le Dieu du cricket », premier à marquer 100 centuries internationaux, retraité en 2013.",p:"Bombay (Mumbai), Inde",a:19.0758,o:72.8775},
+{t:"Yao Ming",c:"Basket",x:"Pivot de 2,29 m qui a joué huit saisons en NBA aux Rockets de Houston et fait connaître la ligue dans son pays.",p:"Shanghai, Chine",a:31.2325,o:121.4692},
+{t:"Jacques Anquetil",c:"Cyclisme",x:"Cycliste premier vainqueur de cinq Tours de France (1957, 1961-1964), spécialiste du contre-la-montre.",p:"Mont-Saint-Aignan, France",a:49.4625,o:1.0872},
+{t:"Cathy Freeman",c:"Athlétisme",x:"Athlète aborigène qui alluma la vasque olympique en 2000 devant son public, puis remporta le 400 m dans la foulée.",p:"Slade Point, Queensland, Australie",a:-21.0667,o:149.2167},
+{t:"Dirk Nowitzki",c:"Basket",x:"Basketteur qui a mené son équipe au titre NBA en 2011, connu pour son tir en fadeaway, toute sa carrière aux Mavericks.",p:"Wurtzbourg, Allemagne",a:49.7944,o:9.9294},
+{t:"Didier Drogba",c:"Football",x:"Attaquant de Chelsea, vainqueur de la Ligue des champions 2012 grâce à un but de la tête et au tir au but décisif.",p:"Abidjan, Côte d'Ivoire",a:5.3364,o:-4.0267},
+{t:"Samuel Eto'o",c:"Football",x:"Attaquant quatre fois Ballon d'or africain et triple vainqueur de la Ligue des champions (2006, 2009, 2010).",p:"Douala, Cameroun",a:4.0500,o:9.7000},
+{t:"Roger Milla",c:"Football",x:"Attaquant qui dansait au drapeau de corner en 1990 et devint à 42 ans le plus vieux buteur de l'histoire de la Coupe du monde, en 1994.",p:"Yaoundé, Cameroun",a:3.8578,o:11.5181},
+{t:"George Weah",c:"Football",x:"Seul Africain Ballon d'or (1995), devenu ensuite président de son pays.",p:"Monrovia, Liberia",a:6.3106,o:-10.8047},
+{t:"Steffi Graf",c:"Tennis",x:"Joueuse de tennis, seule à avoir réalisé le « Grand Chelem doré » en 1988 : les quatre tournois majeurs et les Jeux olympiques la même année.",p:"Mannheim, Allemagne",a:49.4878,o:8.4661},
+{t:"Martina Navrátilová",c:"Tennis",x:"Joueuse de tennis aux 18 titres du Grand Chelem en simple, qui a quitté son pays natal en 1975 et obtenu la nationalité américaine.",p:"Prague, Tchéquie",a:50.0875,o:14.4214}
+];
+const SPORT_CATS = ['Football', 'Sport automobile', 'Boxe', 'Athlétisme', 'Tennis'];
+const ALL = DATA.concat(STADES).map(d => Object.assign(d, { k: 'lieu', s: STADES.includes(d) }))
+  .concat(PEOPLE.concat(SPORTIFS).map(d => Object.assign(d, { k: 'perso', s: SPORTIFS.includes(d) || SPORT_CATS.includes(d.c) })));
 const TOTAL = 5, DECAY = 1500;
 let mode = 'mixte';
 const $ = id => document.getElementById(id);
@@ -346,7 +440,7 @@ const points = d => d < 25 ? 5000 : Math.round(5000 * Math.exp(-d / DECAY));
 /* ---- manches ---- */
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function start() {
-  const pool = ALL.filter(d => mode === 'mixte' || (mode === 'lieux') === (d.k === 'lieu'));
+  const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
   rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
   $('final').hidden = true; $('tot').textContent = '0';
   load();
