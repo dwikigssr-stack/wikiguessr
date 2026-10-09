@@ -23,6 +23,7 @@
   --line: #d3dde2;
   --guess: #d4380d;
   --p2: #2b6cb0;
+  --p3: #7c4dbd;
   --truth: #148a5c;
   --btn-ink: #ffffff;
   --btn: #14262e;
@@ -33,13 +34,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
-    --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --truth: #4ad6a0;
+    --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --p3: #c4a2ff; --truth: #4ad6a0;
     --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d1a20; --card: #14252d; --sea: #0f2029; --land: #223f4a; --border: #38606d;
-  --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --truth: #4ad6a0;
+  --ink: #e7eff1; --muted: #8fa7af; --line: #243b45; --guess: #ffc247; --p2: #6cb4ff; --p3: #c4a2ff; --truth: #4ad6a0;
   --btn-ink: #0d1a20; --btn: #e7eff1; color-scheme: dark;
 }
 [hidden] { display: none !important; }
@@ -50,6 +51,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
+.meta { flex: 1 1 100%; flex-wrap: wrap; gap: 4px 14px; }
+.meta span { white-space: nowrap; }
 .menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 #home { position: absolute; inset: 0; z-index: 3000; background: var(--bg); overflow-y: auto; display: flex; padding: 24px 16px; }
@@ -64,6 +67,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 .note { font: 12px var(--font-mono); color: var(--muted); }
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
+.p3 { color: var(--p3); }
 #who { font-weight: 700; }
 #handoff { position: absolute; inset: 0; z-index: 1500; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
 #handoff h2 { font-family: var(--font-display); font-size: 26px; margin: 0; }
@@ -131,7 +135,7 @@ td.t { min-width: 0; }
   <header>
     <div class="brand">Wikiguessr</div>
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
-    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/5</span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span></span></div>
+    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/5</span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
   </header>
   <section id="card" aria-live="polite">
     <div id="photo"><span id="mono"></span><img id="img" alt="" hidden></div>
@@ -147,7 +151,7 @@ td.t { min-width: 0; }
     <div id="countdown" hidden><div id="cdnum">3</div><p id="cdtxt"></p></div>
     <div id="handoff" hidden>
       <h2 id="hotitle">Au tour du Joueur 2</h2>
-      <p>Le Joueur 1 a joué. Passez l'appareil au Joueur 2 sans montrer l'écran.</p>
+      <p id="hotext">Le Joueur 1 a joué. Passez l'appareil au Joueur 2 sans montrer l'écran.</p>
       <button class="main" id="ready">Joueur 2 est prêt</button>
     </div>
     <div class="zoom"><button id="zin" aria-label="Zoom avant">+</button><button id="zout" aria-label="Zoom arrière">&minus;</button></div>
@@ -166,10 +170,7 @@ td.t { min-width: 0; }
     <div id="fsolo"><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
     <div id="fduel" hidden>
       <div id="fwinner"></div>
-      <div class="duelscores">
-        <div class="ds p1"><span>Joueur 1</span><b id="fs1"></b><i>points</i></div>
-        <div class="ds p2"><span>Joueur 2</span><b id="fs2"></b><i>points</i></div>
-      </div>
+      <div class="duelscores" id="fscores"></div>
       <div class="of" id="fdiff"></div>
     </div>
     <h2 id="frank"></h2>
@@ -186,7 +187,8 @@ td.t { min-width: 0; }
         <div class="optname">Mode de jeu</div>
         <div class="seg" data-key="players">
           <button type="button" data-v="1" aria-pressed="true">Solo</button>
-          <button type="button" data-v="2" aria-pressed="false">Duel à deux</button>
+          <button type="button" data-v="2" aria-pressed="false">2 joueurs</button>
+          <button type="button" data-v="3" aria-pressed="false">3 joueurs</button>
         </div>
       </div>
       <div class="opt">
@@ -504,12 +506,12 @@ function fitAll(r) {
 function drawOverlay() {
   layer.clearLayers();
   const cur = rounds[idx];
-  if (players === 2) {
+  if (players > 1) {
     if (revealed && cur) {
       dg.forEach(g => { if (g) L.polyline([[g.a, g.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer); });
       dot(cssv('--truth'), cur).addTo(layer);
-      dg.forEach((g, i) => { if (g) dot(cssv(i ? '--p2' : '--guess'), g).addTo(layer); });
-    } else if (guess) dot(cssv(turn ? '--p2' : '--guess'), guess).addTo(layer);
+      dg.forEach((g, i) => { if (g) dot(cssv(PCOL[i]), g).addTo(layer); });
+    } else if (guess) dot(cssv(PCOL[turn]), guess).addTo(layer);
     return;
   }
   if (revealed && cur) {
@@ -539,7 +541,7 @@ function countdown() {
   $('clock').hidden = true; $('timebar').hidden = true;
   let n = 3;
   $('cdnum').textContent = n;
-  $('cdtxt').textContent = players === 2 ? 'Le Joueur 1 commence' : 'Préparez-vous';
+  $('cdtxt').textContent = players > 1 ? 'Le Joueur 1 commence' : 'Préparez-vous';
   $('countdown').hidden = false;
   cdTick = setInterval(() => { n--; if (n > 0) $('cdnum').textContent = n; else { endCountdown(); startTimer(); } }, 1000);
 }
@@ -548,14 +550,15 @@ function start() {
   $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
   const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
   rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
-  players = sel.players; dtot = [0, 0]; dres = [];
-  $('solo').hidden = players === 2; $('duo').hidden = players !== 2; $('who').hidden = players !== 2;
-  $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0'; $('t1').textContent = '0'; $('t2').textContent = '0';
+  players = sel.players; dtot = Array(players).fill(0); dres = [];
+  $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
+  $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
+  ['t1', 't2', 't3'].forEach(id => { $(id).textContent = '0'; });
   load();
 }
 function load() {
   const r = rounds[idx];
-  guess = null; revealed = false; turn = 0; dg = [null, null]; waiting = false;
+  guess = null; revealed = false; turn = 0; dg = Array(players).fill(null); waiting = false;
   $('handoff').hidden = true; updateWho();
   $('rnd').textContent = idx + 1;
   $('chip').textContent = r.k === 'perso' ? 'Personnalité · ' + r.c + ' · lieu de naissance' : r.c;
@@ -585,13 +588,14 @@ function setPhoto(r) {
     } catch (e) {}
   }
 }
-/* ---- duel en écran partagé : même manche pour les deux, J1 puis J2, repères cachés jusqu'à la comparaison ---- */
-let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], dfr = [0, 0], waiting = false;
+/* ---- duel en écran partagé (2 ou 3 joueurs) : même manche pour tous, J1 puis J2 (puis J3), repères cachés jusqu'à la comparaison ---- */
+let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], dfr = [0, 0, 0], waiting = false;
+const PCOL = ['--guess', '--p2', '--p3'];
 function updateWho() {
   const w = $('who');
-  w.textContent = players === 2 ? 'Joueur ' + (turn + 1) : '';
-  w.className = turn ? 'p2' : 'p1';
-  $('hint').textContent = players === 2 ? 'Joueur ' + (turn + 1) + ' : touchez la carte pour poser un repère' : 'Touchez la carte pour poser un repère';
+  w.textContent = players > 1 ? 'Joueur ' + (turn + 1) : '';
+  w.className = 'p' + (turn + 1);
+  $('hint').textContent = players > 1 ? 'Joueur ' + (turn + 1) + ' : touchez la carte pour poser un repère' : 'Touchez la carte pour poser un repère';
 }
 const dtext = x => x === null ? 'temps écoulé' : fmt(x) + ' km';
 function duelSubmit(force) {
@@ -600,8 +604,12 @@ function duelSubmit(force) {
   dfr[turn] = fracLeft();
   stopTimer();
   dg[turn] = guess;
-  if (turn === 0) {
+  if (turn < players - 1) {
     waiting = true; guess = null; drawOverlay();
+    const nx = turn + 2;
+    $('hotitle').textContent = 'Au tour du Joueur ' + nx;
+    $('hotext').textContent = "Le Joueur " + (turn + 1) + " a joué. Passez l'appareil au Joueur " + nx + " sans montrer l'écran.";
+    $('ready').textContent = 'Joueur ' + nx + ' est prêt';
     $('go').disabled = true; $('handoff').hidden = false;
     return;
   }
@@ -609,14 +617,15 @@ function duelSubmit(force) {
   const r = rounds[idx];
   const d = dg.map(g => g ? km(g.a, g.o, r.a, r.o) : null);
   const base = d.map(x => x === null ? 0 : points(x)), b = base.map((x, i) => speedBonus(x, dfr[i])), p = base.map((x, i) => x + b[i]);
-  dtot[0] += p[0]; dtot[1] += p[1]; dres.push({ t: r.t, d, p, b });
-  $('t1').textContent = fmt(dtot[0]); $('t2').textContent = fmt(dtot[1]);
-  $('dist').textContent = p[0] > p[1] ? 'Manche pour le Joueur 1' : p[1] > p[0] ? 'Manche pour le Joueur 2' : 'Égalité sur cette manche';
-  $('pts').textContent = '+' + fmt(p[0]) + ' / +' + fmt(p[1]) + ' pts';
+  p.forEach((x, i) => { dtot[i] += x; $('t' + (i + 1)).textContent = fmt(dtot[i]); });
+  dres.push({ t: r.t, d, p, b });
+  const top = Math.max(...p), lead = p.map((x, i) => x === top ? i + 1 : 0).filter(Boolean);
+  $('dist').textContent = lead.length === 1 ? 'Manche pour le Joueur ' + lead[0] : 'Égalité sur cette manche';
+  $('pts').textContent = p.map(x => '+' + fmt(x)).join(' / ') + ' pts';
   $('where').textContent = '';
   const s = document.createElement('span');
   const bt = x => x ? ' (dont ' + fmt(x) + ' de vitesse)' : '';
-  s.textContent = 'J1 : ' + dtext(d[0]) + bt(b[0]) + ' · J2 : ' + dtext(d[1]) + bt(b[1]) + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
+  s.textContent = d.map((x, i) => 'J' + (i + 1) + ' : ' + dtext(x) + bt(b[i])).join(' · ') + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
   const a = document.createElement('a');
   a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
   a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
@@ -626,23 +635,31 @@ function duelSubmit(force) {
   drawOverlay(); fitAll(r);
 }
 function ready() {
-  $('handoff').hidden = true; waiting = false; turn = 1; guess = null;
+  $('handoff').hidden = true; waiting = false; turn += 1; guess = null;
   resetView(); $('go').disabled = true; $('hint').hidden = false;
   updateWho(); startTimer();
 }
 function finishDuel() {
-  const [a, b] = dtot;
   $('fsolo').hidden = true; $('frank').hidden = true; $('fduel').hidden = false;
-  $('fs1').textContent = fmt(a); $('fs2').textContent = fmt(b);
+  const top = Math.max(...dtot), lead = dtot.map((x, i) => x === top ? i + 1 : 0).filter(Boolean);
+  const sc = $('fscores'); sc.textContent = '';
+  sc.style.gridTemplateColumns = 'repeat(' + players + ', 1fr)';
+  dtot.forEach((x, i) => {
+    const card = document.createElement('div'); card.className = 'ds p' + (i + 1) + (lead.includes(i + 1) && lead.length === 1 ? ' win' : '');
+    const n = document.createElement('span'); n.textContent = 'Joueur ' + (i + 1);
+    const v = document.createElement('b'); v.textContent = fmt(x);
+    if (players === 3) v.style.fontSize = '28px';
+    const u = document.createElement('i'); u.textContent = 'points';
+    card.append(n, v, u); sc.appendChild(card);
+  });
   const w = $('fwinner');
-  w.textContent = a > b ? 'Victoire du Joueur 1 !' : b > a ? 'Victoire du Joueur 2 !' : 'Égalité parfaite !';
-  w.className = a > b ? 'p1' : b > a ? 'p2' : '';
-  document.querySelectorAll('.ds').forEach(el => el.classList.remove('win'));
-  if (a !== b) document.querySelector(a > b ? '.ds.p1' : '.ds.p2').classList.add('win');
-  $('fdiff').textContent = a === b ? 'Les deux joueurs ont le même total.' : 'Avec ' + fmt(Math.abs(a - b)) + ' points d’avance' + (timeLimit ? ' (bonus de vitesse inclus).' : '.');
+  w.textContent = lead.length === 1 ? 'Victoire du Joueur ' + lead[0] + ' !' : lead.length === players ? 'Égalité parfaite !' : 'Égalité entre les Joueurs ' + lead.join(' et ') + ' !';
+  w.className = lead.length === 1 ? 'p' + lead[0] : '';
+  const second = Math.max(...dtot.filter(x => x !== top), -1);
+  $('fdiff').textContent = lead.length > 1 ? 'Même total en tête.' : 'Avec ' + fmt(top - second) + ' points d’avance sur le deuxième' + (timeLimit ? ' (bonus de vitesse inclus).' : '.');
   const tb = $('frows'); tb.textContent = '';
   const head = document.createElement('tr');
-  ['Manche', 'Joueur 1', 'Joueur 2'].forEach((h, i) => { const c = document.createElement('td'); c.className = i ? 'n' : 't'; c.textContent = h; c.style.color = 'var(--muted)'; head.appendChild(c); });
+  ['Manche'].concat(dtot.map((_, i) => 'J' + (i + 1))).forEach((h, i) => { const c = document.createElement('td'); c.className = i ? 'n' : 't'; c.textContent = h; c.style.color = 'var(--muted)'; head.appendChild(c); });
   tb.appendChild(head);
   for (const r of dres) {
     const tr = document.createElement('tr');
@@ -653,11 +670,10 @@ function finishDuel() {
       const sub = document.createElement('div'); sub.textContent = dtext(r.d[i]);
       sub.style.cssText = 'font-size:11px;color:var(--muted);font-weight:400';
       c.appendChild(sub);
-      if (r.p[i] > r.p[1 - i]) c.style.fontWeight = '700';
+      if (r.p[i] === Math.max(...r.p) && r.p.filter(x => x === r.p[i]).length === 1) c.style.fontWeight = '700';
       return c;
     };
-    const c2 = cell(0), c3 = cell(1);
-    tr.append(c1, c2, c3); tb.appendChild(tr);
+    tr.append(c1, ...r.p.map((_, i) => cell(i))); tb.appendChild(tr);
   }
   $('fbest').textContent = '';
   $('final').hidden = false;
@@ -688,7 +704,7 @@ function startTimer() {
     $('sec').textContent = Math.ceil(left / 1000);
     $('timefill').style.width = (100 * left / (timeLimit * 1000)) + '%';
     $('clock').classList.toggle('low', low); $('timebar').classList.toggle('low', low);
-    if (left <= 0) { stopTimer(); if (!revealed) { if (players === 2) duelSubmit(true); else if (guess) reveal(); else timeUp(); } }
+    if (left <= 0) { stopTimer(); if (!revealed) { if (players > 1) duelSubmit(true); else if (guess) reveal(); else timeUp(); } }
   };
   paint(); tick = setInterval(paint, 200);
 }
@@ -737,7 +753,7 @@ function rank(t) {
 function finish() {
   stopTimer();
   $('clock').hidden = true; $('timebar').hidden = true;
-  if (players === 2) return finishDuel();
+  if (players > 1) return finishDuel();
   const scale = timeLimit ? 1 + SPEED : 1;
   $('fof').textContent = 'sur ' + fmt(25000 * scale) + ' points' + (timeLimit ? ' (bonus de vitesse inclus)' : '');
   $('ftot').textContent = fmt(total);
@@ -772,7 +788,7 @@ document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => 
   const b = e.target.closest('button'); if (!b) return;
   choose(g.dataset.key, b.dataset.v);
   /* En duel la vitesse compte : sans chrono elle ne serait pas mesurée, on propose donc 30 s. */
-  if (g.dataset.key === 'players' && sel.players === 2 && sel.time === 0) choose('time', 30);
+  if (g.dataset.key === 'players' && sel.players > 1 && sel.time === 0) choose('time', 30);
 }));
 function showHome() {
   stopTimer(); endCountdown();
@@ -791,13 +807,13 @@ $('menu').onclick = () => {
 };
 $('tomenu').onclick = showHome;
 $('ready').onclick = ready;
-$('go').onclick = () => players === 2 ? duelSubmit() : reveal();
+$('go').onclick = () => players > 1 ? duelSubmit() : reveal();
 $('next').onclick = advance;
 $('again').onclick = start;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || !$('final').hidden || !$('home').hidden) return;
   if (waiting || counting) return;
-  if (!revealed) { if (players === 2) duelSubmit(); else reveal(); } else advance();
+  if (!revealed) { if (players > 1) duelSubmit(); else reveal(); } else advance();
 });
 new ResizeObserver(() => map.invalidateSize()).observe(wrap);
 map.setView([25, 10], 2); /* la partie démarre depuis l'écran d'accueil */
