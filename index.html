@@ -58,6 +58,17 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 #handoff h2 { font-family: var(--font-display); font-size: 26px; margin: 0; }
 #handoff p { margin: 0; color: var(--muted); max-width: 36ch; }
 #handoff button { max-width: 320px; }
+#countdown { position: absolute; inset: 0; z-index: 1600; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; }
+#cdnum { font: 700 120px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+#cdtxt { margin: 0; color: var(--muted); }
+.cd #photo, .cd .txt { visibility: hidden; }
+#fwinner { font: 700 34px/1.1 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.duelscores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.ds { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.ds span { font-family: var(--font-mono); font-size: 12.5px; }
+.ds b { font: 700 36px/1.1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
+.ds i { font: normal 12px var(--font-mono); color: var(--muted); }
+.ds.win { border-width: 2px; border-color: var(--truth); }
 #clock.low b { color: var(--guess); }
 #timebar { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 1000; background: var(--line); pointer-events: none; }
 #timebar i { display: block; height: 100%; width: 100%; background: var(--ink); }
@@ -139,6 +150,7 @@ td.t { min-width: 0; }
   <div id="mapwrap">
     <div id="map" aria-label="Carte du monde. Touchez pour placer votre repère."></div>
     <div id="timebar" hidden><i id="timefill"></i></div>
+    <div id="countdown" hidden><div id="cdnum">3</div><p id="cdtxt"></p></div>
     <div id="handoff" hidden>
       <h2 id="hotitle">Au tour du Joueur 2</h2>
       <p>Le Joueur 1 a joué. Passez l'appareil au Joueur 2 sans montrer l'écran.</p>
@@ -157,7 +169,15 @@ td.t { min-width: 0; }
   </div>
   <div id="final" hidden>
     <div class="of">Partie terminée</div>
-    <div><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
+    <div id="fsolo"><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
+    <div id="fduel" hidden>
+      <div id="fwinner"></div>
+      <div class="duelscores">
+        <div class="ds p1"><span>Joueur 1</span><b id="fs1"></b><i>points</i></div>
+        <div class="ds p2"><span>Joueur 2</span><b id="fs2"></b><i>points</i></div>
+      </div>
+      <div class="of" id="fdiff"></div>
+    </div>
     <h2 id="frank"></h2>
     <div class="tablewrap"><table><tbody id="frows"></tbody></table></div>
     <div class="of" id="fbest"></div>
@@ -482,7 +502,22 @@ const points = d => d < 25 ? 5000 : Math.round(5000 * Math.exp(-d / DECAY));
 
 /* ---- manches ---- */
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+/* ---- décompte de 3 secondes avant le début d'une partie (duel ou chronométrée) : cache la carte et l'indice ---- */
+let counting = false, cdTick = null;
+function endCountdown() { clearInterval(cdTick); cdTick = null; counting = false; $('countdown').hidden = true; document.body.classList.remove('cd'); }
+function countdown() {
+  endCountdown(); stopTimer();
+  counting = true; document.body.classList.add('cd');
+  $('clock').hidden = true; $('timebar').hidden = true;
+  let n = 3;
+  $('cdnum').textContent = n;
+  $('cdtxt').textContent = players === 2 ? 'Le Joueur 1 commence' : 'Préparez-vous';
+  $('countdown').hidden = false;
+  cdTick = setInterval(() => { n--; if (n > 0) $('cdnum').textContent = n; else { endCountdown(); startTimer(); } }, 1000);
+}
 function start() {
+  endCountdown();
+  $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
   const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
   rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
   players = +$('players').value; dtot = [0, 0]; dres = [];
@@ -503,7 +538,7 @@ function load() {
   $('result').hidden = true; $('hint').hidden = false;
   resetView();
   $('card').className = r.k;
-  startTimer();
+  if (idx === 0 && (players === 2 || timeLimit)) countdown(); else startTimer();
 }
 /* Photo : champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r) {
@@ -523,7 +558,7 @@ function setPhoto(r) {
   }
 }
 /* ---- duel en écran partagé : même manche pour les deux, J1 puis J2, repères cachés jusqu'à la comparaison ---- */
-let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], waiting = false;
+let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], dfr = [0, 0], waiting = false;
 function updateWho() {
   const w = $('who');
   w.textContent = players === 2 ? 'Joueur ' + (turn + 1) : '';
@@ -534,6 +569,7 @@ const dtext = x => x === null ? 'temps écoulé' : fmt(x) + ' km';
 function duelSubmit(force) {
   if (revealed || waiting) return;
   if (!guess && !force) return;
+  dfr[turn] = fracLeft();
   stopTimer();
   dg[turn] = guess;
   if (turn === 0) {
@@ -543,14 +579,16 @@ function duelSubmit(force) {
   }
   revealed = true;
   const r = rounds[idx];
-  const d = dg.map(g => g ? km(g.a, g.o, r.a, r.o) : null), p = d.map(x => x === null ? 0 : points(x));
-  dtot[0] += p[0]; dtot[1] += p[1]; dres.push({ t: r.t, d, p });
+  const d = dg.map(g => g ? km(g.a, g.o, r.a, r.o) : null);
+  const base = d.map(x => x === null ? 0 : points(x)), b = base.map((x, i) => speedBonus(x, dfr[i])), p = base.map((x, i) => x + b[i]);
+  dtot[0] += p[0]; dtot[1] += p[1]; dres.push({ t: r.t, d, p, b });
   $('t1').textContent = fmt(dtot[0]); $('t2').textContent = fmt(dtot[1]);
   $('dist').textContent = p[0] > p[1] ? 'Manche pour le Joueur 1' : p[1] > p[0] ? 'Manche pour le Joueur 2' : 'Égalité sur cette manche';
   $('pts').textContent = '+' + fmt(p[0]) + ' / +' + fmt(p[1]) + ' pts';
   $('where').textContent = '';
   const s = document.createElement('span');
-  s.textContent = 'J1 : ' + dtext(d[0]) + ' · J2 : ' + dtext(d[1]) + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
+  const bt = x => x ? ' (dont ' + fmt(x) + ' de vitesse)' : '';
+  s.textContent = 'J1 : ' + dtext(d[0]) + bt(b[0]) + ' · J2 : ' + dtext(d[1]) + bt(b[1]) + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
   const a = document.createElement('a');
   a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
   a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
@@ -566,10 +604,14 @@ function ready() {
 }
 function finishDuel() {
   const [a, b] = dtot;
-  $('ftot').style.fontSize = '40px';
-  $('ftot').textContent = fmt(a) + ' – ' + fmt(b);
-  $('fof').textContent = 'Joueur 1 – Joueur 2';
-  $('frank').textContent = a > b ? 'Victoire du Joueur 1 !' : b > a ? 'Victoire du Joueur 2 !' : 'Égalité parfaite !';
+  $('fsolo').hidden = true; $('frank').hidden = true; $('fduel').hidden = false;
+  $('fs1').textContent = fmt(a); $('fs2').textContent = fmt(b);
+  const w = $('fwinner');
+  w.textContent = a > b ? 'Victoire du Joueur 1 !' : b > a ? 'Victoire du Joueur 2 !' : 'Égalité parfaite !';
+  w.className = a > b ? 'p1' : b > a ? 'p2' : '';
+  document.querySelectorAll('.ds').forEach(el => el.classList.remove('win'));
+  if (a !== b) document.querySelector(a > b ? '.ds.p1' : '.ds.p2').classList.add('win');
+  $('fdiff').textContent = a === b ? 'Les deux joueurs ont le même total.' : 'Avec ' + fmt(Math.abs(a - b)) + ' points d’avance' + (timeLimit ? ' (bonus de vitesse inclus).' : '.');
   const tb = $('frows'); tb.textContent = '';
   const head = document.createElement('tr');
   ['Manche', 'Joueur 1', 'Joueur 2'].forEach((h, i) => { const c = document.createElement('td'); c.className = i ? 'n' : 't'; c.textContent = h; c.style.color = 'var(--muted)'; head.appendChild(c); });
@@ -577,16 +619,23 @@ function finishDuel() {
   for (const r of dres) {
     const tr = document.createElement('tr');
     const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t;
-    const c2 = document.createElement('td'); c2.className = 'n'; c2.textContent = dtext(r.d[0]) + ' · ' + fmt(r.p[0]);
-    const c3 = document.createElement('td'); c3.className = 'n'; c3.textContent = dtext(r.d[1]) + ' · ' + fmt(r.p[1]);
-    if (r.p[0] > r.p[1]) c2.style.fontWeight = '700'; else if (r.p[1] > r.p[0]) c3.style.fontWeight = '700';
+    const cell = (i) => {
+      const c = document.createElement('td'); c.className = 'n';
+      c.textContent = fmt(r.p[i]);
+      const sub = document.createElement('div'); sub.textContent = dtext(r.d[i]);
+      sub.style.cssText = 'font-size:11px;color:var(--muted);font-weight:400';
+      c.appendChild(sub);
+      if (r.p[i] > r.p[1 - i]) c.style.fontWeight = '700';
+      return c;
+    };
+    const c2 = cell(0), c3 = cell(1);
     tr.append(c1, c2, c3); tb.appendChild(tr);
   }
   $('fbest').textContent = '';
   $('final').hidden = false;
 }
 function place(lat, lon) {
-  if (revealed || waiting) return;
+  if (revealed || waiting || counting) return;
   lon = ((lon + 540) % 360) - 180;
   guess = { a: lat, o: lon };
   $('go').disabled = false; $('hint').hidden = true;
@@ -595,6 +644,10 @@ function place(lat, lon) {
 /* ---- chronomètre : durée en secondes (0 = sans limite) ---- */
 let timeLimit = 0, deadline = 0, tick = null;
 function stopTimer() { clearInterval(tick); tick = null; }
+/* Bonus de vitesse : jusqu'à +25 % des points de la manche, proportionnel au temps restant à la validation (chrono actif uniquement). */
+const SPEED = 0.25;
+const fracLeft = () => timeLimit && tick !== null ? Math.max(0, deadline - Date.now()) / (timeLimit * 1000) : 0;
+const speedBonus = (base, f) => Math.round(base * SPEED * f);
 function startTimer() {
   stopTimer();
   const on = timeLimit > 0;
@@ -621,17 +674,18 @@ function timeUp() {
 function reveal() {
   if (!guess || revealed) return;
   revealed = true;
+  const f = fracLeft();
   stopTimer();
   const r = rounds[idx];
-  const d = km(guess.a, guess.o, r.a, r.o), pts = points(d);
-  total += pts; results.push({ t: r.t, d, pts });
-  showResult(r, d, pts);
+  const d = km(guess.a, guess.o, r.a, r.o), bonus = speedBonus(points(d), f), pts = points(d) + bonus;
+  total += pts; results.push({ t: r.t, d, pts, bonus });
+  showResult(r, d, pts, bonus);
   fitTo(guess, r);
 }
-function showResult(r, d, pts) {
+function showResult(r, d, pts, bonus) {
   $('tot').textContent = fmt(total);
   $('dist').textContent = d === null ? 'Temps écoulé' : d < 1 ? 'Pile dessus' : 'À ' + fmt(d) + ' km';
-  $('pts').textContent = '+' + fmt(pts) + ' pts';
+  $('pts').textContent = '+' + fmt(pts) + ' pts' + (bonus ? ' (dont ' + fmt(bonus) + ' de vitesse)' : '');
   $('where').textContent = '';
   const s = document.createElement('span'); s.textContent = (r.k === 'perso' ? 'Né(e) à ' : '') + r.p + ' · ';
   const a = document.createElement('a');
@@ -656,9 +710,10 @@ function finish() {
   stopTimer();
   $('clock').hidden = true; $('timebar').hidden = true;
   if (players === 2) return finishDuel();
-  $('ftot').style.fontSize = ''; $('fof').textContent = 'sur 25 000 points';
+  const scale = timeLimit ? 1 + SPEED : 1;
+  $('fof').textContent = 'sur ' + fmt(25000 * scale) + ' points' + (timeLimit ? ' (bonus de vitesse inclus)' : '');
   $('ftot').textContent = fmt(total);
-  $('frank').textContent = rank(total);
+  $('frank').textContent = rank(total / scale);
   const tb = $('frows'); tb.textContent = '';
   for (const r of results) {
     const tr = document.createElement('tr');
@@ -681,7 +736,11 @@ $('zin').onclick = () => map.zoomIn();
 $('zout').onclick = () => map.zoomOut();
 $('mode').onchange = e => { mode = e.target.value; start(); };
 $('timer').onchange = e => { timeLimit = +e.target.value; start(); };
-$('players').onchange = () => start();
+/* En duel, la vitesse compte : sans chrono elle ne serait pas mesurée, on propose donc 30 s par défaut. */
+$('players').onchange = e => {
+  if (e.target.value === '2' && timeLimit === 0) { timeLimit = 30; $('timer').value = '30'; }
+  start();
+};
 $('ready').onclick = ready;
 $('go').onclick = () => players === 2 ? duelSubmit() : reveal();
 $('next').onclick = advance;
