@@ -49,6 +49,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
+.controls { display: flex; gap: 6px; flex-wrap: wrap; }
+#clock.low b { color: var(--guess); }
+#timebar { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 1000; background: var(--line); pointer-events: none; }
+#timebar i { display: block; height: 100%; width: 100%; background: var(--ink); }
+#timebar.low i { background: var(--guess); }
 #card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
 .txt { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
 #photo { position: relative; flex: none; width: 92px; height: 92px; border-radius: 8px; overflow: hidden; background: var(--sea); display: grid; place-items: center; }
@@ -95,13 +100,21 @@ td.t { min-width: 0; }
 <div id="app">
   <header>
     <div class="brand">Wikiguessr</div>
-    <select id="mode" aria-label="Type de questions">
-      <option value="mixte">Tout</option>
-      <option value="lieux">Lieux</option>
-      <option value="perso">Personnalités</option>
-      <option value="sport">Sport</option>
-    </select>
-    <div class="meta"><span>Manche <b id="rnd">1</b>/5</span><span><b id="tot">0</b> pts</span></div>
+    <div class="controls">
+      <select id="mode" aria-label="Type de questions">
+        <option value="mixte">Tout</option>
+        <option value="lieux">Lieux</option>
+        <option value="perso">Personnalités</option>
+        <option value="sport">Sport</option>
+      </select>
+      <select id="timer" aria-label="Temps par manche">
+        <option value="0">Sans limite</option>
+        <option value="60">60 s</option>
+        <option value="30">30 s</option>
+        <option value="15">15 s</option>
+      </select>
+    </div>
+    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span>Manche <b id="rnd">1</b>/5</span><span><b id="tot">0</b> pts</span></div>
   </header>
   <section id="card" aria-live="polite">
     <div id="photo"><span id="mono"></span><img id="img" alt="" hidden></div>
@@ -113,6 +126,7 @@ td.t { min-width: 0; }
   </section>
   <div id="mapwrap">
     <div id="map" aria-label="Carte du monde. Touchez pour placer votre repère."></div>
+    <div id="timebar" hidden><i id="timefill"></i></div>
     <div class="zoom"><button id="zin" aria-label="Zoom avant">+</button><button id="zout" aria-label="Zoom arrière">&minus;</button></div>
     <div class="hint" id="hint">Touchez la carte pour poser un repère</div>
   </div>
@@ -421,8 +435,8 @@ const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', wei
 function drawOverlay() {
   layer.clearLayers();
   const cur = rounds[idx];
-  if (guess && revealed && cur) {
-    L.polyline([[guess.a, guess.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
+  if (revealed && cur) {
+    if (guess) L.polyline([[guess.a, guess.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
     dot(cssv('--truth'), cur).addTo(layer);
   }
   if (guess) dot(cssv('--guess'), guess).addTo(layer);
@@ -457,6 +471,7 @@ function load() {
   $('result').hidden = true; $('hint').hidden = false;
   resetView();
   $('card').className = r.k;
+  startTimer();
 }
 /* Photo : champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r) {
@@ -482,14 +497,45 @@ function place(lat, lon) {
   $('go').disabled = false; $('hint').hidden = true;
   drawOverlay();
 }
+/* ---- chronomètre : durée en secondes (0 = sans limite) ---- */
+let timeLimit = 0, deadline = 0, tick = null;
+function stopTimer() { clearInterval(tick); tick = null; }
+function startTimer() {
+  stopTimer();
+  const on = timeLimit > 0;
+  $('clock').hidden = !on; $('timebar').hidden = !on;
+  if (!on) return;
+  deadline = Date.now() + timeLimit * 1000;
+  const paint = () => {
+    const left = Math.max(0, deadline - Date.now());
+    const low = left <= 5000;
+    $('sec').textContent = Math.ceil(left / 1000);
+    $('timefill').style.width = (100 * left / (timeLimit * 1000)) + '%';
+    $('clock').classList.toggle('low', low); $('timebar').classList.toggle('low', low);
+    if (left <= 0) { stopTimer(); if (!revealed) { if (guess) reveal(); else timeUp(); } }
+  };
+  paint(); tick = setInterval(paint, 200);
+}
+function timeUp() {
+  if (revealed) return;
+  revealed = true;
+  results.push({ t: rounds[idx].t, d: null, pts: 0 });
+  showResult(rounds[idx], null, 0);
+  map.setView([rounds[idx].a, rounds[idx].o], 4);
+}
 function reveal() {
   if (!guess || revealed) return;
   revealed = true;
+  stopTimer();
   const r = rounds[idx];
   const d = km(guess.a, guess.o, r.a, r.o), pts = points(d);
   total += pts; results.push({ t: r.t, d, pts });
+  showResult(r, d, pts);
+  fitTo(guess, r);
+}
+function showResult(r, d, pts) {
   $('tot').textContent = fmt(total);
-  $('dist').textContent = d < 1 ? 'Pile dessus' : 'À ' + fmt(d) + ' km';
+  $('dist').textContent = d === null ? 'Temps écoulé' : d < 1 ? 'Pile dessus' : 'À ' + fmt(d) + ' km';
   $('pts').textContent = '+' + fmt(pts) + ' pts';
   $('where').textContent = '';
   const s = document.createElement('span'); s.textContent = (r.k === 'perso' ? 'Né(e) à ' : '') + r.p + ' · ';
@@ -499,7 +545,7 @@ function reveal() {
   $('where').append(s, a);
   $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir mon score';
   $('go').hidden = true; $('result').hidden = false;
-  drawOverlay(); fitTo(guess, r);
+  drawOverlay();
 }
 function advance() {
   if (idx + 1 < TOTAL) { idx++; load(); } else finish();
@@ -512,19 +558,23 @@ function rank(t) {
   return 'Boussole en panne';
 }
 function finish() {
+  stopTimer();
+  $('clock').hidden = true; $('timebar').hidden = true;
   $('ftot').textContent = fmt(total);
   $('frank').textContent = rank(total);
   const tb = $('frows'); tb.textContent = '';
   for (const r of results) {
     const tr = document.createElement('tr');
     const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t;
-    const c2 = document.createElement('td'); c2.className = 'n'; c2.textContent = fmt(r.d) + ' km';
+    const c2 = document.createElement('td'); c2.className = 'n'; c2.textContent = r.d === null ? 'temps écoulé' : fmt(r.d) + ' km';
     const c3 = document.createElement('td'); c3.className = 'n'; c3.textContent = fmt(r.pts);
     tr.append(c1, c2, c3); tb.appendChild(tr);
   }
   let best = 0;
-  try { best = +localStorage.getItem('wikiguessr-best') || 0; if (total > best) { best = total; localStorage.setItem('wikiguessr-best', String(best)); } } catch (e) {}
-  $('fbest').textContent = best ? 'Meilleur score sur cet appareil : ' + fmt(best) : '';
+  /* Un meilleur score par durée : la clé historique reste celle du mode sans limite. */
+  const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '');
+  try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
+  $('fbest').textContent = best ? 'Meilleur score sur cet appareil' + (timeLimit ? ' (' + timeLimit + ' s par manche)' : '') + ' : ' + fmt(best) : '';
   $('final').hidden = false;
 }
 
@@ -533,6 +583,7 @@ map.on('click', e => place(e.latlng.lat, e.latlng.lng));
 $('zin').onclick = () => map.zoomIn();
 $('zout').onclick = () => map.zoomOut();
 $('mode').onchange = e => { mode = e.target.value; start(); };
+$('timer').onchange = e => { timeLimit = +e.target.value; start(); };
 $('go').onclick = reveal;
 $('next').onclick = advance;
 $('again').onclick = start;
