@@ -306,14 +306,18 @@ let rounds = [], idx = 0, total = 0, guess = null, revealed = false, results = [
 /* ---- carte Leaflet (fond coloré sans noms de lieux) ---- */
 const wrap = $('mapwrap');
 const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-const map = L.map('map', { minZoom: 2, maxZoom: 12, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
-/* Fond principal : relief coloré Esri sans noms de lieux. Si ce fond ne se charge pas, bascule sur OpenStreetMap (avec noms). */
-let fell = false;
-const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
-  { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
+const map = L.map('map', { minZoom: 2, maxZoom: 14, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
+/* Fond principal : imagerie satellite Esri, sans noms de lieux ni clé d'accès. Si aucune tuile ne se charge, bascule sur le relief Esri (aussi sans noms). */
+let fell = false, loadedTiles = 0, failedTiles = 0;
+const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { noWrap: true, maxNativeZoom: 17, maxZoom: 14, attribution: 'Fond : Esri, Maxar, Earthstar Geographics' }).addTo(map);
+base.on('tileload', () => { loadedTiles++; });
 base.on('tileerror', () => {
-  if (fell) return; fell = true; map.removeLayer(base);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, maxZoom: 12, attribution: '© OpenStreetMap' }).addTo(map);
+  failedTiles++;
+  if (fell || loadedTiles > 0 || failedTiles < 4) return;
+  fell = true; map.removeLayer(base);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+    { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
 });
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
