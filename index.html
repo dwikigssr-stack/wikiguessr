@@ -166,7 +166,7 @@ td.t { min-width: 0; }
     </div>
   </div>
   <div id="final" hidden>
-    <div class="of">Partie terminée</div>
+    <div class="of" id="fhead">Partie terminée</div>
     <div id="fsolo"><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
     <div id="fduel" hidden>
       <div id="fwinner"></div>
@@ -200,6 +200,15 @@ td.t { min-width: 0; }
           <button type="button" data-v="15" aria-pressed="false">15 s</button>
         </div>
         <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
+      </div>
+      <div class="opt">
+        <div class="optname">Difficulté</div>
+        <div class="seg" data-key="diff">
+          <button type="button" data-v="1" aria-pressed="false">Facile</button>
+          <button type="button" data-v="2" aria-pressed="true">Moyen</button>
+          <button type="button" data-v="3" aria-pressed="false">Difficile</button>
+        </div>
+        <div class="note" id="diffnote"></div>
       </div>
       <div class="opt">
         <div class="optname">Questions</div>
@@ -471,7 +480,20 @@ const SPORTIFS = [
 const SPORT_CATS = ['Football', 'Sport automobile', 'Boxe', 'Athlétisme', 'Tennis'];
 const ALL = DATA.concat(STADES).map(d => Object.assign(d, { k: 'lieu', s: STADES.includes(d) }))
   .concat(PEOPLE.concat(SPORTIFS).map(d => Object.assign(d, { k: 'perso', s: SPORTIFS.includes(d) || SPORT_CATS.includes(d.c) })));
-const TOTAL = 5, DECAY = 1500;
+/* Difficulté : lv 1 = très connu, 2 = moyen (par défaut), 3 = peu connu ou lieu de naissance surprenant. */
+const EASY = new Set(["Tour Eiffel","Machu Picchu","Grande Barrière de corail","Taj Mahal","Kilimandjaro","Colisée","Angkor Vat","Pétra","Chichén Itzá","Statue de la Liberté","Christ Rédempteur","Pyramide de Khéops","Stonehenge","Mont Fuji","Everest","Sagrada Família","Parthénon","Cité interdite","Burj Khalifa","Uluru","Mont-Saint-Michel","Grand Canyon","Chutes du Niagara","Golden Gate Bridge","Tour de Pise","Grande Muraille de Chine","Mont Blanc",
+  "Marie Curie","Napoléon Bonaparte","Wolfgang Amadeus Mozart","Pablo Picasso","Salvador Dalí","Frida Kahlo","Lionel Messi","Cristiano Ronaldo","Zinédine Zidane","Cléopâtre","Jules César","William Shakespeare","Ludwig van Beethoven","Édith Piaf","Bill Gates","Charlie Chaplin","Jackie Chan","Simón Bolívar","Marco Polo","Albert Einstein",
+  "Stade de France","Camp Nou","Stade de Wembley","Stade Santiago-Bernabéu","Old Trafford","Anfield","Stade Roland-Garros","Stade Maracanã","Allianz Arena","Stade Vélodrome","Parc des Princes","Madison Square Garden","Yankee Stadium","Stade Azteca","Stade Giuseppe-Meazza",
+  "Michael Jordan","Kylian Mbappé","Zlatan Ibrahimović","Franz Beckenbauer","Johan Cruyff","Novak Djokovic","Björn Borg","Martina Navrátilová","Yao Ming","Sachin Tendulkar","Didier Drogba","Roger Milla","George Weah","Pierre de Coubertin"]);
+const HARD = new Set(["Geirangerfjord","Geysir","Mont Athos","Lac Louise","Parc national Kruger","Lac Rose","Bagan","Île de Komodo","Dôme de Genbaku","Sigiriya","Aoraki / Mont Cook","Fjord de Milford Sound","Lalibela","Désert d'Atacama","Tombouctou","Chaussée des Géants",
+  "Bruce Lee","Nikola Tesla","Sigmund Freud","Freddie Mercury","Mère Teresa","Isaac Newton","Léopold Sédar Senghor","Thomas Sankara","Miriam Makeba","Hô Chi Minh","Mao Zedong","Fidel Castro","Bob Dylan","Michael Jackson","Elvis Presley","Bob Marley","Céline Dion","Frédéric Chopin","Nelson Mandela","Mustafa Kemal Atatürk","Léon Tolstoï","Malala Yousafzai","Jacques Brel","Louis Pasteur","Stephen Hawking",
+  "Estadio Centenario","Ernst-Happel-Stadion","Eden Gardens","MCG","Stade olympique Atatürk","Stade olympique de 1960","Stade olympique de 1972","Stade olympique de 1976","Stade Loujniki","Twickenham Stadium",
+  "Ronaldo","Neymar","Michel Platini","Lewis Hamilton","Michael Schumacher","Tony Parker","Wayne Gretzky","Nadia Comăneci","Jesse Owens","Carl Lewis","Tiger Woods","Eddy Merckx","Bernard Hinault","Jacques Anquetil","Teddy Riner","Haile Gebrselassie","Eliud Kipchoge","Yannick Noah","Mohamed Salah","Sadio Mané","Sébastien Loeb","Cathy Freeman","Jean-Claude Killy"]);
+ALL.forEach(d => { d.lv = HARD.has(d.t) ? 3 : EASY.has(d.t) ? 1 : 2; });
+/* Barème : plus la difficulté monte, plus les points baissent vite avec la distance. */
+const DECAYS = { 1: 2000, 2: 1500, 3: 1000 }, LEVELS = { 1: 'Facile', 2: 'Moyen', 3: 'Difficile' };
+const TOTAL = 5;
+let DECAY = 1500, level = 2;
 let mode = 'mixte';
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('fr-FR');
@@ -549,7 +571,8 @@ function start() {
   endCountdown();
   $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
   const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
-  rounds = shuffle(pool).slice(0, TOTAL); idx = 0; total = 0; results = [];
+  /* On mélange, puis on trie par écart avec le niveau choisi : s'il manque des questions, on complète avec le niveau voisin. */
+  rounds = shuffle(pool).sort((a, b) => Math.abs(a.lv - level) - Math.abs(b.lv - level)).slice(0, TOTAL); idx = 0; total = 0; results = [];
   players = sel.players; dtot = Array(players).fill(0); dres = [];
   $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
@@ -564,6 +587,7 @@ function load() {
   $('chip').textContent = r.k === 'perso' ? 'Personnalité · ' + r.c + ' · lieu de naissance' : r.c;
   $('title').textContent = r.t;
   $('extract').textContent = r.x;
+  $('photo').hidden = level === 3; /* en difficile, pas de photo */
   setPhoto(r);
   $('go').hidden = false; $('go').disabled = true;
   $('result').hidden = true; $('hint').hidden = false;
@@ -640,6 +664,7 @@ function ready() {
   updateWho(); startTimer();
 }
 function finishDuel() {
+  $('fhead').textContent = 'Partie terminée · ' + LEVELS[level];
   $('fsolo').hidden = true; $('frank').hidden = true; $('fduel').hidden = false;
   const top = Math.max(...dtot), lead = dtot.map((x, i) => x === top ? i + 1 : 0).filter(Boolean);
   const sc = $('fscores'); sc.textContent = '';
@@ -752,6 +777,7 @@ function rank(t) {
 }
 function finish() {
   stopTimer();
+  $('fhead').textContent = 'Partie terminée · ' + LEVELS[level];
   $('clock').hidden = true; $('timebar').hidden = true;
   if (players > 1) return finishDuel();
   const scale = timeLimit ? 1 + SPEED : 1;
@@ -768,9 +794,9 @@ function finish() {
   }
   let best = 0;
   /* Un meilleur score par durée : la clé historique reste celle du mode sans limite. */
-  const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '');
+  const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '');
   try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
-  $('fbest').textContent = best ? 'Meilleur score sur cet appareil' + (timeLimit ? ' (' + timeLimit + ' s par manche)' : '') + ' : ' + fmt(best) : '';
+  $('fbest').textContent = best ? 'Meilleur score sur cet appareil (' + LEVELS[level].toLowerCase() + (timeLimit ? ', ' + timeLimit + ' s par manche' : '') + ') : ' + fmt(best) : '';
   $('final').hidden = false;
 }
 
@@ -779,9 +805,15 @@ map.on('click', e => place(e.latlng.lat, e.latlng.lng));
 $('zin').onclick = () => map.zoomIn();
 $('zout').onclick = () => map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
-const sel = { players: 1, time: 0, mode: 'mixte' };
+const sel = { players: 1, time: 0, mode: 'mixte', diff: 2 };
+const DIFFNOTE = {
+  1: 'Entrées très connues et barème indulgent : les points baissent lentement avec la distance.',
+  2: 'Un mélange d’entrées, avec le barème standard.',
+  3: 'Entrées peu connues ou lieux de naissance surprenants, barème strict et photo masquée.'
+};
 function choose(key, val) {
   sel[key] = key === 'mode' ? val : +val;
+  if (key === 'diff') $('diffnote').textContent = DIFFNOTE[val];
   document.querySelectorAll('.seg[data-key="' + key + '"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
 }
 document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => {
@@ -796,7 +828,7 @@ function showHome() {
   $('home').hidden = false;
 }
 $('launch').onclick = () => {
-  mode = sel.mode; timeLimit = sel.time;
+  mode = sel.mode; timeLimit = sel.time; level = sel.diff; DECAY = DECAYS[level];
   $('home').hidden = true;
   start();
 };
@@ -806,6 +838,7 @@ $('menu').onclick = () => {
   showHome();
 };
 $('tomenu').onclick = showHome;
+choose('diff', 2); /* affiche l'explication du niveau par défaut */
 $('ready').onclick = ready;
 $('go').onclick = () => players > 1 ? duelSubmit() : reveal();
 $('next').onclick = advance;
