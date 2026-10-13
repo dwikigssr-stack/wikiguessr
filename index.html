@@ -67,11 +67,12 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
     radial-gradient(ellipse 70% 55% at 35% 30%, #13324d 0, transparent 70%), #050c16; }
 .stage { position: relative; height: clamp(320px, 58vh, 560px); }
 #globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; display: block; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 #globe:active { cursor: grabbing; }
 #globe:focus-visible { outline: none; }
 .noglobe #globe { display: none; }
 .stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none;
-  background: radial-gradient(circle at 35% 30%, #2b6f9e, #0f3a5f 55%, #071c33); box-shadow: 0 0 60px rgba(94,200,255,.35); }
+  background: radial-gradient(circle at 35% 30%, #2a9df4, #0b5cb5 55%, #062a63); box-shadow: 0 0 60px rgba(94,200,255,.35); }
 .noglobe .stage::before { display: block; }
 .brandmark { position: absolute; left: 16px; top: 18px; right: 16px; pointer-events: none; }
 .logo { display: flex; align-items: center; gap: 0.14em; font: 400 clamp(36px, 10vw, 68px)/1 'Bungee', var(--font-display); margin: 0; }
@@ -226,6 +227,7 @@ td.t { min-width: 0; }
   </div>
   <div id="home">
     <div class="stage">
+      <canvas id="sky" aria-hidden="true"></canvas>
       <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
       <div class="brandmark">
         <h1 class="logo" aria-label="Wikiguessr"><span class="lg-tag" aria-hidden="true">WIKI</span><span class="lg-word" aria-hidden="true">GUESSR</span><svg class="lg-pin" viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.5 12 32 12 32s12-11.5 12-20.3C24 5.2 18.6 0 12 0z" fill="#ffb547"/><circle cx="12" cy="11.5" r="4.6" fill="#050c16"/></svg></h1>
@@ -905,15 +907,15 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth) {
   g.addColorStop(0, 'rgba(94,200,255,.38)'); g.addColorStop(1, 'rgba(94,200,255,0)');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 2 * Math.PI); ctx.fill();
   g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
-  g.addColorStop(0, '#2b6f9e'); g.addColorStop(0.55, '#0f3a5f'); g.addColorStop(1, '#071c33');
+  g.addColorStop(0, '#2a9df4'); g.addColorStop(0.55, '#0b5cb5'); g.addColorStop(1, '#062a63');
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
   if (GEO.grat) { ctx.beginPath(); path(GEO.grat); ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 0.6; ctx.stroke(); }
   if (GEO.land) {
-    ctx.beginPath(); path(GEO.land); ctx.fillStyle = '#5c9a72'; ctx.fill();
+    ctx.beginPath(); path(GEO.land); ctx.fillStyle = '#3ecf5c'; ctx.fill();
     ctx.beginPath(); path(GEO.borders); ctx.strokeStyle = 'rgba(255,255,255,' + borderAlpha + ')'; ctx.lineWidth = borderWidth; ctx.stroke();
   }
   g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
-  g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,20,.6)');
+  g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,30,.5)');
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
 /* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
@@ -1018,6 +1020,75 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth) {
       kick();
     } catch (e) { if (!proj) home.classList.add('noglobe'); }
   })();
+})();
+/* ---- ciel de l'accueil : des étoiles qui scintillent derrière le globe et, de temps en temps, une petite fusée qui le traverse.
+   Tout est dessiné sur un canvas placé sous celui du globe ; l'animation s'arrête pendant la partie et quand on préfère réduire les animations. ---- */
+(function () {
+  const cv = $('sky'), ctx = cv.getContext('2d'), home = $('home');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI * 2;
+  let w = 0, h = 0, stars = [], rockets = [], next = -1, raf = 0;
+
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars = Array.from({ length: Math.round(w * h / 2200) }, () => ({
+      x: Math.random() * w, y: Math.random() * h, r: 0.3 + Math.random() * 1.2,
+      p: Math.random() * TAU, s: 0.4 + Math.random() * 1.6,
+      c: Math.random() < 0.85 ? '#ffffff' : Math.random() < 0.5 ? '#ffd9a0' : '#a8d8ff'
+    }));
+    kick();
+  }
+  /* Une fusée part d'un bord, traverse en arc vers l'autre bord et laisse une traînée orangée. */
+  function launch(t) {
+    const left = Math.random() < 0.5, y0 = h * (0.12 + Math.random() * 0.6);
+    rockets.push({ t0: t, dur: 6000 + Math.random() * 4000, x0: left ? -30 : w + 30, x1: left ? w + 30 : -30,
+      y0, y1: y0 + (Math.random() - 0.5) * h * 0.5, arc: -(0.1 + Math.random() * 0.2) * h, size: 0.9 + Math.random() * 0.6, trail: [] });
+  }
+  function drawRocket(r, t) {
+    const k = (t - r.t0) / r.dur; if (k > 1) return false;
+    const at = q => [r.x0 + (r.x1 - r.x0) * q, r.y0 + (r.y1 - r.y0) * q + r.arc * 4 * q * (1 - q)];
+    const [x, y] = at(k), [x2, y2] = at(k + 0.005), ang = Math.atan2(y2 - y, x2 - x);
+    r.trail.push([x, y]); if (r.trail.length > 45) r.trail.shift();
+    r.trail.forEach(([tx, ty], i) => {
+      const a = i / r.trail.length;
+      ctx.globalAlpha = a * 0.45; ctx.fillStyle = '#ffb547';
+      ctx.beginPath(); ctx.arc(tx, ty, (0.6 + a * 2.2) * r.size, 0, TAU); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(r.size, r.size);
+    const f = 7 + Math.sin(t / 45) * 2.5;
+    ctx.fillStyle = '#ff6f3c'; ctx.beginPath(); ctx.moveTo(-9, -3.2); ctx.lineTo(-9 - f, 0); ctx.lineTo(-9, 3.2); ctx.fill();
+    ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.moveTo(-9, -1.7); ctx.lineTo(-9 - f * 0.6, 0); ctx.lineTo(-9, 1.7); ctx.fill();
+    ctx.fillStyle = '#f2545b';
+    [-1, 1].forEach(s => { ctx.beginPath(); ctx.moveTo(-4, 3.6 * s); ctx.lineTo(-11, 8 * s); ctx.lineTo(-9, 2.5 * s); ctx.fill(); });
+    ctx.fillStyle = '#eef4f7'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.quadraticCurveTo(5, -5.5, -9, -4); ctx.lineTo(-9, 4); ctx.quadraticCurveTo(5, 5.5, 11, 0); ctx.fill();
+    ctx.fillStyle = '#f2545b'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.quadraticCurveTo(8.5, -3.6, 6, -4.3); ctx.lineTo(6, 4.3); ctx.quadraticCurveTo(8.5, 3.6, 11, 0); ctx.fill();
+    ctx.fillStyle = '#5ec8ff'; ctx.beginPath(); ctx.arc(1, 0, 2.1, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#0a1622'; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+  function frame(t) {
+    raf = 0;
+    if (home.hidden || !w) return;
+    ctx.clearRect(0, 0, w, h);
+    stars.forEach(s => {
+      ctx.globalAlpha = still ? 0.8 : 0.35 + 0.65 * Math.abs(Math.sin(t / 1000 * s.s + s.p));
+      ctx.fillStyle = s.c; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    if (still) return;
+    if (next < 0) next = t + 1500;
+    if (t > next) { launch(t); next = t + 5000 + Math.random() * 7000; }
+    rockets = rockets.filter(r => drawRocket(r, t));
+    raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  new ResizeObserver(size).observe(cv);
+  new MutationObserver(() => { if (!home.hidden) { rockets = []; next = -1; size(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
 })();
 /* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
    noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
