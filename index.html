@@ -517,16 +517,20 @@ base.on('tileerror', () => {
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
     { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
 });
-/* Frontières des pays (sans noms) : traits blancs au-dessus du fond, sous les repères. Si le fichier ne charge pas, la carte reste sans frontières. */
-map.createPane('borders').style.zIndex = 350;
-map.getPane('borders').style.pointerEvents = 'none';
+/* Frontières des pays (sans noms). Elles sont dessinées juste au-dessus des tuiles et fondues dans l'image (mode de fusion « overlay ») :
+   un liseré sombre et un trait clair fin, comme sur une carte satellite imprimée, plutôt qu'un calque posé par-dessus.
+   Si le fichier ne charge pas, la carte reste sans frontières. */
+const bp = map.createPane('borders');
+bp.style.zIndex = 250; bp.style.pointerEvents = 'none'; bp.style.mixBlendMode = 'overlay';
 try {
   fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json')
     .then(x => x.ok ? x.json() : null)
     .then(t => {
       if (!t || !window.topojson) return;
       const m = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
-      L.geoJSON(m, { pane: 'borders', interactive: false, style: { color: '#fff', weight: 1.2, opacity: 0.75 } }).addTo(map);
+      const o = { pane: 'borders', interactive: false, lineJoin: 'round' };
+      L.geoJSON(m, Object.assign({ style: { color: '#000', weight: 3, opacity: 0.35 } }, o)).addTo(map);
+      L.geoJSON(m, Object.assign({ style: { color: '#fff6dc', weight: 1, opacity: 0.95 } }, o)).addTo(map);
     })
     .catch(() => {});
 } catch (e) {}
