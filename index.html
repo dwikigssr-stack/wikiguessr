@@ -46,7 +46,7 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); overflow: hidden; }
-#app { position: relative; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
+#app { position: relative; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
 .brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
@@ -55,16 +55,53 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .meta span { white-space: nowrap; }
 .menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-#home { position: absolute; inset: 0; z-index: 3000; background: var(--bg); overflow-y: auto; display: flex; padding: 24px 16px; }
-.homebox { margin: auto; width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 22px; }
-.logo { font: 700 clamp(46px, 13vw, 88px)/0.95 var(--font-display); letter-spacing: -0.03em; margin: 0; }
-.tag { margin: 0; font-size: 16px; line-height: 1.45; color: var(--muted); max-width: 46ch; }
+/* Accueil : un globe qu'on fait tourner au doigt, et un panneau de réglages à côté (ordinateur) ou dessous (téléphone). Toujours sombre, quel que soit le thème. */
+#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden; color-scheme: dark;
+  --ink: #eef4f7; --muted: #94a9b5; --line: rgba(255,255,255,.13); --card: rgba(255,255,255,.06); --btn: #ffb547; --btn-ink: #1a1206; --guess: #ffb547;
+  --c-lieu: #ffb547; --c-perso: #ff6f9c; --c-sport: #5ec8ff;
+  color: var(--ink);
+  background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.7), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.6), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.45), transparent) 0 0/211px 211px,
+    radial-gradient(ellipse 70% 55% at 35% 30%, #13324d 0, transparent 70%), #050c16; }
+.stage { position: relative; height: clamp(320px, 58vh, 560px); }
+#globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; display: block; }
+#globe:active { cursor: grabbing; }
+#globe:focus-visible { outline: none; }
+.noglobe #globe { display: none; }
+.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none;
+  background: radial-gradient(circle at 35% 30%, #2b6f9e, #0f3a5f 55%, #071c33); box-shadow: 0 0 60px rgba(94,200,255,.35); }
+.noglobe .stage::before { display: block; }
+.brandmark { position: absolute; left: 16px; top: 18px; right: 16px; pointer-events: none; }
+.logo { font: 700 clamp(38px, 11vw, 72px)/0.95 var(--font-display); letter-spacing: -0.035em; margin: 0; color: #fff; text-shadow: 0 2px 24px rgba(5,12,22,.8); }
+.tag { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--muted); max-width: 34ch; text-shadow: 0 1px 12px #050c16; }
+.globehint { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); font: 500 12px var(--font-mono); color: var(--ink); background: rgba(5,12,22,.6); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
+.spun .globehint, .noglobe .globehint { opacity: 0; }
+.homebox { position: relative; margin: -40px auto 0; width: 100%; max-width: 560px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; padding: 20px 16px 28px;
+  background: rgba(10,22,36,.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; }
 .opt { display: flex; flex-direction: column; gap: 8px; }
 .optname { font: 500 11.5px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg button { flex: 1 1 auto; font: 500 14px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
-.note { font: 12px var(--font-mono); color: var(--muted); }
+.seg button { flex: 1 1 auto; font: 500 13.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.seg button[aria-pressed="true"] { background: #eef4f7; color: #0a1622; border-color: #eef4f7; }
+.seg.tiles { display: grid; grid-template-columns: repeat(3, 1fr); }
+.seg.tiles button { flex-direction: column; gap: 6px; padding: 12px 6px 10px; font: 700 15px var(--font-display); border-radius: 14px; }
+.seg.tiles .ppl { display: flex; gap: 3px; height: 22px; }
+.seg.tiles svg { height: 22px; width: auto; }
+@media (max-width: 599px) { .tag { display: none; } }
+.seg i { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
+.seg i.lieu { background: var(--c-lieu); color: var(--c-lieu); }
+.seg i.perso { background: var(--c-perso); color: var(--c-perso); }
+.seg i.sport { background: var(--c-sport); color: var(--c-sport); }
+.duo { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.note { font: 12px/1.45 var(--font-mono); color: var(--muted); }
+#launch { font-size: 18px; padding: 15px 18px; box-shadow: 0 10px 30px -10px rgba(255,181,71,.7); }
+@media (min-width: 900px) {
+  #home { display: grid; grid-template-columns: 1fr minmax(400px, 460px); overflow: hidden; }
+  .stage { height: 100%; }
+  .brandmark { left: 40px; top: 36px; }
+  .globehint { bottom: 28px; }
+  .homebox { margin: 0; max-width: none; height: 100%; overflow-y: auto; justify-content: safe center; padding: 32px 30px; border: 0; border-left: 1px solid var(--line); border-radius: 0; }
+}
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
 .p3 { color: var(--p3); }
@@ -180,43 +217,52 @@ td.t { min-width: 0; }
     <button class="main alt" id="tomenu">Changer les réglages</button>
   </div>
   <div id="home">
+    <div class="stage">
+      <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
+      <div class="brandmark">
+        <h1 class="logo">Wikiguessr</h1>
+        <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
+      </div>
+      <div class="globehint">Faites tourner le globe</div>
+    </div>
     <div class="homebox">
-      <h1 class="logo">Wikiguessr</h1>
-      <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
       <div class="opt">
-        <div class="optname">Mode de jeu</div>
-        <div class="seg" data-key="players">
-          <button type="button" data-v="1" aria-pressed="true">Solo</button>
-          <button type="button" data-v="2" aria-pressed="false">2 joueurs</button>
-          <button type="button" data-v="3" aria-pressed="false">3 joueurs</button>
+        <div class="optname">Joueurs</div>
+        <div class="seg tiles" data-key="players">
+          <button type="button" data-v="1" aria-pressed="true"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>Solo</button>
+          <button type="button" data-v="2" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>2 joueurs</button>
+          <button type="button" data-v="3" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>3 joueurs</button>
         </div>
-      </div>
-      <div class="opt">
-        <div class="optname">Temps par manche</div>
-        <div class="seg" data-key="time">
-          <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
-          <button type="button" data-v="60" aria-pressed="false">60 s</button>
-          <button type="button" data-v="30" aria-pressed="false">30 s</button>
-          <button type="button" data-v="15" aria-pressed="false">15 s</button>
-        </div>
-        <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
-      </div>
-      <div class="opt">
-        <div class="optname">Difficulté</div>
-        <div class="seg" data-key="diff">
-          <button type="button" data-v="1" aria-pressed="false">Facile</button>
-          <button type="button" data-v="2" aria-pressed="true">Moyen</button>
-          <button type="button" data-v="3" aria-pressed="false">Difficile</button>
-        </div>
-        <div class="note" id="diffnote"></div>
       </div>
       <div class="opt">
         <div class="optname">Questions</div>
         <div class="seg" data-key="mode">
           <button type="button" data-v="mixte" aria-pressed="true">Tout</button>
-          <button type="button" data-v="lieux" aria-pressed="false">Lieux</button>
-          <button type="button" data-v="perso" aria-pressed="false">Personnalités</button>
-          <button type="button" data-v="sport" aria-pressed="false">Sport</button>
+          <button type="button" data-v="lieux" aria-pressed="false"><i class="lieu"></i>Lieux</button>
+          <button type="button" data-v="perso" aria-pressed="false"><i class="perso"></i>Personnalités</button>
+          <button type="button" data-v="sport" aria-pressed="false"><i class="sport"></i>Sport</button>
+        </div>
+        <div class="note" id="poolnote"></div>
+      </div>
+      <div class="duo">
+        <div class="opt">
+          <div class="optname">Difficulté</div>
+          <div class="seg" data-key="diff">
+            <button type="button" data-v="1" aria-pressed="false">Facile</button>
+            <button type="button" data-v="2" aria-pressed="true">Moyen</button>
+            <button type="button" data-v="3" aria-pressed="false">Difficile</button>
+          </div>
+          <div class="note" id="diffnote"></div>
+        </div>
+        <div class="opt">
+          <div class="optname">Temps par manche</div>
+          <div class="seg" data-key="time">
+            <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
+            <button type="button" data-v="60" aria-pressed="false">60 s</button>
+            <button type="button" data-v="30" aria-pressed="false">30 s</button>
+            <button type="button" data-v="15" aria-pressed="false">15 s</button>
+          </div>
+          <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
         </div>
       </div>
       <button class="main" id="launch">Lancer la partie</button>
@@ -839,6 +885,121 @@ $('menu').onclick = () => {
 };
 $('tomenu').onclick = showHome;
 choose('diff', 2); /* affiche l'explication du niveau par défaut */
+/* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
+   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
+   Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
+(function () {
+  const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
+  const COL = { lieu: '#ffb547', perso: '#ff6f9c', sport: '#5ec8ff' };
+  const kind = d => d.s ? 'sport' : d.k;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clampLat = v => Math.max(-70, Math.min(70, v));
+  let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
+  let proj = null, path = null, grat = null, land = null, borders = null, pts = [];
+  let raf = 0, lastInput = -1e4, pinch = 0;
+  const ptrs = new Map();
+
+  function refresh() {
+    pts = ALL.filter(d => sel.mode === 'mixte' || (sel.mode === 'sport' ? d.s : (sel.mode === 'lieux') === (d.k === 'lieu')));
+    const lvl = pts.filter(d => d.lv === sel.diff).length;
+    $('poolnote').textContent = pts.length + ' questions sur le globe, dont ' + lvl + ' du niveau ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs).';
+    kick();
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    kick();
+  }
+  function draw(t) {
+    R = Math.min(w, w < 600 ? h - 90 : h) * 0.43 * zoom;
+    const cx = w / 2, cy = h / 2 + (w < 600 ? 28 : 0), sphere = { type: 'Sphere' };
+    proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
+    ctx.clearRect(0, 0, w, h);
+    let g = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.22);
+    g.addColorStop(0, 'rgba(94,200,255,.38)'); g.addColorStop(1, 'rgba(94,200,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 2 * Math.PI); ctx.fill();
+    g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
+    g.addColorStop(0, '#2b6f9e'); g.addColorStop(0.55, '#0f3a5f'); g.addColorStop(1, '#071c33');
+    ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); path(grat); ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 0.6; ctx.stroke();
+    if (land) {
+      ctx.beginPath(); path(land); ctx.fillStyle = '#5c9a72'; ctx.fill();
+      ctx.beginPath(); path(borders); ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
+    g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,20,.6)');
+    ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+    const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
+    pts.forEach((d, i) => {
+      const a = d3.geoDistance([d.o, d.a], centre);
+      if (a > 1.45) return;
+      const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
+      const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
+      ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
+      ctx.fillStyle = COL[kind(d)];
+      ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = edge * (on ? 1 : 0.5);
+      ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function frame(t) {
+    raf = 0;
+    if (home.hidden || !proj || !w) return;
+    const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
+    if (!ptrs.size) {
+      if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
+      else if (!still && t - lastInput > 2500) rot[0] += 0.06;
+    }
+    draw(t);
+    if (!still || moving || ptrs.size) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
+  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    vel = [0, 0]; if (ptrs.size === 2) pinch = gap(); touched();
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const d = gap(); if (pinch) zoom = Math.max(0.75, Math.min(2.6, zoom * d / pinch)); pinch = d; }
+    else { const k = 57.3 / Math.max(R, 1); vel = [dx * k, -dy * k]; rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); }
+    touched();
+  });
+  const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (ptrs.size) vel = [0, 0]; touched(); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(0.75, Math.min(2.6, zoom * Math.exp(-e.deltaY * 0.0015))); touched(); }, { passive: false });
+  cv.addEventListener('keydown', e => {
+    const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
+    if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
+  });
+  document.querySelectorAll('#home .seg').forEach(g => g.addEventListener('click', refresh));
+  new ResizeObserver(size).observe(cv);
+  new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
+  refresh();
+
+  const J = 'https://cdn.jsdelivr.net/npm/';
+  const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  (async () => {
+    try {
+      if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
+      if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
+      proj = d3.geoOrthographic().clipAngle(90).precision(0.5);
+      path = d3.geoPath(proj, ctx); grat = d3.geoGraticule10();
+      size(); kick();
+      const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
+      land = topojson.feature(t, t.objects.land);
+      borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      kick();
+    } catch (e) { if (!proj) home.classList.add('noglobe'); }
+  })();
+})();
 $('ready').onclick = ready;
 $('go').onclick = () => players > 1 ? duelSubmit() : reveal();
 $('next').onclick = advance;
