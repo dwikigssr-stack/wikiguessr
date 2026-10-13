@@ -10,7 +10,7 @@
 </head>
 <body>
 <title>Wikiguessr</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
 <style>
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
@@ -28,9 +28,11 @@
   --truth: #148a5c;
   --btn-ink: #ffffff;
   --btn: #14262e;
-  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
-  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  /* Même police partout : Nunito pour le texte, Bungee (celle du logo) pour les boutons et les grands chiffres. */
+  --font-display: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --font-mono: "Nunito", system-ui, sans-serif;
+  --font-logo: "Bungee", "Nunito", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -47,25 +49,70 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); overflow: hidden; }
-#app { position: relative; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
+#app { position: relative; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
-.brand { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+.brand { display: flex; align-items: center; gap: 0.18em; font: 400 22px/1 var(--font-logo); }
+.brand .lg-tag { font-size: 0.5em; box-shadow: 0 0.1em 0 #f2545b; }
+:root:not([data-theme="dark"]) .brand .lg-tag { background: var(--ink); color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .brand .lg-tag { background: #fff; color: #050c16; } }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
 .meta { flex: 1 1 100%; flex-wrap: wrap; gap: 4px 14px; }
 .meta span { white-space: nowrap; }
 .menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-#home { position: absolute; inset: 0; z-index: 3000; background: var(--bg); overflow-y: auto; display: flex; padding: 24px 16px; }
-.homebox { margin: auto; width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 22px; }
-.logo { font: 700 clamp(46px, 13vw, 88px)/0.95 var(--font-display); letter-spacing: -0.03em; margin: 0; }
-.tag { margin: 0; font-size: 16px; line-height: 1.45; color: var(--muted); max-width: 46ch; }
+/* Accueil : un globe qu'on fait tourner au doigt, et un panneau de réglages à côté (ordinateur) ou dessous (téléphone). Toujours sombre, quel que soit le thème. */
+#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden; color-scheme: dark;
+  --ink: #eef4f7; --muted: #94a9b5; --line: rgba(255,255,255,.13); --card: rgba(255,255,255,.06); --btn: #ffb547; --btn-ink: #1a1206; --guess: #ffb547;
+  --font-body: 'Nunito', system-ui, sans-serif; --font-mono: 'Nunito', system-ui, sans-serif; --font-display: 'Nunito', system-ui, sans-serif;
+  --c-lieu: #ffb547; --c-perso: #ff6f9c; --c-sport: #5ec8ff;
+  color: var(--ink);
+  background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.7), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.6), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.45), transparent) 0 0/211px 211px,
+    radial-gradient(ellipse 70% 55% at 35% 30%, #13324d 0, transparent 70%), #050c16; }
+.stage { position: relative; height: clamp(320px, 58vh, 560px); }
+#globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; display: block; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+#globe:active { cursor: grabbing; }
+#globe:focus-visible { outline: none; }
+.noglobe #globe { display: none; }
+.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none;
+  background: radial-gradient(circle at 35% 30%, #2a9df4, #0b5cb5 55%, #062a63); box-shadow: 0 0 60px rgba(94,200,255,.35); }
+.noglobe .stage::before { display: block; }
+.brandmark { position: absolute; left: 16px; top: 18px; right: 16px; pointer-events: none; }
+.logo { display: flex; align-items: center; gap: 0.14em; font: 400 clamp(36px, 10vw, 68px)/1 'Bungee', var(--font-display); margin: 0; }
+.lg-tag { font: 800 0.4em/1 'Nunito', sans-serif; letter-spacing: 0.06em; background: #fff; color: #050c16; padding: 0.3em 0.42em 0.26em; border-radius: 0.3em; transform: rotate(-6deg); box-shadow: 0 0.12em 0 #f2545b; }
+.lg-word { color: #ffd166; text-shadow: 0.02em 0.02em 0 #ff8a3d, 0.04em 0.04em 0 #ff8a3d, 0.06em 0.06em 0 #f2545b, 0.08em 0.08em 0 #f2545b, 0.1em 0.1em 0 #b8336a, 0.12em 0.12em 0 #b8336a, 0.14em 0.2em 0.3em rgba(0,0,0,.6); }
+.lg-pin { height: 0.85em; width: auto; margin-left: 0.08em; filter: drop-shadow(0 0 10px rgba(255,181,71,.7)); transform: translateY(-0.08em); }
+.tag { margin: 10px 0 0; font: 500 16px/1.45 var(--font-body); line-height: 1.45; color: var(--muted); max-width: 34ch; text-shadow: 0 1px 12px #050c16; }
+.globehint { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); font: 700 13px var(--font-mono); color: var(--ink); background: rgba(5,12,22,.6); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
+.spun .globehint, .noglobe .globehint { opacity: 0; }
+.homebox { position: relative; margin: -40px auto 0; width: 100%; max-width: 560px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; padding: 20px 16px 28px;
+  background: rgba(10,22,36,.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; }
 .opt { display: flex; flex-direction: column; gap: 8px; }
-.optname { font: 500 11.5px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.optname { font: 800 12.5px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg button { flex: 1 1 auto; font: 500 14px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
-.note { font: 12px var(--font-mono); color: var(--muted); }
+.seg button { flex: 1 1 auto; font: 700 15px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.seg button[aria-pressed="true"] { background: #eef4f7; color: #0a1622; border-color: #eef4f7; }
+.seg.tiles { display: grid; grid-template-columns: repeat(3, 1fr); }
+.seg.tiles button { flex-direction: column; gap: 6px; padding: 12px 6px 10px; font: 800 16px var(--font-display); border-radius: 14px; }
+.seg.tiles .ppl { display: flex; gap: 3px; height: 22px; }
+.seg.tiles svg { height: 22px; width: auto; }
+@media (max-width: 599px) { .tag { display: none; } }
+.seg i { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
+.seg i.lieu { background: var(--c-lieu); color: var(--c-lieu); }
+.seg i.perso { background: var(--c-perso); color: var(--c-perso); }
+.seg i.sport { background: var(--c-sport); color: var(--c-sport); }
+.duo { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.note { font: 500 13.5px/1.45 var(--font-mono); color: var(--muted); }
+#launch { font: 400 19px 'Bungee', var(--font-display); letter-spacing: 0.02em; padding: 15px 18px; box-shadow: 0 10px 30px -10px rgba(255,181,71,.7); }
+@media (min-width: 900px) {
+  #home { display: grid; grid-template-columns: 1fr minmax(400px, 460px); overflow: hidden; }
+  .stage { height: 100%; }
+  .brandmark { left: 40px; top: 36px; }
+  .globehint { bottom: 28px; }
+  .homebox { margin: 0; max-width: none; height: 100%; overflow-y: auto; justify-content: safe center; padding: 32px 30px; border: 0; border-left: 1px solid var(--line); border-radius: 0; }
+}
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
 .p3 { color: var(--p3); }
@@ -101,6 +148,8 @@ select { font: 500 12.5px var(--font-mono); color: var(--ink); background: var(-
 #mapwrap { position: relative; flex: 1; min-height: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--sea); }
 #map { position: absolute; inset: 0; background: var(--sea); }
 .leaflet-container { cursor: crosshair; font-family: var(--font-mono); }
+/* Globe de jeu (facile et moyen) : le même globe que l'accueil, posé à la place de la carte satellite. */
+#gglobe { position: absolute; inset: 0; z-index: 500; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
 .zoom, .hint { z-index: 1000; }
 .leaflet-control-attribution { font-size: 10px; }
 .zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
@@ -130,11 +179,18 @@ td.t { min-width: 0; }
 @media (prefers-reduced-motion: no-preference) { .pin { animation: pop 0.18s ease-out; transform-box: fill-box; transform-origin: center; } }
 @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pts { font-weight: 700; }
+/* Écrans de jeu : mêmes polices que le menu d'accueil. */
+button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0.02em; }
+#cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0; }
+#title, .dist, #fwinner, #handoff h2, #final h2 { font-weight: 800; letter-spacing: -0.01em; }
+.meta { font-size: 14px; font-weight: 600; } .meta b { font-weight: 800; }
+.chip, .optname { font-weight: 800; }
+#extract { font-weight: 500; }
 </style>
 
 <div id="app">
   <header>
-    <div class="brand">Wikiguessr</div>
+    <div class="brand" role="img" aria-label="Wikiguessr"><span class="lg-tag">WIKI</span><span class="lg-word">GUESSR</span></div>
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
     <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/5</span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
   </header>
@@ -148,6 +204,7 @@ td.t { min-width: 0; }
   </section>
   <div id="mapwrap">
     <div id="map" aria-label="Carte du monde. Touchez pour placer votre repère."></div>
+    <canvas id="gglobe" hidden aria-label="Globe terrestre. Faites-le tourner en le glissant, touchez pour placer votre repère."></canvas>
     <div id="timebar" hidden><i id="timefill"></i></div>
     <div id="countdown" hidden><div id="cdnum">3</div><p id="cdtxt"></p></div>
     <div id="handoff" hidden>
@@ -181,43 +238,53 @@ td.t { min-width: 0; }
     <button class="main alt" id="tomenu">Changer les réglages</button>
   </div>
   <div id="home">
+    <div class="stage">
+      <canvas id="sky" aria-hidden="true"></canvas>
+      <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
+      <div class="brandmark">
+        <h1 class="logo" aria-label="Wikiguessr"><span class="lg-tag" aria-hidden="true">WIKI</span><span class="lg-word" aria-hidden="true">GUESSR</span><svg class="lg-pin" viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.5 12 32 12 32s12-11.5 12-20.3C24 5.2 18.6 0 12 0z" fill="#ffb547"/><circle cx="12" cy="11.5" r="4.6" fill="#050c16"/></svg></h1>
+        <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
+      </div>
+      <div class="globehint">Faites tourner le globe</div>
+    </div>
     <div class="homebox">
-      <h1 class="logo">Wikiguessr</h1>
-      <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
       <div class="opt">
-        <div class="optname">Mode de jeu</div>
-        <div class="seg" data-key="players">
-          <button type="button" data-v="1" aria-pressed="true">Solo</button>
-          <button type="button" data-v="2" aria-pressed="false">2 joueurs</button>
-          <button type="button" data-v="3" aria-pressed="false">3 joueurs</button>
+        <div class="optname">Joueurs</div>
+        <div class="seg tiles" data-key="players">
+          <button type="button" data-v="1" aria-pressed="true"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>Solo</button>
+          <button type="button" data-v="2" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>2 joueurs</button>
+          <button type="button" data-v="3" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>3 joueurs</button>
         </div>
-      </div>
-      <div class="opt">
-        <div class="optname">Temps par manche</div>
-        <div class="seg" data-key="time">
-          <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
-          <button type="button" data-v="60" aria-pressed="false">60 s</button>
-          <button type="button" data-v="30" aria-pressed="false">30 s</button>
-          <button type="button" data-v="15" aria-pressed="false">15 s</button>
-        </div>
-        <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
-      </div>
-      <div class="opt">
-        <div class="optname">Difficulté</div>
-        <div class="seg" data-key="diff">
-          <button type="button" data-v="1" aria-pressed="false">Facile</button>
-          <button type="button" data-v="2" aria-pressed="true">Moyen</button>
-          <button type="button" data-v="3" aria-pressed="false">Difficile</button>
-        </div>
-        <div class="note" id="diffnote"></div>
       </div>
       <div class="opt">
         <div class="optname">Questions</div>
         <div class="seg" data-key="mode">
           <button type="button" data-v="mixte" aria-pressed="true">Tout</button>
-          <button type="button" data-v="lieux" aria-pressed="false">Lieux</button>
-          <button type="button" data-v="perso" aria-pressed="false">Personnalités</button>
-          <button type="button" data-v="sport" aria-pressed="false">Sport</button>
+          <button type="button" data-v="lieux" aria-pressed="false"><i class="lieu"></i>Lieux</button>
+          <button type="button" data-v="perso" aria-pressed="false"><i class="perso"></i>Personnalités</button>
+          <button type="button" data-v="sport" aria-pressed="false"><i class="sport"></i>Sport</button>
+        </div>
+        <div class="note" id="poolnote"></div>
+      </div>
+      <div class="duo">
+        <div class="opt">
+          <div class="optname">Difficulté</div>
+          <div class="seg" data-key="diff">
+            <button type="button" data-v="1" aria-pressed="false">Facile</button>
+            <button type="button" data-v="2" aria-pressed="true">Moyen</button>
+            <button type="button" data-v="3" aria-pressed="false">Difficile</button>
+          </div>
+          <div class="note" id="diffnote"></div>
+        </div>
+        <div class="opt">
+          <div class="optname">Temps par manche</div>
+          <div class="seg" data-key="time">
+            <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
+            <button type="button" data-v="60" aria-pressed="false">60 s</button>
+            <button type="button" data-v="30" aria-pressed="false">30 s</button>
+            <button type="button" data-v="15" aria-pressed="false">15 s</button>
+          </div>
+          <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
         </div>
       </div>
       <button class="main" id="launch">Lancer la partie</button>
@@ -536,14 +603,16 @@ try {
 } catch (e) {}
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
-function resetView() { layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
-function fitTo(a, b) { map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
+function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
+function fitTo(a, b) { if (GG.on) return GG.fit([a, b]); map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
 const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
 function fitAll(r) {
+  if (GG.on) return GG.fit([r].concat(dg.filter(Boolean)));
   const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, g.o]));
   if (pts.length === 1) map.setView(pts[0], 4); else map.fitBounds(pts, { padding: [50, 50], maxZoom: 8 });
 }
 function drawOverlay() {
+  if (GG.on) return GG.kick();
   layer.clearLayers();
   const cur = rounds[idx];
   if (players > 1) {
@@ -595,6 +664,7 @@ function start() {
   $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
   ['t1', 't2', 't3'].forEach(id => { $(id).textContent = '0'; });
+  GG.use(level < 3); /* facile et moyen : globe ; difficile : carte satellite Leaflet */
   load();
 }
 function load() {
@@ -756,7 +826,7 @@ function timeUp() {
   revealed = true;
   results.push({ t: rounds[idx].t, d: null, pts: 0 });
   showResult(rounds[idx], null, 0);
-  map.setView([rounds[idx].a, rounds[idx].o], 4);
+  if (GG.on) GG.fit([rounds[idx]]); else map.setView([rounds[idx].a, rounds[idx].o], 4);
 }
 function reveal() {
   if (!guess || revealed) return;
@@ -820,8 +890,8 @@ function finish() {
 
 /* ---- interactions carte : Leaflet gère glisser, pincer, molette ---- */
 map.on('click', e => place(e.latlng.lat, e.latlng.lng));
-$('zin').onclick = () => map.zoomIn();
-$('zout').onclick = () => map.zoomOut();
+$('zin').onclick = () => GG.on ? GG.zoomBy(1.6) : map.zoomIn();
+$('zout').onclick = () => GG.on ? GG.zoomBy(1 / 1.6) : map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
 const sel = { players: 1, time: 0, mode: 'mixte', diff: 2 };
 const DIFFNOTE = {
@@ -857,6 +927,338 @@ $('menu').onclick = () => {
 };
 $('tomenu').onclick = showHome;
 choose('diff', 2); /* affiche l'explication du niveau par défaut */
+/* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
+   Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
+const GEO = { grat: null, land: null, borders: null, countries: null };
+function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth) {
+  const sphere = { type: 'Sphere' };
+  let g = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.22);
+  g.addColorStop(0, 'rgba(94,200,255,.38)'); g.addColorStop(1, 'rgba(94,200,255,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 2 * Math.PI); ctx.fill();
+  g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
+  g.addColorStop(0, '#2a9df4'); g.addColorStop(0.55, '#0b5cb5'); g.addColorStop(1, '#062a63');
+  ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+  if (GEO.grat) { ctx.beginPath(); path(GEO.grat); ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 0.6; ctx.stroke(); }
+  if (GEO.land) {
+    ctx.beginPath(); path(GEO.land); ctx.fillStyle = '#3ecf5c'; ctx.fill();
+    ctx.beginPath(); path(GEO.borders); ctx.strokeStyle = 'rgba(255,255,255,' + borderAlpha + ')'; ctx.lineWidth = borderWidth; ctx.stroke();
+  }
+  g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
+  g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,30,.5)');
+  ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+}
+/* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
+   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
+   Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
+(function () {
+  const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
+  const COL = { lieu: '#ffb547', perso: '#ff6f9c', sport: '#5ec8ff' };
+  const kind = d => d.s ? 'sport' : d.k;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clampLat = v => Math.max(-70, Math.min(70, v));
+  let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
+  let proj = null, path = null, pts = [];
+  let raf = 0, lastInput = -1e4, pinch = 0;
+  const ptrs = new Map();
+
+  function refresh() {
+    pts = ALL.filter(d => sel.mode === 'mixte' || (sel.mode === 'sport' ? d.s : (sel.mode === 'lieux') === (d.k === 'lieu')));
+    const lvl = pts.filter(d => d.lv === sel.diff).length;
+    $('poolnote').textContent = pts.length + ' questions sur le globe, dont ' + lvl + ' du niveau ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs).';
+    kick();
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    kick();
+  }
+  function draw(t) {
+    R = Math.min(w, w < 600 ? h - 90 : h) * 0.43 * zoom;
+    const cx = w / 2, cy = h / 2 + (w < 600 ? 28 : 0);
+    proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
+    ctx.clearRect(0, 0, w, h);
+    paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
+    const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
+    pts.forEach((d, i) => {
+      const a = d3.geoDistance([d.o, d.a], centre);
+      if (a > 1.45) return;
+      const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
+      const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
+      ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
+      ctx.fillStyle = COL[kind(d)];
+      ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = edge * (on ? 1 : 0.5);
+      ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function frame(t) {
+    raf = 0;
+    if (home.hidden || !proj || !w) return;
+    const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
+    if (!ptrs.size) {
+      if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
+      else if (!still && t - lastInput > 2500) rot[0] += 0.06;
+    }
+    draw(t);
+    if (!still || moving || ptrs.size) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
+  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    vel = [0, 0]; if (ptrs.size === 2) pinch = gap(); touched();
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const d = gap(); if (pinch) zoom = Math.max(0.75, Math.min(2.6, zoom * d / pinch)); pinch = d; }
+    else { const k = 57.3 / Math.max(R, 1); vel = [dx * k, -dy * k]; rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); }
+    touched();
+  });
+  const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (ptrs.size) vel = [0, 0]; touched(); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(0.75, Math.min(2.6, zoom * Math.exp(-e.deltaY * 0.0015))); touched(); }, { passive: false });
+  cv.addEventListener('keydown', e => {
+    const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
+    if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
+  });
+  document.querySelectorAll('#home .seg').forEach(g => g.addEventListener('click', refresh));
+  new ResizeObserver(size).observe(cv);
+  new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
+  refresh();
+
+  const J = 'https://cdn.jsdelivr.net/npm/';
+  const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  (async () => {
+    try {
+      if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
+      if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
+      proj = d3.geoOrthographic().clipAngle(90).precision(0.5);
+      path = d3.geoPath(proj, ctx); GEO.grat = d3.geoGraticule10();
+      size(); kick();
+      const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
+      GEO.land = topojson.feature(t, t.objects.land);
+      GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      GEO.countries = topojson.feature(t, t.objects.countries).features;
+      kick();
+    } catch (e) { if (!proj) home.classList.add('noglobe'); }
+  })();
+})();
+/* ---- ciel de l'accueil : des étoiles qui scintillent derrière le globe et, de temps en temps, une petite fusée qui le traverse.
+   Tout est dessiné sur un canvas placé sous celui du globe ; l'animation s'arrête pendant la partie et quand on préfère réduire les animations. ---- */
+(function () {
+  const cv = $('sky'), ctx = cv.getContext('2d'), home = $('home');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI * 2;
+  let w = 0, h = 0, stars = [], rockets = [], next = -1, raf = 0;
+
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars = Array.from({ length: Math.round(w * h / 2200) }, () => ({
+      x: Math.random() * w, y: Math.random() * h, r: 0.3 + Math.random() * 1.2,
+      p: Math.random() * TAU, s: 0.4 + Math.random() * 1.6,
+      c: Math.random() < 0.85 ? '#ffffff' : Math.random() < 0.5 ? '#ffd9a0' : '#a8d8ff'
+    }));
+    kick();
+  }
+  /* Une fusée part d'un bord, traverse en arc vers l'autre bord et laisse une traînée orangée. */
+  function launch(t) {
+    const left = Math.random() < 0.5, y0 = h * (0.12 + Math.random() * 0.6);
+    rockets.push({ t0: t, dur: 6000 + Math.random() * 4000, x0: left ? -30 : w + 30, x1: left ? w + 30 : -30,
+      y0, y1: y0 + (Math.random() - 0.5) * h * 0.5, arc: -(0.1 + Math.random() * 0.2) * h, size: 0.9 + Math.random() * 0.6, trail: [] });
+  }
+  function drawRocket(r, t) {
+    const k = (t - r.t0) / r.dur; if (k > 1) return false;
+    const at = q => [r.x0 + (r.x1 - r.x0) * q, r.y0 + (r.y1 - r.y0) * q + r.arc * 4 * q * (1 - q)];
+    const [x, y] = at(k), [x2, y2] = at(k + 0.005), ang = Math.atan2(y2 - y, x2 - x);
+    r.trail.push([x, y]); if (r.trail.length > 45) r.trail.shift();
+    r.trail.forEach(([tx, ty], i) => {
+      const a = i / r.trail.length;
+      ctx.globalAlpha = a * 0.45; ctx.fillStyle = '#ffb547';
+      ctx.beginPath(); ctx.arc(tx, ty, (0.6 + a * 2.2) * r.size, 0, TAU); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(r.size, r.size);
+    const f = 7 + Math.sin(t / 45) * 2.5;
+    ctx.fillStyle = '#ff6f3c'; ctx.beginPath(); ctx.moveTo(-9, -3.2); ctx.lineTo(-9 - f, 0); ctx.lineTo(-9, 3.2); ctx.fill();
+    ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.moveTo(-9, -1.7); ctx.lineTo(-9 - f * 0.6, 0); ctx.lineTo(-9, 1.7); ctx.fill();
+    ctx.fillStyle = '#f2545b';
+    [-1, 1].forEach(s => { ctx.beginPath(); ctx.moveTo(-4, 3.6 * s); ctx.lineTo(-11, 8 * s); ctx.lineTo(-9, 2.5 * s); ctx.fill(); });
+    ctx.fillStyle = '#eef4f7'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.quadraticCurveTo(5, -5.5, -9, -4); ctx.lineTo(-9, 4); ctx.quadraticCurveTo(5, 5.5, 11, 0); ctx.fill();
+    ctx.fillStyle = '#f2545b'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.quadraticCurveTo(8.5, -3.6, 6, -4.3); ctx.lineTo(6, 4.3); ctx.quadraticCurveTo(8.5, 3.6, 11, 0); ctx.fill();
+    ctx.fillStyle = '#5ec8ff'; ctx.beginPath(); ctx.arc(1, 0, 2.1, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#0a1622'; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.restore();
+    return true;
+  }
+  function frame(t) {
+    raf = 0;
+    if (home.hidden || !w) return;
+    ctx.clearRect(0, 0, w, h);
+    stars.forEach(s => {
+      ctx.globalAlpha = still ? 0.8 : 0.35 + 0.65 * Math.abs(Math.sin(t / 1000 * s.s + s.p));
+      ctx.fillStyle = s.c; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    if (still) return;
+    if (next < 0) next = t + 1500;
+    if (t > next) { launch(t); next = t + 5000 + Math.random() * 7000; }
+    rockets = rockets.filter(r => drawRocket(r, t));
+    raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  new ResizeObserver(size).observe(cv);
+  new MutationObserver(() => { if (!home.hidden) { rockets = []; next = -1; size(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
+})();
+/* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
+   noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
+   et un simple toucher pose le repère. Le niveau difficile garde la carte satellite Leaflet.
+   Si le globe de l'accueil n'a pas pu charger ses données, la partie se joue sur la carte Leaflet. ---- */
+const PAYS = {"100":"Bulgarie","104":"Birmanie","108":"Burundi","112":"Biélorussie","116":"Cambodge","120":"Cameroun","124":"Canada","140":"République centrafricaine","144":"Sri Lanka","148":"Tchad","152":"Chili","156":"Chine","158":"Taïwan","170":"Colombie","178":"Congo-Brazzaville","180":"Congo-Kinshasa","188":"Costa Rica","191":"Croatie","192":"Cuba","196":"Chypre","203":"Tchéquie","204":"Bénin","208":"Danemark","214":"République dominicaine","218":"Équateur","222":"Salvador","226":"Guinée équatoriale","231":"Éthiopie","232":"Érythrée","233":"Estonie","238":"Îles Malouines","242":"Fidji","246":"Finlande","250":"France","260":"Terres australes françaises","262":"Djibouti","266":"Gabon","268":"Géorgie","270":"Gambie","275":"Palestine","276":"Allemagne","288":"Ghana","300":"Grèce","304":"Groenland","320":"Guatemala","324":"Guinée","328":"Guyana","332":"Haïti","340":"Honduras","348":"Hongrie","352":"Islande","356":"Inde","360":"Indonésie","364":"Iran","368":"Irak","372":"Irlande","376":"Israël","380":"Italie","384":"Côte d’Ivoire","388":"Jamaïque","392":"Japon","398":"Kazakhstan","400":"Jordanie","404":"Kenya","408":"Corée du Nord","410":"Corée du Sud","414":"Koweït","417":"Kirghizstan","418":"Laos","422":"Liban","426":"Lesotho","428":"Lettonie","430":"Liberia","434":"Libye","440":"Lituanie","442":"Luxembourg","450":"Madagascar","454":"Malawi","458":"Malaisie","466":"Mali","478":"Mauritanie","484":"Mexique","496":"Mongolie","498":"Moldavie","499":"Monténégro","504":"Maroc","508":"Mozambique","512":"Oman","516":"Namibie","524":"Népal","528":"Pays-Bas","540":"Nouvelle-Calédonie","548":"Vanuatu","554":"Nouvelle-Zélande","558":"Nicaragua","562":"Niger","566":"Nigeria","578":"Norvège","586":"Pakistan","591":"Panama","598":"Papouasie-Nouvelle-Guinée","600":"Paraguay","604":"Pérou","608":"Philippines","616":"Pologne","620":"Portugal","624":"Guinée-Bissau","626":"Timor oriental","630":"Porto Rico","634":"Qatar","642":"Roumanie","643":"Russie","646":"Rwanda","682":"Arabie saoudite","686":"Sénégal","688":"Serbie","694":"Sierra Leone","703":"Slovaquie","704":"Viêt Nam","705":"Slovénie","706":"Somalie","710":"Afrique du Sud","716":"Zimbabwe","724":"Espagne","728":"Soudan du Sud","729":"Soudan","732":"Sahara occidental","740":"Suriname","748":"Eswatini","752":"Suède","756":"Suisse","760":"Syrie","762":"Tadjikistan","764":"Thaïlande","768":"Togo","780":"Trinité-et-Tobago","784":"Émirats arabes unis","788":"Tunisie","792":"Turquie","795":"Turkménistan","800":"Ouganda","804":"Ukraine","807":"Macédoine du Nord","818":"Égypte","826":"Royaume-Uni","834":"Tanzanie","840":"États-Unis","854":"Burkina Faso","858":"Uruguay","860":"Ouzbékistan","862":"Venezuela","887":"Yémen","894":"Zambie","032":"Argentine","044":"Bahamas","076":"Brésil","068":"Bolivie","084":"Belize","072":"Botswana","024":"Angola","012":"Algérie","050":"Bangladesh","064":"Bhoutan","004":"Afghanistan","051":"Arménie","040":"Autriche","008":"Albanie","056":"Belgique","090":"Îles Salomon","036":"Australie","031":"Azerbaïdjan","096":"Brunei","010":"Antarctique","070":"Bosnie-Herzégovine","Kosovo":"Kosovo"};
+const GG = (function () {
+  const cv = $('gglobe'), ctx = cv.getContext('2d');
+  const ZMIN = 0.9, ZMAX = 60, clampLat = v => Math.max(-85, Math.min(85, v));
+  let rot = [-10, -25], zoom = 1, w = 0, h = 0, R = 0, proj = null, path = null, labels = null, raf = 0, anim = null, pinch = 0, moved = 0;
+  const ptrs = new Map();
+  const api = { on: false };
+
+  /* Noms : un par pays, posé au centre de sa plus grande terre, et classés du plus grand au plus petit pays. */
+  function buildLabels() {
+    labels = GEO.countries.map(f => {
+      const name = PAYS[f.id] || PAYS[f.properties.name]; if (!name) return null;
+      const polys = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates.map(c => ({ type: 'Polygon', coordinates: c })) : [f.geometry];
+      const big = polys.reduce((a, b) => d3.geoArea(b) > d3.geoArea(a) ? b : a);
+      return { name, at: d3.geoCentroid(big), area: d3.geoArea(big) };
+    }).filter(Boolean).sort((a, b) => b.area - a.area);
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    kick();
+  }
+  const baseR = () => Math.min(w, h) * 0.45;
+  const visible = p => d3.geoDistance([p.o, p.a], proj.invert([w / 2, h / 2])) < Math.PI / 2 - 0.01;
+  function drawLabels() {
+    const centre = proj.invert([w / 2, h / 2]), boxes = [];
+    ctx.font = '700 ' + Math.round(Math.min(14, 10 + zoom)) + 'px Nunito, system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    for (const l of labels) {
+      if (l.area * R * R < 500 || d3.geoDistance(l.at, centre) > 1.25) continue;
+      const [x, y] = proj(l.at), tw = ctx.measureText(l.name).width / 2 + 3, th = 9;
+      if (x < tw || x > w - tw || y < th || y > h - th) continue;
+      if (boxes.some(b => Math.abs(b[0] - x) < b[2] + tw && Math.abs(b[1] - y) < 2 * th)) continue;
+      boxes.push([x, y, tw]);
+      ctx.strokeStyle = 'rgba(5,12,22,.85)'; ctx.lineWidth = 3; ctx.strokeText(l.name, x, y);
+      ctx.fillStyle = '#f4f7f5'; ctx.fillText(l.name, x, y);
+    }
+  }
+  function marker(p, c) {
+    if (!visible(p)) return;
+    const [x, y] = proj([p.o, p.a]);
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, 2 * Math.PI); ctx.fillStyle = cssv(c); ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
+  }
+  function link(p, q) {
+    ctx.beginPath(); path({ type: 'LineString', coordinates: [[p.o, p.a], [q.o, q.a]] });
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+  }
+  /* Repères : mêmes règles que drawOverlay sur la carte Leaflet (en duel, les repères restent cachés jusqu'à la comparaison). */
+  function drawMarks() {
+    const cur = rounds[idx];
+    if (players > 1) {
+      if (revealed && cur) {
+        dg.forEach(g => { if (g) link(g, cur); });
+        marker(cur, '--truth');
+        dg.forEach((g, i) => { if (g) marker(g, PCOL[i]); });
+      } else if (guess) marker(guess, PCOL[turn]);
+      return;
+    }
+    if (revealed && cur) { if (guess) link(guess, cur); marker(cur, '--truth'); }
+    if (guess) marker(guess, '--guess');
+  }
+  function draw() {
+    R = baseR() * zoom;
+    proj.scale(R).translate([w / 2, h / 2]).rotate([rot[0], rot[1]]);
+    ctx.clearRect(0, 0, w, h);
+    paintEarth(ctx, path, w / 2, h / 2, R, 0.75, 0.9);
+    if (level === 1 && labels) drawLabels();
+    drawMarks();
+  }
+  function frame(t) {
+    raf = 0;
+    if (!api.on || !w) return;
+    if (anim) {
+      const k = Math.min(1, (t - (anim.t0 || (anim.t0 = t))) / 700), e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+      const c = anim.path(e); rot = [-c[0], -c[1]]; zoom = anim.z0 * Math.pow(anim.z1 / anim.z0, e);
+      if (k === 1) anim = null;
+    }
+    draw();
+    if (anim) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (api.on && !raf) raf = requestAnimationFrame(frame); }
+  const setZoom = z => { zoom = Math.max(ZMIN, Math.min(ZMAX, z)); anim = null; kick(); };
+  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    anim = null; if (ptrs.size === 1) moved = 0; else { moved = 99; pinch = gap(); }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const d = gap(); if (pinch) setZoom(zoom * d / pinch); pinch = d; return; }
+    moved += Math.abs(dx) + Math.abs(dy);
+    if (moved < 6) return;
+    const k = 57.3 / Math.max(R, 1);
+    rot[0] += dx * k; rot[1] = clampLat(rot[1] - dy * k); kick();
+  });
+  const up = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId); pinch = 0;
+    if (e.type !== 'pointerup' || ptrs.size || moved >= 6) return;
+    /* Un toucher sans glisser pose le repère, s'il tombe sur la Terre. */
+    const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (Math.hypot(x - w / 2, y - h / 2) > R) return;
+    const ll = proj.invert([x, y]); if (ll) place(ll[1], ll[0]);
+  };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.002)); }, { passive: false });
+  new ResizeObserver(size).observe(cv);
+
+  /* Bascule globe / carte Leaflet au lancement d'une partie. */
+  api.use = want => {
+    api.on = !!(want && GEO.countries && window.d3);
+    if (api.on && !proj) { proj = d3.geoOrthographic().clipAngle(90).precision(0.3); path = d3.geoPath(proj, ctx); buildLabels(); }
+    cv.hidden = !api.on; $('map').hidden = api.on;
+    if (api.on) size();
+  };
+  api.reset = () => { anim = null; rot = [-10, -25]; zoom = 1; kick(); };
+  api.kick = kick;
+  api.zoomBy = k => setZoom(zoom * k);
+  /* Cadre les points donnés ({a, o}) : on tourne vers leur centre et on zoome pour qu'ils tiennent tous à l'écran. */
+  api.fit = list => {
+    const pts = list.map(p => [p.o, p.a]);
+    const c = pts.length === 1 ? pts[0] : pts.length === 2 ? d3.geoInterpolate(pts[0], pts[1])(0.5) : d3.geoCentroid({ type: 'MultiPoint', coordinates: pts });
+    const spread = Math.max(...pts.map(p => d3.geoDistance(p, c)));
+    const room = Math.min(w, h) / 2 - 50;
+    const z = pts.length === 1 ? 4 : spread >= Math.PI / 2 - 0.05 ? 1 : room / (baseR() * Math.sin(spread));
+    anim = { path: d3.geoInterpolate([-rot[0], -rot[1]], c), z0: zoom, z1: Math.max(ZMIN, Math.min(ZMAX, 12, z)) };
+    kick();
+  };
+  return api;
+})();
 $('ready').onclick = ready;
 $('go').onclick = () => players > 1 ? duelSubmit() : reveal();
 $('next').onclick = advance;
