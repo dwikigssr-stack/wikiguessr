@@ -146,6 +146,8 @@ select { font: 500 12.5px var(--font-mono); color: var(--ink); background: var(-
 #mapwrap { position: relative; flex: 1; min-height: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--sea); }
 #map { position: absolute; inset: 0; background: var(--sea); }
 .leaflet-container { cursor: crosshair; font-family: var(--font-mono); }
+/* Globe de jeu (facile et moyen) : le même globe que l'accueil, posé à la place de la carte satellite. */
+#gglobe { position: absolute; inset: 0; z-index: 500; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
 .zoom, .hint { z-index: 1000; }
 .leaflet-control-attribution { font-size: 10px; }
 .zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
@@ -200,6 +202,7 @@ button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0
   </section>
   <div id="mapwrap">
     <div id="map" aria-label="Carte du monde. Touchez pour placer votre repère."></div>
+    <canvas id="gglobe" hidden aria-label="Globe terrestre. Faites-le tourner en le glissant, touchez pour placer votre repère."></canvas>
     <div id="timebar" hidden><i id="timefill"></i></div>
     <div id="countdown" hidden><div id="cdnum">3</div><p id="cdtxt"></p></div>
     <div id="handoff" hidden>
@@ -580,14 +583,16 @@ base.on('tileerror', () => {
 });
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
-function resetView() { layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
-function fitTo(a, b) { map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
+function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
+function fitTo(a, b) { if (GG.on) return GG.fit([a, b]); map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
 const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
 function fitAll(r) {
+  if (GG.on) return GG.fit([r].concat(dg.filter(Boolean)));
   const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, g.o]));
   if (pts.length === 1) map.setView(pts[0], 4); else map.fitBounds(pts, { padding: [50, 50], maxZoom: 8 });
 }
 function drawOverlay() {
+  if (GG.on) return GG.kick();
   layer.clearLayers();
   const cur = rounds[idx];
   if (players > 1) {
@@ -639,6 +644,7 @@ function start() {
   $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
   ['t1', 't2', 't3'].forEach(id => { $(id).textContent = '0'; });
+  GG.use(level < 3); /* facile et moyen : globe ; difficile : carte satellite Leaflet */
   load();
 }
 function load() {
@@ -800,7 +806,7 @@ function timeUp() {
   revealed = true;
   results.push({ t: rounds[idx].t, d: null, pts: 0 });
   showResult(rounds[idx], null, 0);
-  map.setView([rounds[idx].a, rounds[idx].o], 4);
+  if (GG.on) GG.fit([rounds[idx]]); else map.setView([rounds[idx].a, rounds[idx].o], 4);
 }
 function reveal() {
   if (!guess || revealed) return;
@@ -864,8 +870,8 @@ function finish() {
 
 /* ---- interactions carte : Leaflet gère glisser, pincer, molette ---- */
 map.on('click', e => place(e.latlng.lat, e.latlng.lng));
-$('zin').onclick = () => map.zoomIn();
-$('zout').onclick = () => map.zoomOut();
+$('zin').onclick = () => GG.on ? GG.zoomBy(1.6) : map.zoomIn();
+$('zout').onclick = () => GG.on ? GG.zoomBy(1 / 1.6) : map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
 const sel = { players: 1, time: 0, mode: 'mixte', diff: 2 };
 const DIFFNOTE = {
@@ -901,6 +907,26 @@ $('menu').onclick = () => {
 };
 $('tomenu').onclick = showHome;
 choose('diff', 2); /* affiche l'explication du niveau par défaut */
+/* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
+   Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
+const GEO = { grat: null, land: null, borders: null, countries: null };
+function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth) {
+  const sphere = { type: 'Sphere' };
+  let g = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.22);
+  g.addColorStop(0, 'rgba(94,200,255,.38)'); g.addColorStop(1, 'rgba(94,200,255,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 2 * Math.PI); ctx.fill();
+  g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
+  g.addColorStop(0, '#2b6f9e'); g.addColorStop(0.55, '#0f3a5f'); g.addColorStop(1, '#071c33');
+  ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+  if (GEO.grat) { ctx.beginPath(); path(GEO.grat); ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 0.6; ctx.stroke(); }
+  if (GEO.land) {
+    ctx.beginPath(); path(GEO.land); ctx.fillStyle = '#5c9a72'; ctx.fill();
+    ctx.beginPath(); path(GEO.borders); ctx.strokeStyle = 'rgba(255,255,255,' + borderAlpha + ')'; ctx.lineWidth = borderWidth; ctx.stroke();
+  }
+  g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
+  g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,20,.6)');
+  ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+}
 /* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
    on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
@@ -911,7 +937,7 @@ choose('diff', 2); /* affiche l'explication du niveau par défaut */
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clampLat = v => Math.max(-70, Math.min(70, v));
   let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
-  let proj = null, path = null, grat = null, land = null, borders = null, pts = [];
+  let proj = null, path = null, pts = [];
   let raf = 0, lastInput = -1e4, pinch = 0;
   const ptrs = new Map();
 
@@ -930,23 +956,10 @@ choose('diff', 2); /* affiche l'explication du niveau par défaut */
   }
   function draw(t) {
     R = Math.min(w, w < 600 ? h - 90 : h) * 0.43 * zoom;
-    const cx = w / 2, cy = h / 2 + (w < 600 ? 28 : 0), sphere = { type: 'Sphere' };
+    const cx = w / 2, cy = h / 2 + (w < 600 ? 28 : 0);
     proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
     ctx.clearRect(0, 0, w, h);
-    let g = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.22);
-    g.addColorStop(0, 'rgba(94,200,255,.38)'); g.addColorStop(1, 'rgba(94,200,255,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 2 * Math.PI); ctx.fill();
-    g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
-    g.addColorStop(0, '#2b6f9e'); g.addColorStop(0.55, '#0f3a5f'); g.addColorStop(1, '#071c33');
-    ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
-    ctx.beginPath(); path(grat); ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 0.6; ctx.stroke();
-    if (land) {
-      ctx.beginPath(); path(land); ctx.fillStyle = '#5c9a72'; ctx.fill();
-      ctx.beginPath(); path(borders); ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 0.5; ctx.stroke();
-    }
-    g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
-    g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,20,.6)');
-    ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
+    paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
     const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
     pts.forEach((d, i) => {
       const a = d3.geoDistance([d.o, d.a], centre);
@@ -1007,14 +1020,155 @@ choose('diff', 2); /* affiche l'explication du niveau par défaut */
       if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
       if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
       proj = d3.geoOrthographic().clipAngle(90).precision(0.5);
-      path = d3.geoPath(proj, ctx); grat = d3.geoGraticule10();
+      path = d3.geoPath(proj, ctx); GEO.grat = d3.geoGraticule10();
       size(); kick();
       const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
-      land = topojson.feature(t, t.objects.land);
-      borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      GEO.land = topojson.feature(t, t.objects.land);
+      GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      GEO.countries = topojson.feature(t, t.objects.countries).features;
       kick();
     } catch (e) { if (!proj) home.classList.add('noglobe'); }
   })();
+})();
+/* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
+   noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
+   et un simple toucher pose le repère. Le niveau difficile garde la carte satellite Leaflet.
+   Si le globe de l'accueil n'a pas pu charger ses données, la partie se joue sur la carte Leaflet. ---- */
+const PAYS = {"100":"Bulgarie","104":"Birmanie","108":"Burundi","112":"Biélorussie","116":"Cambodge","120":"Cameroun","124":"Canada","140":"République centrafricaine","144":"Sri Lanka","148":"Tchad","152":"Chili","156":"Chine","158":"Taïwan","170":"Colombie","178":"Congo-Brazzaville","180":"Congo-Kinshasa","188":"Costa Rica","191":"Croatie","192":"Cuba","196":"Chypre","203":"Tchéquie","204":"Bénin","208":"Danemark","214":"République dominicaine","218":"Équateur","222":"Salvador","226":"Guinée équatoriale","231":"Éthiopie","232":"Érythrée","233":"Estonie","238":"Îles Malouines","242":"Fidji","246":"Finlande","250":"France","260":"Terres australes françaises","262":"Djibouti","266":"Gabon","268":"Géorgie","270":"Gambie","275":"Palestine","276":"Allemagne","288":"Ghana","300":"Grèce","304":"Groenland","320":"Guatemala","324":"Guinée","328":"Guyana","332":"Haïti","340":"Honduras","348":"Hongrie","352":"Islande","356":"Inde","360":"Indonésie","364":"Iran","368":"Irak","372":"Irlande","376":"Israël","380":"Italie","384":"Côte d’Ivoire","388":"Jamaïque","392":"Japon","398":"Kazakhstan","400":"Jordanie","404":"Kenya","408":"Corée du Nord","410":"Corée du Sud","414":"Koweït","417":"Kirghizstan","418":"Laos","422":"Liban","426":"Lesotho","428":"Lettonie","430":"Liberia","434":"Libye","440":"Lituanie","442":"Luxembourg","450":"Madagascar","454":"Malawi","458":"Malaisie","466":"Mali","478":"Mauritanie","484":"Mexique","496":"Mongolie","498":"Moldavie","499":"Monténégro","504":"Maroc","508":"Mozambique","512":"Oman","516":"Namibie","524":"Népal","528":"Pays-Bas","540":"Nouvelle-Calédonie","548":"Vanuatu","554":"Nouvelle-Zélande","558":"Nicaragua","562":"Niger","566":"Nigeria","578":"Norvège","586":"Pakistan","591":"Panama","598":"Papouasie-Nouvelle-Guinée","600":"Paraguay","604":"Pérou","608":"Philippines","616":"Pologne","620":"Portugal","624":"Guinée-Bissau","626":"Timor oriental","630":"Porto Rico","634":"Qatar","642":"Roumanie","643":"Russie","646":"Rwanda","682":"Arabie saoudite","686":"Sénégal","688":"Serbie","694":"Sierra Leone","703":"Slovaquie","704":"Viêt Nam","705":"Slovénie","706":"Somalie","710":"Afrique du Sud","716":"Zimbabwe","724":"Espagne","728":"Soudan du Sud","729":"Soudan","732":"Sahara occidental","740":"Suriname","748":"Eswatini","752":"Suède","756":"Suisse","760":"Syrie","762":"Tadjikistan","764":"Thaïlande","768":"Togo","780":"Trinité-et-Tobago","784":"Émirats arabes unis","788":"Tunisie","792":"Turquie","795":"Turkménistan","800":"Ouganda","804":"Ukraine","807":"Macédoine du Nord","818":"Égypte","826":"Royaume-Uni","834":"Tanzanie","840":"États-Unis","854":"Burkina Faso","858":"Uruguay","860":"Ouzbékistan","862":"Venezuela","887":"Yémen","894":"Zambie","032":"Argentine","044":"Bahamas","076":"Brésil","068":"Bolivie","084":"Belize","072":"Botswana","024":"Angola","012":"Algérie","050":"Bangladesh","064":"Bhoutan","004":"Afghanistan","051":"Arménie","040":"Autriche","008":"Albanie","056":"Belgique","090":"Îles Salomon","036":"Australie","031":"Azerbaïdjan","096":"Brunei","010":"Antarctique","070":"Bosnie-Herzégovine","Kosovo":"Kosovo"};
+const GG = (function () {
+  const cv = $('gglobe'), ctx = cv.getContext('2d');
+  const ZMIN = 0.9, ZMAX = 60, clampLat = v => Math.max(-85, Math.min(85, v));
+  let rot = [-10, -25], zoom = 1, w = 0, h = 0, R = 0, proj = null, path = null, labels = null, raf = 0, anim = null, pinch = 0, moved = 0;
+  const ptrs = new Map();
+  const api = { on: false };
+
+  /* Noms : un par pays, posé au centre de sa plus grande terre, et classés du plus grand au plus petit pays. */
+  function buildLabels() {
+    labels = GEO.countries.map(f => {
+      const name = PAYS[f.id] || PAYS[f.properties.name]; if (!name) return null;
+      const polys = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates.map(c => ({ type: 'Polygon', coordinates: c })) : [f.geometry];
+      const big = polys.reduce((a, b) => d3.geoArea(b) > d3.geoArea(a) ? b : a);
+      return { name, at: d3.geoCentroid(big), area: d3.geoArea(big) };
+    }).filter(Boolean).sort((a, b) => b.area - a.area);
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    kick();
+  }
+  const baseR = () => Math.min(w, h) * 0.45;
+  const visible = p => d3.geoDistance([p.o, p.a], proj.invert([w / 2, h / 2])) < Math.PI / 2 - 0.01;
+  function drawLabels() {
+    const centre = proj.invert([w / 2, h / 2]), boxes = [];
+    ctx.font = '700 ' + Math.round(Math.min(14, 10 + zoom)) + 'px Nunito, system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    for (const l of labels) {
+      if (l.area * R * R < 500 || d3.geoDistance(l.at, centre) > 1.25) continue;
+      const [x, y] = proj(l.at), tw = ctx.measureText(l.name).width / 2 + 3, th = 9;
+      if (x < tw || x > w - tw || y < th || y > h - th) continue;
+      if (boxes.some(b => Math.abs(b[0] - x) < b[2] + tw && Math.abs(b[1] - y) < 2 * th)) continue;
+      boxes.push([x, y, tw]);
+      ctx.strokeStyle = 'rgba(5,12,22,.85)'; ctx.lineWidth = 3; ctx.strokeText(l.name, x, y);
+      ctx.fillStyle = '#f4f7f5'; ctx.fillText(l.name, x, y);
+    }
+  }
+  function marker(p, c) {
+    if (!visible(p)) return;
+    const [x, y] = proj([p.o, p.a]);
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, 2 * Math.PI); ctx.fillStyle = cssv(c); ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
+  }
+  function link(p, q) {
+    ctx.beginPath(); path({ type: 'LineString', coordinates: [[p.o, p.a], [q.o, q.a]] });
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+  }
+  /* Repères : mêmes règles que drawOverlay sur la carte Leaflet (en duel, les repères restent cachés jusqu'à la comparaison). */
+  function drawMarks() {
+    const cur = rounds[idx];
+    if (players > 1) {
+      if (revealed && cur) {
+        dg.forEach(g => { if (g) link(g, cur); });
+        marker(cur, '--truth');
+        dg.forEach((g, i) => { if (g) marker(g, PCOL[i]); });
+      } else if (guess) marker(guess, PCOL[turn]);
+      return;
+    }
+    if (revealed && cur) { if (guess) link(guess, cur); marker(cur, '--truth'); }
+    if (guess) marker(guess, '--guess');
+  }
+  function draw() {
+    R = baseR() * zoom;
+    proj.scale(R).translate([w / 2, h / 2]).rotate([rot[0], rot[1]]);
+    ctx.clearRect(0, 0, w, h);
+    paintEarth(ctx, path, w / 2, h / 2, R, 0.75, 0.9);
+    if (level === 1 && labels) drawLabels();
+    drawMarks();
+  }
+  function frame(t) {
+    raf = 0;
+    if (!api.on || !w) return;
+    if (anim) {
+      const k = Math.min(1, (t - (anim.t0 || (anim.t0 = t))) / 700), e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+      const c = anim.path(e); rot = [-c[0], -c[1]]; zoom = anim.z0 * Math.pow(anim.z1 / anim.z0, e);
+      if (k === 1) anim = null;
+    }
+    draw();
+    if (anim) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (api.on && !raf) raf = requestAnimationFrame(frame); }
+  const setZoom = z => { zoom = Math.max(ZMIN, Math.min(ZMAX, z)); anim = null; kick(); };
+  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    anim = null; if (ptrs.size === 1) moved = 0; else { moved = 99; pinch = gap(); }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const d = gap(); if (pinch) setZoom(zoom * d / pinch); pinch = d; return; }
+    moved += Math.abs(dx) + Math.abs(dy);
+    if (moved < 6) return;
+    const k = 57.3 / Math.max(R, 1);
+    rot[0] += dx * k; rot[1] = clampLat(rot[1] - dy * k); kick();
+  });
+  const up = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId); pinch = 0;
+    if (e.type !== 'pointerup' || ptrs.size || moved >= 6) return;
+    /* Un toucher sans glisser pose le repère, s'il tombe sur la Terre. */
+    const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (Math.hypot(x - w / 2, y - h / 2) > R) return;
+    const ll = proj.invert([x, y]); if (ll) place(ll[1], ll[0]);
+  };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.002)); }, { passive: false });
+  new ResizeObserver(size).observe(cv);
+
+  /* Bascule globe / carte Leaflet au lancement d'une partie. */
+  api.use = want => {
+    api.on = !!(want && GEO.countries && window.d3);
+    if (api.on && !proj) { proj = d3.geoOrthographic().clipAngle(90).precision(0.3); path = d3.geoPath(proj, ctx); buildLabels(); }
+    cv.hidden = !api.on; $('map').hidden = api.on;
+    if (api.on) size();
+  };
+  api.reset = () => { anim = null; rot = [-10, -25]; zoom = 1; kick(); };
+  api.kick = kick;
+  api.zoomBy = k => setZoom(zoom * k);
+  /* Cadre les points donnés ({a, o}) : on tourne vers leur centre et on zoome pour qu'ils tiennent tous à l'écran. */
+  api.fit = list => {
+    const pts = list.map(p => [p.o, p.a]);
+    const c = pts.length === 1 ? pts[0] : pts.length === 2 ? d3.geoInterpolate(pts[0], pts[1])(0.5) : d3.geoCentroid({ type: 'MultiPoint', coordinates: pts });
+    const spread = Math.max(...pts.map(p => d3.geoDistance(p, c)));
+    const room = Math.min(w, h) / 2 - 50;
+    const z = pts.length === 1 ? 4 : spread >= Math.PI / 2 - 0.05 ? 1 : room / (baseR() * Math.sin(spread));
+    anim = { path: d3.geoInterpolate([-rot[0], -rot[1]], c), z0: zoom, z1: Math.max(ZMIN, Math.min(ZMAX, 12, z)) };
+    kick();
+  };
+  return api;
 })();
 $('ready').onclick = ready;
 $('go').onclick = () => players > 1 ? duelSubmit() : reveal();
