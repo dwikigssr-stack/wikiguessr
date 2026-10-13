@@ -6,6 +6,7 @@
 <style>:root{color-scheme:light}body{margin:0}img{max-width:100%}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 </head>
 <body>
 <title>Wikiguessr</title>
@@ -123,7 +124,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #countdown { position: absolute; inset: 0; z-index: 1600; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; }
 #cdnum { font: 700 120px/1 var(--font-display); font-variant-numeric: tabular-nums; }
 #cdtxt { margin: 0; color: var(--muted); }
-.cd #photo, .cd .txt { visibility: hidden; }
+.cd #photo, .cd .txt, .ho #photo, .ho .txt { visibility: hidden; }
 #fwinner { font: 700 34px/1.1 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 .duelscores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .ds { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
@@ -583,6 +584,23 @@ base.on('tileerror', () => {
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
     { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
 });
+/* Frontières des pays (sans noms). Elles sont dessinées juste au-dessus des tuiles et fondues dans l'image (mode de fusion « overlay ») :
+   un liseré sombre et un trait clair fin, comme sur une carte satellite imprimée, plutôt qu'un calque posé par-dessus.
+   Si le fichier ne charge pas, la carte reste sans frontières. */
+const bp = map.createPane('borders');
+bp.style.zIndex = 250; bp.style.pointerEvents = 'none'; bp.style.mixBlendMode = 'overlay';
+try {
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json')
+    .then(x => x.ok ? x.json() : null)
+    .then(t => {
+      if (!t || !window.topojson) return;
+      const m = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      const o = { pane: 'borders', interactive: false, lineJoin: 'round' };
+      L.geoJSON(m, Object.assign({ style: { color: '#000', weight: 3, opacity: 0.35 } }, o)).addTo(map);
+      L.geoJSON(m, Object.assign({ style: { color: '#fff6dc', weight: 1, opacity: 0.95 } }, o)).addTo(map);
+    })
+    .catch(() => {});
+} catch (e) {}
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
 function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
@@ -652,7 +670,7 @@ function start() {
 function load() {
   const r = rounds[idx];
   guess = null; revealed = false; turn = 0; dg = Array(players).fill(null); waiting = false;
-  $('handoff').hidden = true; updateWho();
+  $('handoff').hidden = true; document.body.classList.remove('ho'); updateWho();
   $('rnd').textContent = idx + 1;
   $('chip').textContent = r.k === 'perso' ? 'Personnalité · ' + r.c + ' · lieu de naissance' : r.c;
   $('title').textContent = r.t;
@@ -704,7 +722,7 @@ function duelSubmit(force) {
     $('hotitle').textContent = 'Au tour du Joueur ' + nx;
     $('hotext').textContent = "Le Joueur " + (turn + 1) + " a joué. Passez l'appareil au Joueur " + nx + " sans montrer l'écran.";
     $('ready').textContent = 'Joueur ' + nx + ' est prêt';
-    $('go').disabled = true; $('handoff').hidden = false;
+    $('go').disabled = true; $('handoff').hidden = false; document.body.classList.add('ho');
     return;
   }
   revealed = true;
@@ -729,7 +747,7 @@ function duelSubmit(force) {
   drawOverlay(); fitAll(r);
 }
 function ready() {
-  $('handoff').hidden = true; waiting = false; turn += 1; guess = null;
+  $('handoff').hidden = true; document.body.classList.remove('ho'); waiting = false; turn += 1; guess = null;
   resetView(); $('go').disabled = true; $('hint').hidden = false;
   updateWho(); startTimer();
 }
@@ -894,7 +912,7 @@ document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => 
 }));
 function showHome() {
   stopTimer(); endCountdown();
-  $('final').hidden = true; $('handoff').hidden = true;
+  $('final').hidden = true; $('handoff').hidden = true; document.body.classList.remove('ho');
   $('home').hidden = false;
 }
 $('launch').onclick = () => {
