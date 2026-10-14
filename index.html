@@ -65,7 +65,6 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden; color-scheme: dark;
   --ink: #eef4f7; --muted: #94a9b5; --line: rgba(255,255,255,.13); --card: rgba(255,255,255,.06); --btn: #ffb547; --btn-ink: #1a1206; --guess: #ffb547;
   --font-body: 'Nunito', system-ui, sans-serif; --font-mono: 'Nunito', system-ui, sans-serif; --font-display: 'Nunito', system-ui, sans-serif;
-  --c-lieu: #ffb547; --c-perso: #ff6f9c; --c-sport: #5ec8ff;
   color: var(--ink);
   background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.7), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.5), transparent),
     radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.6), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.45), transparent) 0 0/211px 211px,
@@ -100,9 +99,6 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 .seg.tiles svg { height: 22px; width: auto; }
 @media (max-width: 599px) { .tag { display: none; } }
 .seg i { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
-.seg i.lieu { background: var(--c-lieu); color: var(--c-lieu); }
-.seg i.perso { background: var(--c-perso); color: var(--c-perso); }
-.seg i.sport { background: var(--c-sport); color: var(--c-sport); }
 .duo { display: grid; grid-template-columns: 1fr; gap: 18px; }
 .note { font: 500 13.5px/1.45 var(--font-mono); color: var(--muted); }
 #launch { font: 400 19px 'Bungee', var(--font-display); letter-spacing: 0.02em; padding: 15px 18px; box-shadow: 0 10px 30px -10px rgba(255,181,71,.7); }
@@ -165,6 +161,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--guess); outline
 .pts { font-family: var(--font-mono); font-size: 18px; color: var(--truth); font-variant-numeric: tabular-nums; }
 .where { font-size: 14.5px; color: var(--muted); margin: 0; }
 .where a { color: var(--ink); text-underline-offset: 3px; }
+.learn { font-size: 14.5px; line-height: 1.45; color: var(--ink); margin: 0; }
 #final { position: absolute; inset: 0; z-index: 2000; background: var(--bg); display: flex; flex-direction: column; gap: 14px; padding-inline: 16px; padding-block: 18px; overflow-y: auto; max-width: 980px; margin-inline: auto; }
 #final .big { font-family: var(--font-display); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 #final .of { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
@@ -245,6 +242,7 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
     <div id="result" hidden>
       <div class="score-line"><span class="dist" id="dist"></span><span class="pts" id="pts"></span></div>
       <p class="where" id="where"></p>
+      <p class="learn" id="learn" hidden></p>
       <button class="main" id="next">Manche suivante</button>
     </div>
   </div>
@@ -268,7 +266,7 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
       <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
       <div class="brandmark">
         <h1 class="logo" aria-label="Wikiguessr"><span class="lg-tag" aria-hidden="true">WIKI</span><span class="lg-word" aria-hidden="true">GUESSR</span><svg class="lg-pin" viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.5 12 32 12 32s12-11.5 12-20.3C24 5.2 18.6 0 12 0z" fill="#ffb547"/><circle cx="12" cy="11.5" r="4.6" fill="#050c16"/></svg></h1>
-        <p class="tag">Devinez où se trouve le lieu, ou où est née la personnalité. Plus vous êtes proche et rapide, plus vous marquez.</p>
+        <p class="tag">Devinez où se trouve le lieu, où est née la personnalité ou où s’est déroulé l’événement. Plus vous êtes proche et rapide, plus vous marquez.</p>
       </div>
       <div class="globehint">Faites tourner le globe</div>
     </div>
@@ -282,12 +280,9 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
         </div>
       </div>
       <div class="opt">
-        <div class="optname">Questions</div>
-        <div class="seg" data-key="mode">
+        <div class="optname">Thème</div>
+        <div class="seg" data-key="mode" id="modes">
           <button type="button" data-v="mixte" aria-pressed="true">Tout</button>
-          <button type="button" data-v="lieux" aria-pressed="false"><i class="lieu"></i>Lieux</button>
-          <button type="button" data-v="perso" aria-pressed="false"><i class="perso"></i>Personnalités</button>
-          <button type="button" data-v="sport" aria-pressed="false"><i class="sport"></i>Sport</button>
         </div>
         <div class="note" id="poolnote"></div>
       </div>
@@ -317,272 +312,13 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
   </div>
 </div>
 
+<script src="questions.js"></script>
 <script>
-/* t: titre de l'article · w: slug Wikipédia · c: catégorie · x: extrait (sans le nom du lieu) · p: lieu · a/o: latitude/longitude */
-const DATA = [
-{t:"Tour Eiffel",c:"Monument",x:"Tour de fer de 330 mètres construite pour l'Exposition universelle de 1889, longtemps la plus haute construction du monde.",p:"Paris, France",a:48.8584,o:2.2945},
-{t:"Machu Picchu",c:"Site archéologique",x:"Citadelle inca du XVe siècle perchée à 2 430 mètres d'altitude, révélée au monde occidental en 1911.",p:"Cuzco, Pérou",a:-13.1631,o:-72.5450},
-{t:"Grande Barrière de corail",c:"Nature",x:"Plus vaste ensemble corallien de la planète, long d'environ 2 300 kilomètres et visible depuis l'espace.",p:"Queensland, Australie",a:-18.29,o:147.70},
-{t:"Taj Mahal",c:"Monument",x:"Mausolée de marbre blanc élevé au XVIIe siècle par un empereur moghol à la mémoire de son épouse.",p:"Agra, Inde",a:27.1751,o:78.0421},
-{t:"Kilimandjaro",c:"Montagne",x:"Plus haut sommet du continent africain avec 5 895 mètres, volcan isolé dont les glaciers reculent.",p:"Tanzanie",a:-3.0674,o:37.3556},
-{t:"Colisée",c:"Monument",x:"Amphithéâtre elliptique inauguré en 80, qui pouvait accueillir plusieurs dizaines de milliers de spectateurs.",p:"Rome, Italie",a:41.8902,o:12.4922},
-{t:"Angkor Vat",c:"Site archéologique",x:"Temple du XIIe siècle entouré de douves, plus grand monument religieux du monde, représenté sur un drapeau national.",p:"Siem Reap, Cambodge",a:13.4125,o:103.8670},
-{t:"Pétra",c:"Site archéologique",x:"Cité nabatéenne dont les façades sont taillées directement dans la roche rose d'un défilé.",p:"Jordanie",a:30.3285,o:35.4444},
-{t:"Chichén Itzá",c:"Site archéologique",x:"Cité maya dominée par une pyramide à degrés, le temple de Kukulcán, alignée sur les équinoxes.",p:"Yucatán, Mexique",a:20.6843,o:-88.5678},
-{t:"Statue de la Liberté",c:"Monument",x:"Statue de cuivre offerte en 1886 par un pays ami, qui accueille les bateaux à l'entrée d'une grande baie.",p:"New York, États-Unis",a:40.6892,o:-74.0445},
-{t:"Christ Rédempteur",c:"Monument",x:"Statue d'Art déco de 30 mètres, bras ouverts, érigée en 1931 au sommet du mont du Corcovado.",p:"Rio de Janeiro, Brésil",a:-22.9519,o:-43.2105},
-{t:"Pyramide de Khéops",c:"Site archéologique",x:"Seule des sept merveilles du monde antique encore debout, haute à l'origine de 146 mètres.",p:"Gizeh, Égypte",a:29.9792,o:31.1342},
-{t:"Stonehenge",c:"Site archéologique",x:"Cercle de mégalithes érigé il y a plus de quatre millénaires, dont les pierres bleues venaient de loin.",p:"Wiltshire, Royaume-Uni",a:51.1789,o:-1.8262},
-{t:"Mont Fuji",c:"Montagne",x:"Volcan à cône presque parfait culminant à 3 776 mètres, sujet de nombreuses estampes.",p:"Honshū, Japon",a:35.3606,o:138.7274},
-{t:"Everest",c:"Montagne",x:"Point culminant de la Terre à 8 849 mètres, gravi pour la première fois en 1953.",p:"Himalaya, Népal et Chine",a:27.9881,o:86.9250},
-{t:"Sagrada Família",c:"Monument",x:"Basilique commencée en 1882 par un architecte visionnaire et toujours en chantier au XXIe siècle.",p:"Barcelone, Espagne",a:41.4036,o:2.1744},
-{t:"Parthénon",c:"Site archéologique",x:"Temple dorique du Ve siècle av. J.-C. dédié à la déesse de la sagesse, érigé sur une acropole.",p:"Athènes, Grèce",a:37.9715,o:23.7267},
-{t:"Cathédrale Saint-Basile-le-Bienheureux",c:"Monument",x:"Église aux bulbes colorés commandée par Ivan le Terrible pour célébrer une conquête, au bord d'une grande place.",p:"Moscou, Russie",a:55.7525,o:37.6231},
-{t:"Cité interdite",c:"Monument",x:"Ancien palais impérial de près de mille bâtiments, résidence de vingt-quatre empereurs.",p:"Pékin, Chine",a:39.9163,o:116.3972},
-{t:"Burj Khalifa",c:"Monument",x:"Gratte-ciel de 828 mètres, la plus haute structure jamais construite, inaugurée en 2010.",p:"Dubaï, Émirats arabes unis",a:25.1972,o:55.2744},
-{t:"Chutes Victoria",c:"Nature",x:"Rideau d'eau large de plus d'un kilomètre que les habitants appellent « la fumée qui gronde ».",p:"Frontière Zambie-Zimbabwe",a:-17.9243,o:25.8572},
-{t:"Uluru",c:"Nature",x:"Immense monolithe de grès rouge, lieu sacré pour les Anangu, qui change de couleur au coucher du soleil.",p:"Territoire du Nord, Australie",a:-25.3444,o:131.0369},
-{t:"Mont-Saint-Michel",c:"Monument",x:"Abbaye bâtie sur un îlot rocheux que les grandes marées transforment en île plusieurs fois par an.",p:"Manche, France",a:48.6361,o:-1.5115},
-{t:"Alhambra",c:"Monument",x:"Palais-forteresse de la dynastie nasride, chef-d'œuvre de l'art hispano-mauresque avec ses cours à fontaines.",p:"Grenade, Espagne",a:37.1760,o:-3.5881},
-{t:"Château de Neuschwanstein",c:"Monument",x:"Château romantique commandé par un roi de Bavière rêveur, qui a inspiré celui d'un célèbre dessin animé.",p:"Bavière, Allemagne",a:47.5576,o:10.7498},
-{t:"Cappadoce",c:"Région",x:"Région de cheminées de fée et de villes souterraines, survolée chaque matin par des centaines de montgolfières.",p:"Anatolie, Turquie",a:38.6431,o:34.8289},
-{t:"Lac Baïkal",c:"Nature",x:"Plus profond lac du monde (1 642 m), contenant environ un cinquième de l'eau douce liquide de la planète.",p:"Sibérie, Russie",a:53.5,o:108.0},
-{t:"Grand Canyon",c:"Nature",x:"Gorge de plus de 440 kilomètres de long, creusée par un fleuve dans des strates vieilles de deux milliards d'années.",p:"Arizona, États-Unis",a:36.1069,o:-112.1129},
-{t:"Chutes du Niagara",c:"Nature",x:"Trois chutes spectaculaires situées sur la frontière entre deux pays nord-américains.",p:"Ontario / New York",a:43.0962,o:-79.0377},
-{t:"Salar d'Uyuni",c:"Nature",x:"Plus grand désert de sel du monde, qui devient un miroir géant à la saison des pluies.",p:"Bolivie",a:-20.1338,o:-67.4891},
-{t:"Île de Pâques",c:"Île",x:"Île volcanique isolée au milieu d'un océan, célèbre pour ses près de 900 statues de pierre, les moaï.",p:"Rapa Nui, Chili",a:-27.1127,o:-109.3497},
-{t:"Îles Galápagos",c:"Île",x:"Archipel volcanique où un naturaliste anglais observa en 1835 des pinsons qui nourrirent sa théorie de l'évolution.",p:"Équateur",a:-0.9538,o:-90.9656},
-{t:"Mont Blanc",c:"Montagne",x:"Plus haut sommet des Alpes avec 4 805 mètres, dont une partie des versants est disputée entre deux pays.",p:"Alpes, France et Italie",a:45.8326,o:6.8652},
-{t:"Cervin",c:"Montagne",x:"Pyramide rocheuse presque parfaite dont la face nord fut vaincue en 1865 au prix d'un drame.",p:"Alpes, Suisse et Italie",a:45.9763,o:7.6586},
-{t:"Vésuve",c:"Volcan",x:"Volcan dont l'éruption de l'an 79 ensevelit deux cités romaines sous les cendres.",p:"Campanie, Italie",a:40.8224,o:14.4289},
-{t:"Etna",c:"Volcan",x:"Plus haut volcan actif d'Europe, en éruption fréquente, dont les coulées touchent parfois des villages.",p:"Sicile, Italie",a:37.7510,o:14.9934},
-{t:"Tombouctou",c:"Ville",x:"Cité caravanière aux manuscrits anciens et aux mosquées de banco, surnommée « la cité des 333 saints ».",p:"Mali",a:16.7666,o:-3.0026},
-{t:"Zanzibar",c:"Île",x:"Archipel aux épices et à la vieille ville de pierre, ancien carrefour du commerce swahili et du commerce d'esclaves.",p:"Tanzanie",a:-6.1659,o:39.2026},
-{t:"Madagascar",c:"Île",x:"Quatrième plus grande île du monde, où vivent les lémuriens et une flore largement endémique.",p:"Océan Indien",a:-18.77,o:46.87},
-{t:"Désert d'Atacama",c:"Nature",x:"Désert parmi les plus arides de la planète, où certaines stations n'ont jamais enregistré de pluie.",p:"Chili",a:-24.5,o:-69.25},
-{t:"Fosse des Mariannes",c:"Océan",x:"Point le plus profond connu des océans, à près de 11 000 mètres sous la surface.",p:"Pacifique occidental",a:11.373,o:142.591},
-{t:"Alcatraz",c:"Histoire",x:"Ancien pénitencier fédéral sur un îlot rocheux, réputé impossible à quitter à la nage dans une baie aux eaux glacées.",p:"Californie, États-Unis",a:37.8267,o:-122.4230},
-{t:"Golden Gate Bridge",c:"Monument",x:"Pont suspendu d'un rouge orangé, long de 2 737 mètres, ouvert en 1937 à l'entrée d'une grande baie.",p:"San Francisco, États-Unis",a:37.8199,o:-122.4783},
-{t:"Space Needle",c:"Monument",x:"Tour d'observation à la silhouette de soucoupe, bâtie pour l'Exposition universelle de 1962.",p:"Seattle, États-Unis",a:47.6205,o:-122.3493},
-{t:"Loch Ness",c:"Nature",x:"Lac d'eau douce long et profond, associé depuis les années 1930 à la légende d'un monstre.",p:"Highlands, Écosse",a:57.3229,o:-4.4244},
-{t:"Falaises de Moher",c:"Nature",x:"Falaises de 214 mètres au plus haut, battues par l'Atlantique sur huit kilomètres.",p:"Comté de Clare, Irlande",a:52.9715,o:-9.4265},
-{t:"Chaussée des Géants",c:"Nature",x:"Quelque 40 000 colonnes de basalte, selon la légende bâties par un géant pour traverser la mer.",p:"Antrim, Irlande du Nord",a:55.2408,o:-6.5116},
-{t:"Geirangerfjord",c:"Nature",x:"Fjord étroit de 15 kilomètres bordé de cascades, classé à l'UNESCO, que parcourent de grands paquebots.",p:"Norvège",a:62.1049,o:7.2059},
-{t:"Geysir",c:"Nature",x:"Source d'eau chaude jaillissante qui a donné son nom à tous les phénomènes du même type.",p:"Haukadalur, Islande",a:64.3104,o:-20.3024},
-{t:"Sainte-Sophie",c:"Monument",x:"Basilique du VIe siècle à la coupole spectaculaire, devenue mosquée, musée, puis de nouveau mosquée.",p:"Istanbul, Turquie",a:41.0086,o:28.9802},
-{t:"Mont Athos",c:"Montagne",x:"Presqu'île montagneuse peuplée de monastères orthodoxes, interdite aux femmes depuis plus de mille ans.",p:"Chalcidique, Grèce",a:40.1575,o:24.3267},
-{t:"Delphes",c:"Site archéologique",x:"Sanctuaire d'Apollon où la Pythie rendait ses oracles, considéré par les Grecs comme le nombril du monde.",p:"Phocide, Grèce",a:38.4824,o:22.5010},
-{t:"Cinque Terre",c:"Région",x:"Cinq villages colorés accrochés à des falaises en terrasses, reliés par des sentiers côtiers et un train.",p:"Ligurie, Italie",a:44.1461,o:9.6439},
-{t:"Tour de Pise",c:"Monument",x:"Campanile de marbre commencé en 1173 dont le sol meuble a provoqué une inclinaison célèbre.",p:"Toscane, Italie",a:43.7230,o:10.3966},
-{t:"Mont Rushmore",c:"Monument",x:"Quatre visages de présidents sculptés dans le granit entre 1927 et 1941.",p:"Dakota du Sud, États-Unis",a:43.8791,o:-103.4591},
-{t:"Monument Valley",c:"Nature",x:"Buttes de grès rouge dressées dans le désert, décor récurrent des westerns de John Ford.",p:"Arizona et Utah, États-Unis",a:36.9980,o:-110.0985},
-{t:"Parc national de Yellowstone",c:"Nature",x:"Premier parc national du monde, créé en 1872, posé sur un supervolcan et riche en geysers et en bisons.",p:"Wyoming, États-Unis",a:44.4280,o:-110.5885},
-{t:"Lac Louise",c:"Nature",x:"Lac glaciaire aux eaux turquoise dominé par un glacier, au cœur des Rocheuses.",p:"Alberta, Canada",a:51.4254,o:-116.1773},
-{t:"Tour CN",c:"Monument",x:"Tour de télécommunications de 553 mètres, la plus haute du monde de 1975 à 2007.",p:"Toronto, Canada",a:43.6426,o:-79.3871},
-{t:"Chutes d'Iguazú",c:"Nature",x:"Environ 275 cascades en fer à cheval dans la forêt, dont la « Gorge du diable », à la frontière de deux pays.",p:"Argentine et Brésil",a:-25.6953,o:-54.4367},
-{t:"Lac Titicaca",c:"Nature",x:"Plus haut grand lac navigable du monde, à 3 800 mètres, bordé d'îles de roseaux flottantes.",p:"Pérou et Bolivie",a:-15.9254,o:-69.3354},
-{t:"Ushuaïa",c:"Ville",x:"Ville la plus australe du monde, surnommée « le bout du monde », ouverte sur un canal portant le nom d'un navire.",p:"Terre de Feu, Argentine",a:-54.8019,o:-68.3030},
-{t:"Montagne de la Table",c:"Montagne",x:"Plateau au sommet plat dominant une grande ville portuaire, souvent coiffé d'un nuage appelé la nappe.",p:"Le Cap, Afrique du Sud",a:-33.9628,o:18.4098},
-{t:"Parc national Kruger",c:"Nature",x:"Réserve de près de 20 000 km² où l'on peut croiser les « Big Five » : lion, léopard, éléphant, buffle, rhinocéros.",p:"Afrique du Sud",a:-23.9884,o:31.5547},
-{t:"Serengeti",c:"Nature",x:"Vaste plaine herbeuse où plus d'un million de gnous migrent chaque année en suivant la pluie.",p:"Tanzanie",a:-2.3333,o:34.8333},
-{t:"Lac Rose",c:"Nature",x:"Lac salé dont l'eau prend une teinte rose à cause d'une algue, proche de l'arrivée d'un célèbre rallye.",p:"Sénégal",a:14.8386,o:-17.2358},
-{t:"Bagan",c:"Site archéologique",x:"Plaine semée de plus de 2 000 temples et pagodes de brique bâtis entre le XIe et le XIIIe siècle.",p:"Birmanie",a:21.1717,o:94.8585},
-{t:"Borobudur",c:"Monument",x:"Plus grand temple bouddhiste du monde, stupa à neuf terrasses du IXe siècle orné de 2 672 reliefs.",p:"Java, Indonésie",a:-7.6079,o:110.2038},
-{t:"Île de Komodo",w:"Komodo (île)",c:"Île",x:"Île où vit le plus grand lézard du monde, long de trois mètres et capable de tuer un buffle.",p:"Indonésie",a:-8.55,o:119.49},
-{t:"Baie d'Hạ Long",c:"Nature",x:"Environ 1 600 îlots calcaires qui émergent d'une baie d'émeraude, selon la légende crachés par un dragon.",p:"Vietnam",a:20.9101,o:107.1839},
-{t:"Armée de terre cuite",c:"Site archéologique",x:"Plus de 8 000 soldats de terre cuite, tous différents, enterrés pour garder le tombeau d'un premier empereur.",p:"Xi'an, Chine",a:34.3847,o:109.2785},
-{t:"Palais du Potala",c:"Monument",x:"Forteresse-palais blanc et rouge de 13 étages, résidence hivernale des dalaï-lamas, à 3 700 mètres d'altitude.",p:"Lhassa, Tibet",a:29.6578,o:91.1175},
-{t:"Dôme de Genbaku",c:"Histoire",x:"Ruine d'un bâtiment à armature de métal, l'un des rares à avoir tenu debout après l'explosion du 6 août 1945.",p:"Hiroshima, Japon",a:34.3955,o:132.4536},
-{t:"Sigiriya",c:"Site archéologique",x:"Forteresse du Ve siècle sur un rocher de 200 mètres, dont l'entrée est gardée par des pattes de lion.",p:"Sri Lanka",a:7.9570,o:80.7603},
-{t:"Tahiti",c:"Île",x:"Plus grande île d'un archipel du Pacifique sud, où Gauguin s'installa et peignit ses toiles les plus célèbres.",p:"Polynésie française",a:-17.6509,o:-149.4260},
-{t:"Aoraki / Mont Cook",c:"Montagne",x:"Plus haut sommet de son pays avec 3 724 mètres, nommé d'après un explorateur britannique et sacré pour les Māori.",p:"Nouvelle-Zélande",a:-43.5950,o:170.1418},
-{t:"Fjord de Milford Sound",w:"Milford Sound",c:"Nature",x:"Fjord bordé de parois de 1 200 mètres, l'un des endroits les plus pluvieux de la planète.",p:"Nouvelle-Zélande",a:-44.6414,o:167.8974},
-{t:"Lalibela",c:"Site archéologique",x:"Onze églises monolithiques du XIIIe siècle creusées dans le roc, surnommées la « Jérusalem noire ».",p:"Éthiopie",a:12.0319,o:39.0475},
-{t:"Abou Simbel",c:"Site archéologique",x:"Temples rupestres de Ramsès II déplacés pierre par pierre dans les années 1960 pour échapper à un barrage.",p:"Égypte",a:22.3372,o:31.6258},
-{t:"Vallée des Rois",c:"Site archéologique",x:"Nécropole où reposent des pharaons, dont Toutânkhamon, dont la tombe fut découverte en 1922.",p:"Louxor, Égypte",a:25.7402,o:32.6014},
-{t:"Mer Morte",c:"Nature",x:"Lac salé à 430 mètres sous le niveau de la mer, où l'on flotte sans effort, et dont le niveau baisse chaque année.",p:"Israël, Jordanie et Palestine",a:31.5,o:35.5},
-{t:"Mur des Lamentations",c:"Monument",x:"Vestige du soutènement d'un temple antique, lieu de prière majeur du judaïsme.",p:"Jérusalem",a:31.7767,o:35.2345},
-{t:"Grande Muraille de Chine",c:"Monument",x:"Ensemble de fortifications étalé sur des milliers de kilomètres, dont les parties les mieux conservées datent des Ming.",p:"Badaling, Chine",a:40.4319,o:116.0},
-{t:"Maldives",c:"Archipel",x:"Archipel de plus de 1 000 îlots coralliens, dont le point culminant n'excède pas trois mètres.",p:"Océan Indien",a:3.2028,o:73.2207}
-];
-
-/* Personnalités : on situe le lieu de naissance. p = lieu affiché après la réponse. */
-const PEOPLE = [
-{t:"Marie Curie",c:"Science",x:"Physicienne et chimiste, première personne à recevoir deux prix Nobel dans deux disciplines différentes. Elle a découvert le polonium et le radium.",p:"Varsovie, Pologne",a:52.2297,o:21.0122},
-{t:"Albert Einstein",c:"Science",x:"Physicien théoricien, père de la relativité restreinte puis générale. Prix Nobel 1921 pour l'effet photoélectrique. Il est né dans l'Empire allemand en 1879.",p:"Ulm, Allemagne",a:48.4011,o:9.9876},
-{t:"Napoléon Bonaparte",c:"Histoire",x:"Général devenu empereur des Français en 1804. Il est né en 1769, un an après le rattachement à la France de l'île où sa famille vivait.",p:"Ajaccio, Corse",a:41.9192,o:8.7386},
-{t:"Wolfgang Amadeus Mozart",c:"Musique",x:"Compositeur prodige, il se produit devant les cours européennes dès l'âge de six ans et laisse plus de 600 œuvres avant sa mort à 35 ans.",p:"Salzbourg, Autriche",a:47.8095,o:13.0550},
-{t:"Nelson Mandela",c:"Politique",x:"Prisonnier politique pendant 27 ans, il devient en 1994 le premier président noir de son pays après la fin de l'apartheid. Né dans un village rural.",p:"Mvezo, Afrique du Sud",a:-31.9558,o:28.5167},
-{t:"Mahatma Gandhi",c:"Politique",x:"Avocat devenu guide de l'indépendance de son pays par la non-violence, notamment avec la marche du sel de 1930. Il est assassiné en 1948.",p:"Porbandar, Inde",a:21.6417,o:69.6293},
-{t:"Frida Kahlo",c:"Art",x:"Peintre connue pour ses autoportraits, elle a vécu et est morte dans la « maison bleue » d'un quartier de la capitale de son pays, où elle est née.",p:"Coyoacán, Mexique",a:19.3467,o:-99.1617},
-{t:"Pelé",c:"Football",x:"Seul joueur de l'histoire à avoir remporté trois Coupes du monde de football, en 1958, 1962 et 1970.",p:"Três Corações, Brésil",a:-21.6936,o:-45.2556},
-{t:"Lionel Messi",c:"Football",x:"Attaquant gaucher, plusieurs fois Ballon d'or, champion du monde 2022 avec son pays. Il a quitté son pays à 13 ans pour rejoindre un club européen.",p:"Rosario, Argentine",a:-32.9442,o:-60.6505},
-{t:"Cristiano Ronaldo",c:"Football",x:"Attaquant plusieurs fois Ballon d'or et meilleur buteur de l'histoire des sélections. Il est né sur une île de l'Atlantique.",p:"Funchal, Madère, Portugal",a:32.6669,o:-16.9241},
-{t:"Zinédine Zidane",c:"Football",x:"Milieu de terrain, champion du monde 1998 après deux buts de la tête en finale. Il a grandi dans un quartier populaire d'une grande ville portuaire.",p:"Marseille, France",a:43.2965,o:5.3698},
-{t:"Diego Maradona",c:"Football",x:"Meneur de jeu génial, auteur de la « main de Dieu » et d'un but légendaire contre l'Angleterre lors du Mondial 1986.",p:"Lanús, Argentine",a:-34.7060,o:-58.3920},
-{t:"Ayrton Senna",c:"Sport automobile",x:"Pilote de Formule 1, triple champion du monde (1988, 1990, 1991), mort sur le circuit d'Imola en 1994.",p:"São Paulo, Brésil",a:-23.5505,o:-46.6333},
-{t:"Muhammad Ali",c:"Boxe",x:"Boxeur, trois fois champion du monde des poids lourds, célèbre pour sa formule « Float like a butterfly, sting like a bee ». Il est né sous un autre nom.",p:"Louisville, États-Unis",a:38.2527,o:-85.7585},
-{t:"Usain Bolt",c:"Athlétisme",x:"Sprinteur, détenteur des records du monde du 100 m (9 s 58) et du 200 m (19 s 19), établis à Berlin en 2009.",p:"Trelawny, Jamaïque",a:18.33,o:-77.75},
-{t:"Rafael Nadal",c:"Tennis",x:"Surnommé « le roi de la terre battue », il a remporté 14 fois Roland-Garros. Il est né sur une île de la Méditerranée.",p:"Manacor, Majorque, Espagne",a:39.5696,o:3.2085},
-{t:"Roger Federer",c:"Tennis",x:"Vainqueur de 20 tournois du Grand Chelem, dont huit fois Wimbledon. Il est né dans une ville frontalière de trois pays.",p:"Bâle, Suisse",a:47.5596,o:7.5886},
-{t:"Pablo Picasso",c:"Art",x:"Peintre et sculpteur, cofondateur du cubisme, auteur de Guernica en 1937. Il a vécu l'essentiel de sa vie hors de son pays natal.",p:"Málaga, Espagne",a:36.7213,o:-4.4214},
-{t:"Salvador Dalí",c:"Art",x:"Peintre surréaliste à la moustache relevée, auteur de La Persistance de la mémoire et de ses montres molles.",p:"Figueres, Espagne",a:42.2666,o:2.9617},
-{t:"Vincent van Gogh",w:"Vincent van Gogh",c:"Art",x:"Peintre post-impressionniste de La Nuit étoilée et des Tournesols. Il a peint plus de 2 000 œuvres en une dizaine d'années seulement.",p:"Zundert, Pays-Bas",a:51.4667,o:4.6500},
-{t:"Frédéric Chopin",c:"Musique",x:"Compositeur et pianiste romantique, il quitte son pays natal à 20 ans et ne le reverra jamais. Il meurt à Paris en 1849.",p:"Żelazowa Wola, Pologne",a:52.2706,o:20.2442},
-{t:"Ludwig van Beethoven",c:"Musique",x:"Compositeur devenu sourd, auteur de la Neuvième Symphonie et de son Ode à la joie.",p:"Bonn, Allemagne",a:50.7374,o:7.0982},
-{t:"Jean-Sébastien Bach",c:"Musique",x:"Maître du baroque, auteur des Concertos brandebourgeois et du Clavier bien tempéré. Il a eu vingt enfants.",p:"Eisenach, Allemagne",a:50.9747,o:10.3220},
-{t:"Édith Piaf",c:"Musique",x:"Chanteuse surnommée « la Môme », interprète de La Vie en rose et de Non, je ne regrette rien.",p:"Paris, France",a:48.8566,o:2.3522},
-{t:"Jacques Brel",c:"Musique",x:"Auteur-compositeur-interprète de Ne me quitte pas et d'Amsterdam. Il a fini sa vie aux îles Marquises.",p:"Schaerbeek, Belgique",a:50.8676,o:4.3730},
-{t:"Michael Jackson",c:"Musique",x:"« Roi de la pop », auteur de Thriller, l'album le plus vendu de l'histoire. Il est né dans une ville industrielle près d'un grand lac.",p:"Gary, Indiana, États-Unis",a:41.5934,o:-87.3464},
-{t:"Elvis Presley",c:"Musique",x:"« Roi du rock'n'roll », il a vécu à Graceland et vendu plus d'un demi-milliard de disques. Il est né dans une petite ville du sud des États-Unis.",p:"Tupelo, Mississippi, États-Unis",a:34.2576,o:-88.7034},
-{t:"Bob Marley",c:"Musique",x:"Chanteur de reggae, auteur de One Love et de Redemption Song, né dans un village de la campagne d'une île des Caraïbes.",p:"Nine Mile, Jamaïque",a:18.37,o:-77.10},
-{t:"Bob Dylan",c:"Musique",x:"Auteur-compositeur de Like a Rolling Stone, prix Nobel de littérature 2016. Il est né dans une ville au bord du lac Supérieur.",p:"Duluth, Minnesota, États-Unis",a:46.7867,o:-92.1005},
-{t:"Freddie Mercury",c:"Musique",x:"Chanteur du groupe Queen et de Bohemian Rhapsody. Il est né sur une île de l'océan Indien, qui fait aujourd'hui partie d'un pays d'Afrique de l'Est.",p:"Stone Town, Zanzibar",a:-6.1659,o:39.2026},
-{t:"Shakira",c:"Musique",x:"Chanteuse de Hips Don't Lie et de Waka Waka, née dans une ville portuaire des Caraïbes.",p:"Barranquilla, Colombie",a:10.9685,o:-74.7813},
-{t:"Rihanna",c:"Musique",x:"Chanteuse de Umbrella et de Diamonds, devenue aussi femme d'affaires. Elle est née sur une île des Caraïbes.",p:"Bridgetown, Barbade",a:13.1132,o:-59.5998},
-{t:"Céline Dion",c:"Musique",x:"Chanteuse de My Heart Will Go On, dernière d'une famille de quatorze enfants.",p:"Charlemagne, Québec, Canada",a:45.72,o:-73.48},
-{t:"Miriam Makeba",c:"Musique",x:"Chanteuse surnommée « Mama Africa », interprète de Pata Pata. Elle a vécu l'exil pendant plus de trente ans à cause de l'apartheid.",p:"Johannesburg, Afrique du Sud",a:-26.2041,o:28.0473},
-{t:"Charlie Chaplin",c:"Cinéma",x:"Acteur et réalisateur du cinéma muet, créateur de Charlot, vagabond à la moustache en brosse et au chapeau melon. Il a grandi dans la pauvreté.",p:"Londres, Royaume-Uni",a:51.5074,o:-0.1278},
-{t:"Akira Kurosawa",c:"Cinéma",x:"Réalisateur des Sept Samouraïs et de Rashōmon, qui a fait connaître le cinéma de son pays au monde entier.",p:"Tokyo, Japon",a:35.6762,o:139.6503},
-{t:"Bruce Lee",c:"Cinéma",x:"Acteur et maître d'arts martiaux, star de Opération Dragon. Il a grandi à Hong Kong mais n'y est pas né.",p:"San Francisco, États-Unis",a:37.7749,o:-122.4194},
-{t:"Jackie Chan",c:"Cinéma",x:"Acteur et cascadeur, héros de Rush Hour et du film Drunken Master, connu pour réaliser lui-même ses cascades.",p:"Hong Kong",a:22.3193,o:114.1694},
-{t:"Victor Hugo",c:"Littérature",x:"Auteur des Misérables et de Notre-Dame de Paris, exilé sous Napoléon III, entré au Panthéon en 1885.",p:"Besançon, France",a:47.2378,o:6.0241},
-{t:"Jules Verne",c:"Littérature",x:"Romancier de Vingt mille lieues sous les mers et du Tour du monde en quatre-vingts jours. Il est né dans une ville portuaire proche de l'estuaire d'un grand fleuve.",p:"Nantes, France",a:47.2184,o:-1.5536},
-{t:"William Shakespeare",c:"Littérature",x:"Dramaturge, auteur de Hamlet, Macbeth et Roméo et Juliette. Il est né dans une petite ville au bord d'une rivière, loin de la capitale.",p:"Stratford-upon-Avon, Royaume-Uni",a:52.1917,o:-1.7083},
-{t:"Léon Tolstoï",w:"Léon Tolstoï",c:"Littérature",x:"Auteur de Guerre et Paix et d'Anna Karénine. Il est né sur le domaine familial où il est aussi enterré.",p:"Iasnaïa Poliana, Russie",a:54.0733,o:37.5239},
-{t:"Mère Teresa",c:"Religion",x:"Religieuse fondatrice des Missionnaires de la Charité, prix Nobel de la paix 1979. Elle est née dans l'Empire ottoman.",p:"Skopje, Macédoine du Nord",a:41.9981,o:21.4254},
-{t:"Confucius",c:"Philosophie",x:"Philosophe du VIe siècle av. J.-C. dont les Entretiens ont marqué plus de deux millénaires de pensée.",p:"Qufu, Chine",a:35.5810,o:116.9860},
-{t:"Isaac Newton",c:"Science",x:"Mathématicien et physicien, auteur de la loi de la gravitation universelle. La légende de la pomme est liée au manoir où il est né.",p:"Woolsthorpe, Royaume-Uni",a:52.8083,o:-0.6264},
-{t:"Charles Darwin",c:"Science",x:"Naturaliste du voyage du Beagle, auteur de L'Origine des espèces en 1859 et de la théorie de la sélection naturelle.",p:"Shrewsbury, Royaume-Uni",a:52.7073,o:-2.7541},
-{t:"Stephen Hawking",c:"Science",x:"Cosmologiste, auteur d'Une brève histoire du temps, qui a poursuivi ses recherches malgré une maladie neurodégénérative.",p:"Oxford, Royaume-Uni",a:51.7520,o:-1.2577},
-{t:"Nikola Tesla",c:"Science",x:"Inventeur du moteur à induction et du courant alternatif polyphasé. L'unité de champ magnétique porte son nom. Il est né dans l'Empire d'Autriche.",p:"Smiljan, Croatie",a:44.5667,o:15.3167},
-{t:"Galilée",w:"Galilée (savant)",c:"Science",x:"Astronome qui observe les lunes de Jupiter en 1610, puis est jugé par l'Inquisition pour avoir défendu l'héliocentrisme.",p:"Pise, Italie",a:43.7228,o:10.4017},
-{t:"Sigmund Freud",c:"Science",x:"Père de la psychanalyse, il a vécu presque toute sa vie à Vienne mais est né dans une petite ville de l'actuelle Tchéquie.",p:"Příbor, Tchéquie",a:49.6411,o:18.1436},
-{t:"Louis Pasteur",c:"Science",x:"Chimiste et biologiste, inventeur du procédé qui porte son nom et du vaccin contre la rage en 1885.",p:"Dole, France",a:47.0925,o:5.4906},
-{t:"Malala Yousafzai",c:"Politique",x:"Militante pour l'éducation des filles, blessée par balle à 15 ans, plus jeune lauréate du prix Nobel de la paix en 2014.",p:"Mingora, Pakistan",a:34.7717,o:72.3600},
-{t:"Elon Musk",c:"Entreprise",x:"Entrepreneur dirigeant Tesla et SpaceX. Il a grandi dans un pays d'Afrique avant de partir étudier en Amérique du Nord.",p:"Pretoria, Afrique du Sud",a:-25.7479,o:28.2293},
-{t:"Bill Gates",c:"Entreprise",x:"Cofondateur de Microsoft en 1975, devenu l'un des hommes les plus riches du monde puis philanthrope.",p:"Seattle, États-Unis",a:47.6062,o:-122.3321},
-{t:"Barack Obama",c:"Politique",x:"44e président des États-Unis, premier Afro-Américain à ce poste, prix Nobel de la paix 2009. Il est né sur une île du Pacifique.",p:"Honolulu, Hawaï",a:21.3099,o:-157.8581},
-{t:"Charles de Gaulle",c:"Politique",x:"Auteur de l'appel du 18 juin 1940 depuis Londres, fondateur de la Ve République en 1958.",p:"Lille, France",a:50.6292,o:3.0573},
-{t:"Simón Bolívar",c:"Politique",x:"Surnommé le Libertador, il a mené l'indépendance de plusieurs pays d'Amérique du Sud. L'un d'eux porte son nom.",p:"Caracas, Venezuela",a:10.4806,o:-66.9036},
-{t:"Fidel Castro",c:"Politique",x:"Dirigeant de son pays de 1959 à 2008 après une révolution menée avec Che Guevara. Il est né dans une exploitation agricole.",p:"Birán, Cuba",a:20.62,o:-75.66},
-{t:"Mao Zedong",c:"Politique",x:"Proclame la République populaire de Chine en 1949 depuis la place Tian'anmen. Il est né dans un village rural d'une province du centre-sud.",p:"Shaoshan, Chine",a:27.9175,o:112.5289},
-{t:"Hô Chi Minh",w:"Hô Chi Minh",c:"Politique",x:"Dirigeant de l'indépendance de son pays face à la France puis aux États-Unis. L'ancienne Saïgon porte aujourd'hui son nom.",p:"Kim Liên, Vietnam",a:18.6736,o:105.5087},
-{t:"Mustafa Kemal Atatürk",c:"Politique",x:"Fondateur de la République de Turquie en 1923. Il est né dans une grande ville portuaire qui appartient aujourd'hui à un autre pays.",p:"Thessalonique, Grèce",a:40.6401,o:22.9444},
-{t:"Léopold Sédar Senghor",c:"Politique",x:"Poète et premier président de son pays, devenu en 1983 le premier Africain à siéger à l'Académie française.",p:"Joal, Sénégal",a:14.1667,o:-16.8333},
-{t:"Thomas Sankara",c:"Politique",x:"Capitaine devenu président en 1983, il rebaptise son pays « pays des hommes intègres ». Il est assassiné en 1987.",p:"Yako, Burkina Faso",a:13.0333,o:-2.2667},
-{t:"Jeanne d'Arc",c:"Histoire",x:"Jeune paysanne devenue chef de guerre pendant la guerre de Cent Ans, brûlée à Rouen en 1431 à l'âge de 19 ans.",p:"Domrémy, France",a:48.4425,o:5.6729},
-{t:"Cléopâtre",w:"Cléopâtre VII",c:"Histoire",x:"Dernière reine active d'Égypte, d'origine grecque, alliée de Jules César puis de Marc Antoine.",p:"Alexandrie, Égypte",a:31.2001,o:29.9187},
-{t:"Alexandre le Grand",c:"Histoire",x:"Roi de Macédoine, il conquiert l'empire perse et pousse jusqu'à l'Indus avant de mourir à 32 ans à Babylone.",p:"Pella, Grèce",a:40.7611,o:22.5233},
-{t:"Jules César",c:"Histoire",x:"Général et homme d'État romain, conquérant de la Gaule, assassiné aux ides de mars 44 av. J.-C.",p:"Rome, Italie",a:41.9028,o:12.4964},
-{t:"Marco Polo",c:"Histoire",x:"Marchand du XIIIe siècle dont Le Devisement du monde raconte un voyage jusqu'à la cour de Kubilai Khan.",p:"Venise, Italie",a:45.4408,o:12.3155},
-{t:"Christophe Colomb",c:"Histoire",x:"Navigateur qui atteint les Amériques en 1492 pour le compte de l'Espagne, alors qu'il n'est pas né dans ce pays.",p:"Gênes, Italie",a:44.4056,o:8.9463},
-{t:"Coco Chanel",c:"Mode",x:"Couturière à l'origine du tailleur, de la petite robe noire et du parfum N°5. Elle a grandi dans un orphelinat.",p:"Saumur, France",a:47.2600,o:-0.0770}
-];
-/* Sport : stades (lieux) et sportifs (lieu de naissance). Coordonnées issues de Wikidata (P625, et P19 pour les sportifs). */
-const STADES = [
-{t:"Stade Maracanã",c:"Stade",x:"Stade de football géant inauguré pour la Coupe du monde 1950, où l'équipe locale perdit la finale devant près de 200 000 spectateurs. Il a aussi accueilli la finale de 2014.",p:"Rio de Janeiro, Brésil",a:-22.9122,o:-43.2303},
-{t:"Camp Nou",c:"Stade",x:"Plus grand stade d'Europe par sa capacité, d'environ 100 000 places, ouvert en 1957 et domicile d'un club aux couleurs bleu et grenat.",p:"Barcelone, Espagne",a:41.3808,o:2.1228},
-{t:"Stade de Wembley",c:"Stade",x:"Stade national de football de son pays, doté d'une arche d'acier de 133 mètres, reconstruit en 2007 à l'emplacement de l'ancien stade aux deux tours.",p:"Londres, Royaume-Uni",a:51.5556,o:-0.2794},
-{t:"Allianz Arena",c:"Stade",x:"Stade à la façade gonflable en coussins translucides qui change de couleur, ouvert en 2005 pour deux clubs de la ville.",p:"Munich, Allemagne",a:48.2188,o:11.6248},
-{t:"Stade de France",c:"Stade",x:"Stade national de 80 000 places inauguré en 1998 pour la Coupe du monde, avec un toit elliptique suspendu. Il a accueilli la finale de cette édition.",p:"Saint-Denis, France",a:48.9244,o:2.3600},
-{t:"Stade Santiago-Bernabéu",c:"Stade",x:"Stade de football à toit rétractable, nommé d'après un ancien président du club blanc qui y joue, dont les joueurs sont surnommés « les Merengues ».",p:"Madrid, Espagne",a:40.4531,o:-3.6884},
-{t:"Old Trafford",c:"Stade",x:"Surnommé « le Théâtre des rêves », plus grand stade de club de football de son pays, domicile d'un club aux maillots rouges.",p:"Manchester, Royaume-Uni",a:53.4631,o:-2.2914},
-{t:"Anfield",c:"Stade",x:"Stade de football dont la tribune du fond est célèbre pour son chant « You'll Never Walk Alone », domicile d'un club aux maillots rouges d'un grand port.",p:"Liverpool, Royaume-Uni",a:53.4308,o:-2.9608},
-{t:"Stade Giuseppe-Meazza",c:"Stade",x:"Stade de football partagé par deux clubs rivaux, connu pour ses tours cylindriques en béton et nommé d'après un ancien joueur.",p:"Milan, Italie",a:45.4781,o:9.1239},
-{t:"Stade Azteca",c:"Stade",x:"Premier stade à avoir accueilli deux finales de Coupe du monde (1970 et 1986), théâtre de la « main de Dieu » de Maradona, à plus de 2 200 mètres d'altitude.",p:"Mexico, Mexique",a:19.3031,o:-99.1506},
-{t:"La Bombonera",c:"Stade",x:"Stade en forme de boîte de chocolats aux tribunes très raides, domicile d'un club bleu et or où a joué Maradona.",p:"Buenos Aires, Argentine",a:-34.6356,o:-58.3646},
-{t:"Stade olympique de 1936",w:"Olympiastadion (Berlin)",c:"Stade",x:"Stade monumental inauguré pour les Jeux de 1936, où Jesse Owens remporta quatre médailles d'or. La finale du Mondial 2006 s'y est aussi jouée.",p:"Berlin, Allemagne",a:52.5147,o:13.2394},
-{t:"Nid d'oiseau",w:"Stade national de Pékin",c:"Stade",x:"Stade de 91 000 places à l'armature d'acier entrelacée, conçu par deux architectes suisses pour les Jeux olympiques de 2008.",p:"Pékin, Chine",a:39.9915,o:116.3905},
-{t:"Stade olympique de 1972",w:"Stade olympique de Munich",c:"Stade",x:"Stade au toit de toile tendue suspendu à des mâts, construit pour les Jeux de 1972, marqués par un attentat, et théâtre de la finale du Mondial 1974.",p:"Munich, Allemagne",a:48.1731,o:11.5467},
-{t:"Stade olympique de 1960",w:"Stade olympique de Rome",c:"Stade",x:"Stade inauguré pour les Jeux de 1960, partagé par deux clubs de football de la ville, dans un grand complexe sportif du bord du fleuve.",p:"Rome, Italie",a:41.9339,o:12.4547},
-{t:"Stade panathénaïque",c:"Stade",x:"Stade entièrement en marbre blanc, en forme de fer à cheval, où se tinrent les premiers Jeux olympiques modernes en 1896.",p:"Athènes, Grèce",a:37.9683,o:23.7411},
-{t:"Stade olympique de 1976",w:"Stade olympique de Montréal",c:"Stade",x:"Stade des Jeux de 1976 surnommé « le Big O », surmonté d'une tour inclinée de 165 mètres, la plus haute du monde pour une tour de ce type.",p:"Montréal, Canada",a:45.5578,o:-73.5516},
-{t:"Stade Roland-Garros",c:"Stade",x:"Stade de tennis où se joue chaque printemps un tournoi du Grand Chelem sur terre battue, nommé d'après un aviateur pionnier.",p:"Paris, France",a:48.8463,o:2.2494},
-{t:"Stade Loujniki",c:"Stade",x:"Stade de la finale de la Coupe du monde 2018, situé dans un méandre d'un fleuve, ancien stade des Jeux de 1980.",p:"Moscou, Russie",a:55.7158,o:37.5536},
-{t:"MCG",w:"Melbourne Cricket Ground",c:"Stade",x:"Stade de cricket de plus de 90 000 places, ouvert en 1853, qui accueillit la finale des Jeux olympiques de 1956.",p:"Melbourne, Australie",a:-37.8199,o:144.9834},
-{t:"Eden Gardens",c:"Stade",x:"Stade de cricket mythique de plus de 60 000 places, l'un des plus grands du monde, ouvert en 1864 au bord d'un fleuve.",p:"Calcutta, Inde",a:22.5644,o:88.3433},
-{t:"Soccer City",c:"Stade",x:"Stade en forme de calebasse africaine, qui accueillit l'ouverture et la finale du Mondial 2010.",p:"Johannesburg, Afrique du Sud",a:-26.2348,o:27.9824},
-{t:"Stade de Lusail",c:"Stade",x:"Stade doré de 80 000 places, théâtre de la finale du Mondial 2022, remportée aux tirs au but par Messi et ses coéquipiers.",p:"Lusail, Qatar",a:25.4209,o:51.4904},
-{t:"Yankee Stadium",c:"Stade",x:"Stade de baseball surnommé « la maison que Ruth a bâtie », domicile d'un club aux rayures bleues, ouvert en 1923 puis reconstruit en 2009.",p:"New York, États-Unis",a:40.8296,o:-73.9264},
-{t:"Stade Vélodrome",c:"Stade",x:"Stade de football d'un grand port méditerranéen, rénové pour l'Euro 2016, domicile d'un club bleu ciel et blanc.",p:"Marseille, France",a:43.2692,o:5.3949},
-{t:"Parc des Princes",c:"Stade",x:"Stade en béton à l'architecture en anneau ouvert sur la ville, au pied du périphérique, domicile d'un club rouge et bleu.",p:"Paris, France",a:48.8414,o:2.2530},
-{t:"Twickenham Stadium",c:"Stade",x:"Stade de plus de 80 000 places consacré au rugby à XV, dans la banlieue sud-ouest d'une capitale.",p:"Londres, Royaume-Uni",a:51.4561,o:-0.3417},
-{t:"Millennium Stadium",c:"Stade",x:"Stade de rugby à toit rétractable ouvert en 1999, installé en plein centre-ville au bord d'une rivière, dans la capitale d'une nation du Royaume-Uni.",p:"Cardiff, Pays de Galles",a:51.4781,o:-3.1825},
-{t:"Signal Iduna Park",c:"Stade",x:"Stade qui abrite la plus grande tribune de supporters debout d'Europe, le « Mur jaune », pour environ 25 000 fans.",p:"Dortmund, Allemagne",a:51.4925,o:7.4517},
-{t:"Ernst-Happel-Stadion",c:"Stade",x:"Stade national de football nommé d'après un entraîneur, qui a accueilli la finale de l'Euro 2008.",p:"Vienne, Autriche",a:48.2072,o:16.4208},
-{t:"Madison Square Garden",c:"Stade",x:"Salle omnisports surnommée « la Mecque du basket », célèbre pour ses combats de boxe, dont celui de 1971 entre Ali et Frazier.",p:"New York, États-Unis",a:40.7505,o:-73.9935},
-{t:"Estadio Centenario",c:"Stade",x:"Stade ouvert en 1930 pour la première finale de Coupe du monde de football, remportée par le pays hôte.",p:"Montevideo, Uruguay",a:-34.8944,o:-56.1528},
-{t:"Stade olympique de 2012",w:"Stade olympique de Londres",c:"Stade",x:"Stade de 80 000 places bâti pour les Jeux de 2012 dans un ancien quartier industriel, où Usain Bolt a gagné trois médailles d'or.",p:"Londres, Royaume-Uni",a:51.5386,o:-0.0164},
-{t:"Stade olympique Atatürk",c:"Stade",x:"Stade de la finale de la Ligue des champions 2005, où un club anglais remonta trois buts de retard contre un club italien avant de gagner aux tirs au but.",p:"Istanbul, Turquie",a:41.0745,o:28.7657}
-];
-
-/* Sportifs : on situe le lieu de naissance. */
-const SPORTIFS = [
-{t:"Michael Jordan",c:"Basket",x:"Basketteur six fois champion NBA avec les Bulls de Chicago, devenu une marque mondiale grâce à ses chaussures « Air ».",p:"Brooklyn, New York, États-Unis",a:40.6508,o:-73.9497},
-{t:"Michael Phelps",c:"Natation",x:"Nageur aux 23 médailles d'or olympiques, record absolu, dont huit en une seule édition, à Pékin en 2008.",p:"Baltimore, Maryland, États-Unis",a:39.2864,o:-76.6150},
-{t:"Serena Williams",c:"Tennis",x:"Joueuse de tennis aux 23 titres du Grand Chelem en simple, qui a grandi en Californie. Elle est née dans une ville industrielle du Midwest.",p:"Saginaw, Michigan, États-Unis",a:43.4199,o:-83.9500},
-{t:"Novak Djokovic",c:"Tennis",x:"Joueur de tennis recordman de titres du Grand Chelem chez les hommes, dix fois vainqueur de l'Open d'Australie. Il est né dans la capitale de son pays.",p:"Belgrade, Serbie",a:44.8178,o:20.4569},
-{t:"Tiger Woods",c:"Golf",x:"Golfeur vainqueur de 15 tournois majeurs, qui a repris la compétition après de graves blessures. Il porte traditionnellement une tenue rouge le dimanche.",p:"Cypress, Californie, États-Unis",a:33.8183,o:-118.0392},
-{t:"Carl Lewis",c:"Athlétisme",x:"Athlète aux neuf médailles d'or olympiques entre 1984 et 1996, en sprint et en saut en longueur.",p:"Birmingham, Alabama, États-Unis",a:33.5175,o:-86.8094},
-{t:"Nadia Comăneci",c:"Gymnastique",x:"Gymnaste de 14 ans, première à obtenir la note parfaite de 10 aux Jeux de 1976, que le tableau d'affichage ne pouvait pas afficher.",p:"Onești, Roumanie",a:46.2500,o:26.7667},
-{t:"Jesse Owens",c:"Athlétisme",x:"Athlète noir américain, quadruple médaillé d'or aux Jeux de 1936, organisés sous le régime nazi.",p:"Oakville, Alabama, États-Unis",a:34.4450,o:-87.1610},
-{t:"Johan Cruyff",c:"Football",x:"Meneur de jeu au numéro 14 et symbole du « football total », triple Ballon d'or, puis entraîneur d'un grand club catalan.",p:"Amsterdam, Pays-Bas",a:52.3403,o:4.9433},
-{t:"Michel Platini",c:"Football",x:"Milieu de terrain, triple Ballon d'or (1983-1985), meilleur buteur de l'Euro 1984, puis président de l'UEFA. Il a grandi dans une ville sidérurgique.",p:"Jœuf, France",a:49.2297,o:6.0089},
-{t:"Kylian Mbappé",c:"Football",x:"Attaquant champion du monde à 19 ans en 2018, auteur d'un triplé en finale en 2022. Il a grandi en banlieue.",p:"Paris, France",a:48.8567,o:2.3522},
-{t:"Lewis Hamilton",c:"Sport automobile",x:"Pilote de Formule 1 sept fois champion du monde, premier pilote noir de la discipline.",p:"Stevenage, Royaume-Uni",a:51.9017,o:-0.2019},
-{t:"Michael Schumacher",c:"Sport automobile",x:"Pilote de Formule 1 sept fois champion du monde, dont cinq titres consécutifs avec Ferrari de 2000 à 2004.",p:"Hürth, Allemagne",a:50.8775,o:6.8761},
-{t:"Eddy Merckx",c:"Cyclisme",x:"Cycliste surnommé « le Cannibale », cinq victoires au Tour de France et record de victoires d'étapes.",p:"Meensel-Kiezegem, Belgique",a:50.8961,o:4.9244},
-{t:"Bernard Hinault",c:"Cyclisme",x:"Cycliste surnommé « le Blaireau », cinq victoires au Tour de France, dernier Français à l'avoir gagné, en 1985.",p:"Yffiniac, France",a:48.4850,o:-2.6775},
-{t:"Teddy Riner",c:"Judo",x:"Judoka multiple champion olympique et recordman de titres de champion du monde, chez les plus de 100 kg.",p:"Les Abymes, Guadeloupe",a:16.2706,o:-61.5047},
-{t:"Marie-José Pérec",c:"Athlétisme",x:"Sprinteuse, championne olympique du 400 m en 1992 et en 1996, et du 200 m en 1996.",p:"Basse-Terre, Guadeloupe",a:15.9969,o:-61.7328},
-{t:"Tony Parker",c:"Basket",x:"Meneur de jeu quatre fois champion NBA avec les Spurs, MVP des Finales 2007, devenu ensuite président d'un club.",p:"Bruges, Belgique",a:51.2089,o:3.2242},
-{t:"Kobe Bryant",c:"Basket",x:"Basketteur de toute une carrière aux Lakers, cinq titres NBA, surnommé « Black Mamba ». Il a passé une partie de son enfance en Italie.",p:"Philadelphie, États-Unis",a:39.9528,o:-75.1636},
-{t:"LeBron James",c:"Basket",x:"Basketteur quadruple champion NBA avec trois équipes différentes, meilleur marqueur de l'histoire de la ligue.",p:"Akron, Ohio, États-Unis",a:41.0731,o:-81.5178},
-{t:"Haile Gebrselassie",c:"Athlétisme",x:"Coureur de fond, deux fois champion olympique du 10 000 m, qui a battu plus de vingt records du monde.",p:"Assella, Éthiopie",a:7.9500,o:39.1167},
-{t:"Eliud Kipchoge",c:"Athlétisme",x:"Marathonien double champion olympique, premier à courir un marathon en moins de deux heures (1 h 59 min 40 s) en 2019, lors d'un essai hors compétition.",p:"Kapsisiywa, Kenya",a:0.3275,o:35.0544},
-{t:"Pierre de Coubertin",c:"Olympisme",x:"Pédagogue et baron, rénovateur des Jeux olympiques modernes et fondateur du Comité international olympique en 1894.",p:"Paris, France",a:48.8567,o:2.3522},
-{t:"Jean-Claude Killy",c:"Ski",x:"Skieur alpin triple champion olympique aux Jeux de 1968 à Grenoble (descente, géant et slalom).",p:"Saint-Cloud, France",a:48.8464,o:2.2153},
-{t:"Simone Biles",c:"Gymnastique",x:"Gymnaste la plus titrée de l'histoire des championnats du monde, dont plusieurs mouvements portent le nom.",p:"Columbus, Ohio, États-Unis",a:39.9622,o:-83.0006},
-{t:"Yannick Noah",c:"Tennis",x:"Joueur de tennis vainqueur de Roland-Garros en 1983, puis capitaine de l'équipe de France de Coupe Davis. Il a passé son enfance en Afrique, où vivait son père footballeur.",p:"Sedan, France",a:49.7019,o:4.9403},
-{t:"Zlatan Ibrahimović",c:"Football",x:"Attaquant à la carrière internationale (Ajax, Barcelone, Milan, PSG, Manchester United), connu pour ses buts acrobatiques et sa confiance en lui.",p:"Malmö, Suède",a:55.5783,o:13.0542},
-{t:"Franz Beckenbauer",c:"Football",x:"Défenseur surnommé « Der Kaiser », champion du monde comme joueur (1974) puis comme sélectionneur (1990).",p:"Munich, Allemagne",a:48.1375,o:11.5750},
-{t:"Ronaldo",w:"Ronaldo (football)",c:"Football",x:"Attaquant surnommé « le Phénomène », double champion du monde (1994 et 2002) avec son pays, longtemps meilleur buteur de l'histoire de la Coupe du monde.",p:"Itaguaí, Brésil",a:-22.8519,o:-43.7750},
-{t:"Ronaldinho",c:"Football",x:"Meneur de jeu aux dribbles chantants, Ballon d'or 2005 et champion du monde 2002, au sourire légendaire.",p:"Porto Alegre, Brésil",a:-30.0328,o:-51.2300},
-{t:"Neymar",c:"Football",x:"Attaquant transféré pour 222 millions d'euros en 2017 au PSG, champion olympique en 2016 avec son pays.",p:"Mogi das Cruzes, Brésil",a:-23.5228,o:-46.1931},
-{t:"Mohamed Salah",c:"Football",x:"Attaquant de Liverpool, plusieurs fois meilleur buteur de Premier League, très populaire dans son pays natal, un village du nord.",p:"Nagrig, Égypte",a:30.9725,o:30.8669},
-{t:"Sadio Mané",c:"Football",x:"Attaquant vainqueur de la Ligue des champions 2019 avec Liverpool et de la CAN 2022 avec son pays. Il a grandi dans un village.",p:"Bambali, Sénégal",a:12.6042,o:-15.6614},
-{t:"Björn Borg",c:"Tennis",x:"Joueur de tennis aux cinq victoires consécutives à Wimbledon (1976-1980), célèbre pour son calme et son bandeau.",p:"Stockholm, Suède",a:59.3294,o:18.0686},
-{t:"Michael Johnson",w:"Michael Johnson (athlète)",c:"Athlétisme",x:"Sprinteur aux chaussures dorées, qui réussit le doublé 200 m - 400 m aux Jeux d'Atlanta en 1996.",p:"Dallas, Texas, États-Unis",a:32.7792,o:-96.8089},
-{t:"Sébastien Loeb",c:"Sport automobile",x:"Pilote de rallye neuf fois champion du monde consécutif entre 2004 et 2012.",p:"Haguenau, France",a:48.8167,o:7.7878},
-{t:"Laure Manaudou",c:"Natation",x:"Nageuse championne olympique du 400 m nage libre en 2004, à Athènes, puis recordwoman du monde en dos.",p:"Villeurbanne, France",a:45.7661,o:4.8794},
-{t:"Wayne Gretzky",c:"Hockey sur glace",x:"Joueur de hockey sur glace surnommé « La Merveille », meilleur marqueur de l'histoire de la LNH avec le numéro 99.",p:"Brantford, Ontario, Canada",a:43.1408,o:-80.2631},
-{t:"Babe Ruth",c:"Baseball",x:"Joueur de baseball surnommé « le Bambino », qui a transformé son sport par ses coups de circuit dans les années 1920.",p:"Baltimore, Maryland, États-Unis",a:39.2864,o:-76.6150},
-{t:"Sachin Tendulkar",c:"Cricket",x:"Batteur de cricket surnommé « le Dieu du cricket », premier à marquer 100 centuries internationaux, retraité en 2013.",p:"Bombay (Mumbai), Inde",a:19.0758,o:72.8775},
-{t:"Yao Ming",c:"Basket",x:"Pivot de 2,29 m qui a joué huit saisons en NBA aux Rockets de Houston et fait connaître la ligue dans son pays.",p:"Shanghai, Chine",a:31.2325,o:121.4692},
-{t:"Jacques Anquetil",c:"Cyclisme",x:"Cycliste premier vainqueur de cinq Tours de France (1957, 1961-1964), spécialiste du contre-la-montre.",p:"Mont-Saint-Aignan, France",a:49.4625,o:1.0872},
-{t:"Cathy Freeman",c:"Athlétisme",x:"Athlète aborigène qui alluma la vasque olympique en 2000 devant son public, puis remporta le 400 m dans la foulée.",p:"Slade Point, Queensland, Australie",a:-21.0667,o:149.2167},
-{t:"Dirk Nowitzki",c:"Basket",x:"Basketteur qui a mené son équipe au titre NBA en 2011, connu pour son tir en fadeaway, toute sa carrière aux Mavericks.",p:"Wurtzbourg, Allemagne",a:49.7944,o:9.9294},
-{t:"Didier Drogba",c:"Football",x:"Attaquant de Chelsea, vainqueur de la Ligue des champions 2012 grâce à un but de la tête et au tir au but décisif.",p:"Abidjan, Côte d'Ivoire",a:5.3364,o:-4.0267},
-{t:"Samuel Eto'o",c:"Football",x:"Attaquant quatre fois Ballon d'or africain et triple vainqueur de la Ligue des champions (2006, 2009, 2010).",p:"Douala, Cameroun",a:4.0500,o:9.7000},
-{t:"Roger Milla",c:"Football",x:"Attaquant qui dansait au drapeau de corner en 1990 et devint à 42 ans le plus vieux buteur de l'histoire de la Coupe du monde, en 1994.",p:"Yaoundé, Cameroun",a:3.8578,o:11.5181},
-{t:"George Weah",c:"Football",x:"Seul Africain Ballon d'or (1995), devenu ensuite président de son pays.",p:"Monrovia, Liberia",a:6.3106,o:-10.8047},
-{t:"Steffi Graf",c:"Tennis",x:"Joueuse de tennis, seule à avoir réalisé le « Grand Chelem doré » en 1988 : les quatre tournois majeurs et les Jeux olympiques la même année.",p:"Mannheim, Allemagne",a:49.4878,o:8.4661},
-{t:"Martina Navrátilová",c:"Tennis",x:"Joueuse de tennis aux 18 titres du Grand Chelem en simple, qui a quitté son pays natal en 1975 et obtenu la nationalité américaine.",p:"Prague, Tchéquie",a:50.0875,o:14.4214}
-];
-const SPORT_CATS = ['Football', 'Sport automobile', 'Boxe', 'Athlétisme', 'Tennis'];
-const ALL = DATA.concat(STADES).map(d => Object.assign(d, { k: 'lieu', s: STADES.includes(d) }))
-  .concat(PEOPLE.concat(SPORTIFS).map(d => Object.assign(d, { k: 'perso', s: SPORTIFS.includes(d) || SPORT_CATS.includes(d.c) })));
-/* Difficulté : lv 1 = très connu, 2 = moyen (par défaut), 3 = peu connu ou lieu de naissance surprenant. */
-const EASY = new Set(["Tour Eiffel","Machu Picchu","Grande Barrière de corail","Taj Mahal","Kilimandjaro","Colisée","Angkor Vat","Pétra","Chichén Itzá","Statue de la Liberté","Christ Rédempteur","Pyramide de Khéops","Stonehenge","Mont Fuji","Everest","Sagrada Família","Parthénon","Cité interdite","Burj Khalifa","Uluru","Mont-Saint-Michel","Grand Canyon","Chutes du Niagara","Golden Gate Bridge","Tour de Pise","Grande Muraille de Chine","Mont Blanc",
-  "Marie Curie","Napoléon Bonaparte","Wolfgang Amadeus Mozart","Pablo Picasso","Salvador Dalí","Frida Kahlo","Lionel Messi","Cristiano Ronaldo","Zinédine Zidane","Cléopâtre","Jules César","William Shakespeare","Ludwig van Beethoven","Édith Piaf","Bill Gates","Charlie Chaplin","Jackie Chan","Simón Bolívar","Marco Polo","Albert Einstein",
-  "Stade de France","Camp Nou","Stade de Wembley","Stade Santiago-Bernabéu","Old Trafford","Anfield","Stade Roland-Garros","Stade Maracanã","Allianz Arena","Stade Vélodrome","Parc des Princes","Madison Square Garden","Yankee Stadium","Stade Azteca","Stade Giuseppe-Meazza",
-  "Michael Jordan","Kylian Mbappé","Zlatan Ibrahimović","Franz Beckenbauer","Johan Cruyff","Novak Djokovic","Björn Borg","Martina Navrátilová","Yao Ming","Sachin Tendulkar","Didier Drogba","Roger Milla","George Weah","Pierre de Coubertin"]);
-const HARD = new Set(["Geirangerfjord","Geysir","Mont Athos","Lac Louise","Parc national Kruger","Lac Rose","Bagan","Île de Komodo","Dôme de Genbaku","Sigiriya","Aoraki / Mont Cook","Fjord de Milford Sound","Lalibela","Désert d'Atacama","Tombouctou","Chaussée des Géants",
-  "Bruce Lee","Nikola Tesla","Sigmund Freud","Freddie Mercury","Mère Teresa","Isaac Newton","Léopold Sédar Senghor","Thomas Sankara","Miriam Makeba","Hô Chi Minh","Mao Zedong","Fidel Castro","Bob Dylan","Michael Jackson","Elvis Presley","Bob Marley","Céline Dion","Frédéric Chopin","Nelson Mandela","Mustafa Kemal Atatürk","Léon Tolstoï","Malala Yousafzai","Jacques Brel","Louis Pasteur","Stephen Hawking",
-  "Estadio Centenario","Ernst-Happel-Stadion","Eden Gardens","MCG","Stade olympique Atatürk","Stade olympique de 1960","Stade olympique de 1972","Stade olympique de 1976","Stade Loujniki","Twickenham Stadium",
-  "Ronaldo","Neymar","Michel Platini","Lewis Hamilton","Michael Schumacher","Tony Parker","Wayne Gretzky","Nadia Comăneci","Jesse Owens","Carl Lewis","Tiger Woods","Eddy Merckx","Bernard Hinault","Jacques Anquetil","Teddy Riner","Haile Gebrselassie","Eliud Kipchoge","Yannick Noah","Mohamed Salah","Sadio Mané","Sébastien Loeb","Cathy Freeman","Jean-Claude Killy"]);
-ALL.forEach(d => { d.lv = HARD.has(d.t) ? 3 : EASY.has(d.t) ? 1 : 2; });
+/* Les questions, les thèmes et les types de manche sont dans questions.js (mode d'emploi en tête du fichier).
+   lv : niveau de difficulté (1 = très connu, 2 = moyen, 3 = peu connu ou lieu surprenant). */
+const ALL = QUESTIONS.map(d => Object.assign(d, { lv: d.n || 2 }));
+/* Le menu propose « Tout » ou un seul thème. */
+const inMode = (d, m) => m === 'mixte' || d.h === m;
 /* Barème : plus la difficulté monte, plus les points baissent vite avec la distance. */
 const DECAYS = { 1: 2000, 2: 1500, 3: 1000 }, LEVELS = { 1: 'Facile', 2: 'Moyen', 3: 'Difficile' };
 const TOTAL = 5;
@@ -694,12 +430,28 @@ function countdown() {
   $('countdown').hidden = false;
   cdTick = setInterval(() => { n--; if (n > 0) show(); else { endCountdown(); startTimer(); } }, 1000);
 }
+/* Choix des manches. Priorité : le niveau choisi (puis le niveau voisin s'il en manque), les questions pas encore vues
+   (ou vues il y a le plus longtemps sur cet appareil), puis, en « Tout », un thème différent à chaque manche. */
+const SEEN_KEY = 'wikiguessr-vus';
+function seenLog() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
+function remember(list) {
+  const log = seenLog(), n = (log._ || 0) + 1;
+  log._ = n; list.forEach(d => { log[d.t] = n; });
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify(log)); } catch (e) {}
+}
+function pick(pool) {
+  const log = seenLog();
+  const sorted = shuffle(pool).sort((a, b) => Math.abs(a.lv - level) - Math.abs(b.lv - level) || (log[a.t] || 0) - (log[b.t] || 0));
+  const out = [], themes = new Set();
+  for (const d of sorted) if (out.length < TOTAL && !themes.has(d.h) && Math.abs(d.lv - level) === Math.abs(sorted[0].lv - level) && !log[d.t] === !log[sorted[0].t]) { out.push(d); themes.add(d.h); }
+  for (const d of sorted) if (out.length < TOTAL && !out.includes(d)) out.push(d);
+  return shuffle(out);
+}
 function start() {
   endCountdown();
   $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
-  const pool = ALL.filter(d => mode === 'mixte' || (mode === 'sport' ? d.s : (mode === 'lieux') === (d.k === 'lieu')));
-  /* On mélange, puis on trie par écart avec le niveau choisi : s'il manque des questions, on complète avec le niveau voisin. */
-  rounds = shuffle(pool).sort((a, b) => Math.abs(a.lv - level) - Math.abs(b.lv - level)).slice(0, TOTAL); idx = 0; total = 0; results = [];
+  rounds = pick(ALL.filter(d => inMode(d, mode))); idx = 0; total = 0; results = [];
+  remember(rounds);
   players = sel.players; dtot = Array(players).fill(0); dres = [];
   $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
@@ -712,7 +464,8 @@ function load() {
   guess = null; revealed = false; turn = 0; dg = Array(players).fill(null); waiting = false;
   $('handoff').hidden = true; document.body.classList.remove('ho'); updateWho();
   $('rnd').textContent = idx + 1;
-  $('chip').textContent = r.k === 'perso' ? 'Personnalité · ' + r.c + ' · lieu de naissance' : r.c;
+  /* Pastille : thème · sous-catégorie · ce qu'il faut placer */
+  $('chip').textContent = [THEMES[r.h].long, r.c === THEMES[r.h].long ? '' : r.c, r.q || TYPES[r.k].quoi].filter(Boolean).join(' · ');
   $('title').textContent = r.t;
   $('extract').textContent = r.x;
   $('photo').hidden = level === 3; /* en difficile, pas de photo */
@@ -781,11 +534,12 @@ function duelSubmit(force) {
   $('where').textContent = '';
   const s = document.createElement('span');
   const bt = x => x ? ' (dont ' + fmt(x) + ' de vitesse)' : '';
-  s.textContent = d.map((x, i) => 'J' + (i + 1) + ' : ' + dtext(x) + bt(b[i])).join(' · ') + ' — ' + (r.k === 'perso' ? 'né(e) à ' : '') + r.p + ' · ';
+  s.textContent = d.map((x, i) => 'J' + (i + 1) + ' : ' + dtext(x) + bt(b[i])).join(' · ') + ' — ' + TYPES[r.k].rep.toLowerCase() + r.p + ' · ';
   const a = document.createElement('a');
   a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
   a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
   $('where').append(s, a);
+  learn(r);
   $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir le résultat';
   $('go').hidden = true; $('result').hidden = false;
   drawOverlay(); fitAll(r);
@@ -884,16 +638,19 @@ function reveal() {
   showResult(r, d, pts, bonus);
   fitTo(guess, r);
 }
+/* Après la réponse, une courte explication pour apprendre quelque chose (si l'entrée en a une). */
+function learn(r) { $('learn').textContent = r.e || ''; $('learn').hidden = !r.e; }
 function showResult(r, d, pts, bonus) {
   countUp($('tot'), total - (pts || 0), total);
   $('dist').textContent = d === null ? 'Temps écoulé' : d < 1 ? 'Pile dessus' : 'À ' + fmt(d) + ' km';
   $('pts').textContent = '+' + fmt(pts) + ' pts' + (bonus ? ' (dont ' + fmt(bonus) + ' de vitesse)' : '');
   $('where').textContent = '';
-  const s = document.createElement('span'); s.textContent = (r.k === 'perso' ? 'Né(e) à ' : '') + r.p + ' · ';
+  const s = document.createElement('span'); s.textContent = TYPES[r.k].rep + r.p + ' · ';
   const a = document.createElement('a');
   a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
   a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
   $('where').append(s, a);
+  learn(r);
   $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir mon score';
   $('go').hidden = true; $('result').hidden = false;
   drawOverlay();
@@ -942,8 +699,15 @@ const sel = { players: 1, time: 0, mode: 'mixte', diff: 2 };
 const DIFFNOTE = {
   1: 'Entrées très connues et barème indulgent : les points baissent lentement avec la distance.',
   2: 'Un mélange d’entrées, avec le barème standard.',
-  3: 'Entrées peu connues ou lieux de naissance surprenants, barème strict et photo masquée.'
+  3: 'Sujets moins connus ou lieux surprenants, barème strict et photo masquée.'
 };
+/* Un bouton par thème dans le menu de l'accueil, avec la couleur de ses points sur le globe. */
+for (const [id, th] of Object.entries(THEMES)) {
+  const b = document.createElement('button'), dot = document.createElement('i');
+  b.type = 'button'; b.dataset.v = id; b.setAttribute('aria-pressed', 'false');
+  dot.style.background = dot.style.color = th.couleur;
+  b.append(dot, th.nom); $('modes').appendChild(b);
+}
 function choose(key, val) {
   sel[key] = key === 'mode' ? val : +val;
   if (key === 'diff') $('diffnote').textContent = DIFFNOTE[val];
@@ -1005,8 +769,6 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
 (function () {
   const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
-  const COL = { lieu: '#ffb547', perso: '#ff6f9c', sport: '#5ec8ff' };
-  const kind = d => d.s ? 'sport' : d.k;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clampLat = v => Math.max(-70, Math.min(70, v));
   let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
@@ -1015,7 +777,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   const ptrs = new Map();
 
   function refresh() {
-    pts = ALL.filter(d => sel.mode === 'mixte' || (sel.mode === 'sport' ? d.s : (sel.mode === 'lieux') === (d.k === 'lieu')));
+    pts = ALL.filter(d => inMode(d, sel.mode));
     const lvl = pts.filter(d => d.lv === sel.diff).length;
     $('poolnote').textContent = pts.length + ' questions sur le globe, dont ' + lvl + ' du niveau ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs).';
     kick();
@@ -1040,7 +802,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
       const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
       const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
       ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
-      ctx.fillStyle = COL[kind(d)];
+      ctx.fillStyle = THEMES[d.h].couleur;
       ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
       ctx.globalAlpha = edge * (on ? 1 : 0.5);
       ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
