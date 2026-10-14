@@ -10,7 +10,8 @@
 </head>
 <body>
 <title>Wikiguessr</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Titan+One&display=swap">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
@@ -33,72 +34,146 @@
   --btn-ink: #1a1206;
   --btn: #ffb547;
   color-scheme: dark;
-  /* Même police partout : Nunito pour le texte, Bungee (celle du logo) pour les boutons et les grands chiffres. */
-  --font-display: "Nunito", "Trebuchet MS", system-ui, sans-serif;
-  --font-body: "Nunito", system-ui, sans-serif;
-  --font-mono: "Nunito", system-ui, sans-serif;
-  --font-logo: "Bungee", "Nunito", system-ui, sans-serif;
+  /* Même police partout : Bricolage Grotesque. Titan One est réservée au logo (logo.js). */
+  --font-display: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-mono: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-logo: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body { background: var(--sky); color: var(--ink); font-family: var(--font-body); overflow: hidden; }
 #app { position: relative; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 0.18em; font: 400 22px/1 var(--font-logo); }
-.brand .lg-tag { font-size: 0.5em; box-shadow: 0 0.1em 0 #f2545b; }
+.brand { font-size: 20px; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
 .meta { flex: 1 1 100%; flex-wrap: wrap; gap: 4px 14px; }
 .meta span { white-space: nowrap; }
 .menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-/* Accueil : un globe qu'on fait tourner au doigt, et un panneau de réglages à côté (ordinateur) ou dessous (téléphone). Toujours sombre, quel que soit le thème. */
-#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden; color-scheme: dark;
-  --ink: #eef4f7; --muted: #94a9b5; --line: rgba(255,255,255,.13); --card: rgba(255,255,255,.06); --btn: #ffb547; --btn-ink: #1a1206; --guess: #ffb547;
-  --font-body: 'Nunito', system-ui, sans-serif; --font-mono: 'Nunito', system-ui, sans-serif; --font-display: 'Nunito', system-ui, sans-serif;
-  color: var(--ink);
-  background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.7), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.5), transparent),
-    radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.6), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.45), transparent) 0 0/211px 211px,
-    radial-gradient(ellipse 70% 55% at 35% 30%, #13324d 0, transparent 70%), #050c16; }
-.stage { position: relative; height: clamp(320px, 58vh, 560px); }
-#globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; display: block; }
-#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+/* Accueil : le menu principal. En-tête bleu nuit avec le logo, puis à gauche le titre, les modes et le bouton d'action,
+   à droite la grille des sujets. Style plat : aplats, angles droits, ni dégradé ni ombre (le relief du logo est la seule exception).
+   Clair ou sombre selon l'appareil ; les couleurs des sujets restent les mêmes. Le bouton d'action et le contour du globe du logo
+   prennent la couleur du sujet choisi (--f, --f-ink). Les données des modes et des sujets sont dans menu.js. */
+#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden;
+  --font: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --ground: #F3F3F0; --ink: #1C1C1B; --ink-2: #484846; --navy: #0B1530;
+  --step-hero: clamp(2.75rem, 5.4vw, 5.5rem); --step-title: clamp(1.75rem, 2.7vw, 2.6rem); --step-body: 1.0625rem; --step-small: .9375rem;
+  --gutter: clamp(16px, 3vw, 40px); --gap: 12px; --dur-fast: 160ms; --dur-base: 220ms;
+  --f: #FFC400; --f-ink: #2B1A00;
+  color-scheme: light; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font);
+  display: flex; flex-direction: column; }
+@media (prefers-color-scheme: dark) { #home { --ground: #1A1A19; --ink: #ECECEA; --ink-2: #C4C4C0; color-scheme: dark; } }
+#home h1, #home h2, #home p, #home ul, #home fieldset { margin: 0; padding: 0; }
+#home fieldset { border: 0; min-width: 0; }
+#home ul { list-style: none; }
+#home a { color: inherit; }
+#home .sr, #home legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#home :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+#home .skip { position: absolute; left: var(--gutter); top: -80px; background: var(--ink); color: var(--ground); padding: 12px 16px; z-index: 10; text-decoration: none; }
+#home .skip:focus { top: 12px; }
+
+.mhead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px var(--gutter); background: var(--navy); color: #fff; }
+.mhead :focus-visible { outline-color: #fff !important; }
+.mhead wg-logo { font-size: 30px; padding: 6px 0 8px; }
+.mhead nav ul { display: flex; gap: 4px; }
+.mhead nav a, .mhead nav button { display: flex; align-items: center; min-height: 44px; padding: 0 14px; border: 0; background: none; font: 400 var(--step-small) var(--font); color: rgba(255,255,255,.72); text-decoration: none; cursor: pointer; }
+.mhead nav [aria-current] { color: #fff; font-weight: 600; }
+.streak { min-height: 44px; padding: 0 4px; border: 0; background: none; font: 400 var(--step-small) var(--font); color: #fff; white-space: nowrap; cursor: pointer; text-align: right; }
+.streak b { font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .mhead nav a:hover, .mhead nav button:hover, .streak:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; } }
+#soon { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 20; background: var(--ink); color: var(--ground); padding: 12px 16px; font-size: var(--step-small); }
+
+/* Ordinateur : le menu dans une colonne à gauche (qui défile seule), le globe au centre sur tout le reste de l'écran. */
+.mbody { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(380px, 34vw) minmax(0, 1fr); }
+.left { display: flex; flex-direction: column; gap: 20px; min-height: 0; overflow-y: auto; padding: clamp(20px, 3vw, 36px) var(--gutter) 0; scrollbar-width: thin; }
+@media (min-width: 860px) { #home { overflow: hidden; } }
+#home h1 { font-size: clamp(2.5rem, 4vw, 4rem); line-height: .95; letter-spacing: -.04em; font-weight: 600; white-space: nowrap; }
+.lead { font-size: 1.25rem; color: var(--ink-2); margin-top: -12px !important; }
+
+.modes { display: flex; flex-direction: column; gap: 8px; }
+.mode { display: block; cursor: pointer; padding: 12px 18px; min-height: 56px; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.mode b { display: block; font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
+.mode span { display: block; font-size: var(--step-small); color: var(--ink-2); transition: color var(--dur-fast) var(--ease-out); }
+.mode:has(input:checked) { color: var(--ground); background: var(--ink); }
+.mode:has(input:checked) span { color: var(--ground); }
+.mode:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .mode:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--ink) 7%, transparent); } }
+
+/* Le bouton d'action reste visible : collé en bas de l'écran si la grille des sujets dépasse. */
+.play { margin-top: auto; position: sticky; bottom: 0; z-index: 2; background: var(--ground); padding: 12px 0 var(--gutter); }
+.sum { font-size: var(--step-small); color: var(--ink-2); margin-bottom: 12px !important; }
+#launch { display: block; width: 100%; min-height: 68px; padding: 16px 24px; border: 0; border-radius: 0; background: var(--f); color: var(--f-ink); font: 600 1.375rem/1.2 var(--font); letter-spacing: -.01em; text-align: left; cursor: pointer;
+  transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+#launch:active { transform: scale(.985); }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+.field { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: clamp(120px, 15vh, 170px); padding: 16px;
+  background: var(--f); color: var(--f-ink); cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.field:has(input:checked) { box-shadow: inset 0 0 0 6px var(--ink); }
+.field:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+.field:active { transform: scale(.985); }
+.field h2 { position: relative; font-size: clamp(1.25rem, 1.7vw, 1.6rem); line-height: 1; letter-spacing: -.03em; font-weight: 600; }
+.field h2 span { display: block; margin-top: 6px; font-size: var(--step-small); line-height: 1.45; letter-spacing: 0; font-weight: 400; }
+.pic { position: absolute; top: 12px; right: 12px; width: clamp(56px, 5vw, 80px); height: auto; transform: rotate(-8deg) scale(.96); transform-origin: 50% 60%; transition: transform 320ms var(--ease-out); }
+.field:has(input:checked) .pic { transform: rotate(0) scale(1.08); }
+.chk { position: absolute; top: 14px; left: 14px; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--ground); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.6); transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+.field:has(input:checked) .chk { opacity: 1; transform: none; }
+.field.wide { grid-column: 1 / -1; min-height: 104px; }
+.field.wide .pic { width: 64px; top: 50%; margin-top: -32px; }
+
+/* Globe : une fenêtre sur l'espace, en aplat bleu nuit. On le fait tourner au doigt ; choisir un sujet le fait pivoter vers ses questions. */
+.stage { position: relative; overflow: hidden; background: var(--navy); color: #fff; min-height: 300px; }
+#globe, #sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#globe { touch-action: none; cursor: grab; }
 #globe:active { cursor: grabbing; }
-#globe:focus-visible { outline: none; }
+#home #globe:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
 .noglobe #globe { display: none; }
-.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none;
-  background: radial-gradient(circle at 35% 30%, #2a9df4, #0b5cb5 55%, #062a63); box-shadow: 0 0 60px rgba(94,200,255,.35); }
+.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 60%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none; background: #0b5cb5; }
 .noglobe .stage::before { display: block; }
-.brandmark { position: absolute; left: 16px; top: 18px; right: 16px; pointer-events: none; }
-.logo { display: flex; align-items: center; gap: 0.14em; font: 400 clamp(36px, 10vw, 68px)/1 'Bungee', var(--font-display); margin: 0; }
-.lg-tag { font: 800 0.4em/1 'Nunito', sans-serif; letter-spacing: 0.06em; background: #fff; color: #050c16; padding: 0.3em 0.42em 0.26em; border-radius: 0.3em; transform: rotate(-6deg); box-shadow: 0 0.12em 0 #f2545b; }
-.lg-word { color: #ffd166; text-shadow: 0.02em 0.02em 0 #ff8a3d, 0.04em 0.04em 0 #ff8a3d, 0.06em 0.06em 0 #f2545b, 0.08em 0.08em 0 #f2545b, 0.1em 0.1em 0 #b8336a, 0.12em 0.12em 0 #b8336a, 0.14em 0.2em 0.3em rgba(0,0,0,.6); }
-.lg-pin { height: 0.85em; width: auto; margin-left: 0.08em; filter: drop-shadow(0 0 10px rgba(255,181,71,.7)); transform: translateY(-0.08em); }
-.tag { margin: 10px 0 0; font: 500 16px/1.45 var(--font-body); line-height: 1.45; color: var(--muted); max-width: 34ch; text-shadow: 0 1px 12px #050c16; }
-.globehint { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); font: 700 13px var(--font-mono); color: var(--ink); background: rgba(5,12,22,.6); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
+#home #poolnote { position: absolute; left: 20px; top: 16px; max-width: 30ch; font-size: var(--step-small); line-height: 1.4; color: rgba(255,255,255,.75); pointer-events: none; }
+#poolnote b { color: #fff; font-weight: 600; }
+#home .globehint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: var(--step-small); color: #fff; background: rgba(11,21,48,.8); padding: 6px 12px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
 .spun .globehint, .noglobe .globehint { opacity: 0; }
-.homebox { position: relative; margin: -40px auto 0; width: 100%; max-width: 560px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; padding: 20px 16px 28px;
-  background: rgba(10,22,36,.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; }
-.opt { display: flex; flex-direction: column; gap: 8px; }
-.optname { font: 800 12.5px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg button { flex: 1 1 auto; font: 700 15px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-.seg button[aria-pressed="true"] { background: #eef4f7; color: #0a1622; border-color: #eef4f7; }
-.seg.tiles { display: grid; grid-template-columns: repeat(3, 1fr); }
-.seg.tiles button { flex-direction: column; gap: 6px; padding: 12px 6px 10px; font: 800 16px var(--font-display); border-radius: 14px; }
-.seg.tiles .ppl { display: flex; gap: 3px; height: 22px; }
-.seg.tiles svg { height: 22px; width: auto; }
-@media (max-width: 599px) { .tag { display: none; } }
-.seg i { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
-.duo { display: grid; grid-template-columns: 1fr; gap: 18px; }
-.note { font: 500 13.5px/1.45 var(--font-mono); color: var(--muted); }
-#launch { font: 400 19px 'Bungee', var(--font-display); letter-spacing: 0.02em; padding: 15px 18px; box-shadow: 0 10px 30px -10px rgba(255,181,71,.7); }
-@media (min-width: 900px) {
-  #home { display: grid; grid-template-columns: 1fr minmax(400px, 460px); overflow: hidden; }
-  .stage { height: 100%; }
-  .brandmark { left: 40px; top: 36px; }
-  .globehint { bottom: 28px; }
-  .homebox { margin: 0; max-width: none; height: 100%; overflow-y: auto; justify-content: safe center; padding: 32px 30px; border: 0; border-left: 1px solid var(--line); border-radius: 0; }
+
+/* Réglages : ce que le menu ne montre pas (difficulté, temps par question, joueurs en duel). */
+#prefs { max-width: min(520px, calc(100vw - 32px)); width: 100%; box-sizing: border-box; padding: 28px; border: 0; border-radius: 0; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font); }
+#prefs::backdrop { background: rgba(11,21,48,.6); }
+#prefs h2 { margin: 0 0 20px; font-size: 1.75rem; font-weight: 600; letter-spacing: -.02em; }
+#prefs fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+#prefs legend { position: static; width: auto; height: auto; clip: auto; overflow: visible; padding: 0; margin-bottom: 8px; font-weight: 600; }
+#prefs .row { display: flex; flex-wrap: wrap; gap: 6px; }
+#prefs label { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px; cursor: pointer; background: color-mix(in srgb, var(--ink) 7%, transparent); transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+#prefs label:has(input:checked) { background: var(--ink); color: var(--ground); font-weight: 600; }
+#prefs label:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+#prefs input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+#prefs p { margin: 6px 0 0; font-size: var(--step-small); color: var(--ink-2); }
+#prefs .close { display: block; width: 100%; min-height: 52px; border: 0; border-radius: 0; background: var(--ink); color: var(--ground); font: 600 1.125rem var(--font); cursor: pointer; }
+#prefs :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* Entrée au chargement : les blocs montent de 16px en fondu, décalés de 70ms, une seule fois. */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+#home .in { animation: rise 420ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rise { from { opacity: 0; } }
+  .field:active, #launch:active { transform: none; }
+  .pic, .field:has(input:checked) .pic { transform: none; transition: none; }
+  .chk { transform: none; }
+}
+@media (max-width: 859px) {
+  .mbody { display: flex; flex-direction: column; gap: 24px; padding: 0 var(--gutter); }
+  .left { display: contents; }
+  .left > div:first-child { order: 2; } .lead { order: 3; } .modes-set { order: 4; } .subjects-set { order: 5; }
+  .stage { order: 1; height: 42vh; min-height: 280px; margin: 0 calc(var(--gutter) * -1); }
+  .mhead nav { display: none; }
+  .mhead wg-logo { font-size: 24px; }
+  .play { order: 6; position: sticky; bottom: 0; z-index: 2; background: var(--ground); margin: 0 calc(var(--gutter) * -1); padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 519px) {
+  .grid { grid-template-columns: 1fr; }
+  .field { min-height: 120px; }
 }
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
@@ -168,8 +243,8 @@ td.t { min-width: 0; }
 @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pts { font-weight: 700; }
 /* Écrans de jeu : mêmes polices que le menu d'accueil. */
-button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0.02em; }
-#cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0; }
+button.main { font-family: var(--font-logo); font-weight: 600; letter-spacing: 0; }
+#cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 700; letter-spacing: -0.02em; }
 #title, .dist, #fwinner, #handoff h2, #final h2 { font-weight: 800; letter-spacing: -0.01em; }
 .meta { font-size: 14px; font-weight: 600; } .meta b { font-weight: 800; }
 .chip, .optname { font-weight: 800; }
@@ -178,11 +253,9 @@ button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0
 :root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
 @supports (height: 100dvh) { body { height: 100dvh; } }
 button { -webkit-tap-highlight-color: transparent; }
-button.main, .seg button, .menubtn, .zoom button { transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease; }
+button.main, .menubtn, .zoom button { transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease; }
 button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transform: scale(0.97); }
-.seg button:active { transform: scale(0.96); }
 @media (hover: hover) and (pointer: fine) {
-  .seg button:hover:not([aria-pressed="true"]) { border-color: rgba(255,255,255,.35); }
   .menubtn:hover, .zoom button:hover { border-color: var(--border); }
 }
 #timebar i { transform-origin: left center; transition: transform 200ms linear; will-change: transform; }
@@ -213,10 +286,6 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 #rglobe:active { cursor: grabbing; }
 #final td.t i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
 #share { position: relative; }
-.daily { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 11px 18px; }
-.daily span { font: 400 16px var(--font-logo); letter-spacing: 0.02em; }
-.daily small { font: 600 12.5px var(--font-body); color: var(--muted); letter-spacing: 0; }
-.daily.done small { color: var(--truth); }
 /* Sans photo : l'icône du thème sur sa couleur, plutôt que des initiales grises. */
 #mono { font-size: 40px; letter-spacing: 0; line-height: 1; }
 @media (max-width: 440px) { #mono { font-size: 30px; } }
@@ -225,7 +294,7 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 
 <div id="app">
   <header>
-    <div class="brand" role="img" aria-label="Wikiguessr"><span class="lg-tag">WIKI</span><span class="lg-word">GUESSR</span></div>
+    <wg-logo class="brand"></wg-logo>
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
     <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/<span id="rtot">5</span></span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
   </header>
@@ -277,72 +346,70 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
     <button class="main alt" id="tomenu">Changer les réglages</button>
   </div>
   <div id="home">
-    <div class="stage">
-      <canvas id="sky" aria-hidden="true"></canvas>
-      <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
-      <div class="brandmark">
-        <h1 class="logo" aria-label="Wikiguessr"><span class="lg-tag" aria-hidden="true">WIKI</span><span class="lg-word" aria-hidden="true">GUESSR</span><svg class="lg-pin" viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.5 12 32 12 32s12-11.5 12-20.3C24 5.2 18.6 0 12 0z" fill="#ffb547"/><circle cx="12" cy="11.5" r="4.6" fill="#050c16"/></svg></h1>
-        <p class="tag">Devinez où se trouve le lieu, où est née la personnalité ou où s’est déroulé l’événement. Plus vous êtes proche et rapide, plus vous marquez.</p>
-      </div>
-      <div class="globehint">Faites tourner le globe</div>
-    </div>
-    <div class="homebox">
-      <div class="opt">
-        <div class="optname">Joueurs</div>
-        <div class="seg tiles" data-key="players">
-          <button type="button" data-v="1" aria-pressed="true"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>Solo</button>
-          <button type="button" data-v="2" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>2 joueurs</button>
-          <button type="button" data-v="3" aria-pressed="false"><span class="ppl"><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg><svg viewBox="0 0 16 22" aria-hidden="true"><circle cx="8" cy="6" r="4.5" fill="currentColor"/><path d="M0 22c0-6 3.6-9 8-9s8 3 8 9z" fill="currentColor"/></svg></span>3 joueurs</button>
+    <a class="skip" href="#jeu">Aller au jeu</a>
+    <header class="mhead">
+      <wg-logo></wg-logo>
+      <nav aria-label="Navigation principale">
+        <ul>
+          <li><a href="#jeu" aria-current="page">Jouer</a></li>
+          <li><button type="button" data-soon="Les statistiques arrivent bientôt.">Stats</button></li>
+          <li><button type="button" data-soon="Le classement arrive bientôt.">Classement</button></li>
+          <li><button type="button" id="openprefs" aria-haspopup="dialog">Réglages</button></li>
+        </ul>
+      </nav>
+      <button type="button" class="streak" id="daily"></button>
+    </header>
+    <p id="soon" role="status" hidden></p>
+    <main class="mbody" id="jeu" tabindex="-1">
+      <div class="left">
+        <div class="in" style="--i:0"><h1>À toi de jouer</h1></div>
+        <p class="lead in" style="--i:0">Choisis un mode et un sujet.</p>
+        <fieldset class="modes-set in" style="--i:1">
+          <legend>Choisis ton mode</legend>
+          <div class="modes" id="modes"></div>
+        </fieldset>
+        <fieldset class="subjects-set in" style="--i:2">
+          <legend>Choisis ton sujet</legend>
+          <div class="grid" id="sujets"></div>
+        </fieldset>
+        <div class="play in" style="--i:3">
+          <p class="sum" id="sum" aria-live="polite"></p>
+          <button id="launch" type="button">Lancer la partie</button>
         </div>
       </div>
-      <div class="opt">
-        <div class="optname">Thème</div>
-        <div class="seg" data-key="mode" id="modes">
-          <button type="button" data-v="mixte" aria-pressed="true">Tout</button>
-        </div>
-        <div class="note" id="poolnote"></div>
+      <div class="right stage in" style="--i:1">
+        <canvas id="sky" aria-hidden="true"></canvas>
+        <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
+        <p id="poolnote"></p>
+        <p class="globehint" aria-hidden="true">Fais tourner le globe</p>
       </div>
-      <div class="duo">
-        <div class="opt">
-          <div class="optname">Difficulté</div>
-          <div class="seg" data-key="diff">
-            <button type="button" data-v="1" aria-pressed="false">Facile</button>
-            <button type="button" data-v="2" aria-pressed="true">Moyen</button>
-            <button type="button" data-v="3" aria-pressed="false">Difficile</button>
-          </div>
-          <div class="note" id="diffnote"></div>
-        </div>
-        <div class="opt">
-          <div class="optname">Temps par manche</div>
-          <div class="seg" data-key="time">
-            <button type="button" data-v="0" aria-pressed="true">Sans limite</button>
-            <button type="button" data-v="60" aria-pressed="false">60 s</button>
-            <button type="button" data-v="30" aria-pressed="false">30 s</button>
-            <button type="button" data-v="15" aria-pressed="false">15 s</button>
-          </div>
-          <div class="note" id="timenote">Avec un chrono, répondre vite rapporte jusqu'à +25 % de points.</div>
-        </div>
-        <div class="opt">
-          <div class="optname">Manches</div>
-          <div class="seg" data-key="rounds">
-            <button type="button" data-v="5" aria-pressed="true">5 manches</button>
-            <button type="button" data-v="10" aria-pressed="false">10 manches</button>
-          </div>
-        </div>
-      </div>
-      <button class="main" id="launch">Lancer la partie</button>
-      <button class="main alt daily" id="daily"><span>Défi du jour</span><small id="dailynote">Les mêmes 5 questions pour tout le monde aujourd'hui</small></button>
-    </div>
+    </main>
+    <dialog id="prefs" aria-labelledby="prefstitle">
+      <h2 id="prefstitle">Réglages</h2>
+      <fieldset><legend>Difficulté</legend><div class="row">
+        <label><input type="radio" name="diff" value="1">Facile</label><label><input type="radio" name="diff" value="2">Moyen</label><label><input type="radio" name="diff" value="3">Difficile</label>
+      </div><p id="diffnote"></p></fieldset>
+      <fieldset><legend>Temps par question (Contre-la-montre et Duel)</legend><div class="row">
+        <label><input type="radio" name="time" value="60">60 s</label><label><input type="radio" name="time" value="30">30 s</label><label><input type="radio" name="time" value="15">15 s</label>
+      </div><p>Répondre vite rapporte jusqu’à 25 % de points en plus.</p></fieldset>
+      <fieldset><legend>Joueurs en duel</legend><div class="row">
+        <label><input type="radio" name="duo" value="2">2 joueurs</label><label><input type="radio" name="duo" value="3">3 joueurs</label>
+      </div><p>Chacun son tour sur le même appareil.</p></fieldset>
+      <form method="dialog"><button class="close">C’est bon</button></form>
+    </dialog>
   </div>
 </div>
 
 <script src="questions.js"></script>
+<script src="menu.js"></script>
+<script src="logo.js"></script>
 <script>
 /* Les questions, les thèmes et les types de manche sont dans questions.js (mode d'emploi en tête du fichier).
    lv : niveau de difficulté (1 = très connu, 2 = moyen, 3 = peu connu ou lieu surprenant). */
 const ALL = QUESTIONS.map(d => Object.assign(d, { lv: d.n || 2 }));
-/* Le menu propose « Tout » ou un seul thème. */
-const inMode = (d, m) => m === 'mixte' || d.h === m;
+/* Le menu propose un sujet (menu.js), qui regroupe un ou plusieurs thèmes de questions.js, ou « Tout mélanger ». */
+const SUJET = Object.fromEntries(MENU_SUJETS.map(s => [s.id, s])), MODE = Object.fromEntries(MENU_MODES.map(m => [m.id, m]));
+const inMode = (d, m) => m === 'mixte' || (SUJET[m] ? !SUJET[m].themes || SUJET[m].themes.includes(d.h) : d.h === m);
 /* Barème : plus la difficulté monte, plus les points baissent vite avec la distance. */
 const DECAYS = { 1: 2000, 2: 1500, 3: 1000 }, LEVELS = { 1: 'Facile', 2: 'Moyen', 3: 'Difficile' };
 let TOTAL = 5; /* manches par partie : 5 ou 10 */
@@ -747,9 +814,9 @@ function finish() {
   } else {
     let best = 0;
     /* Un meilleur score par durée, niveau, thème et nombre de manches : les clés historiques restent celles de « Tout » en 5 manches. */
-    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '') + (mode !== 'mixte' ? '-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
+    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '') + (mode !== 'mixte' ? '-sujet-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
     try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
-    const what = [LEVELS[level].toLowerCase(), mode === 'mixte' ? '' : THEMES[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
+    const what = [LEVELS[level].toLowerCase(), mode === 'mixte' ? '' : SUJET[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
     $('fbest').textContent = best ? 'Meilleur score sur cet appareil (' + what + ') : ' + fmt(best) : '';
   }
   $('final').hidden = false;
@@ -777,30 +844,60 @@ map.on('click', e => place(e.latlng.lat, e.latlng.lng));
 $('zin').onclick = () => GG.on ? GG.zoomBy(1.6) : map.zoomIn();
 $('zout').onclick = () => GG.on ? GG.zoomBy(1 / 1.6) : map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
-const sel = { players: 1, time: 0, mode: 'mixte', diff: 2, rounds: 5 };
+/* ---- menu principal : construit à partir de menu.js (modes et sujets). Un mode et un sujet actifs, de vrais boutons radio.
+   Les réglages (difficulté, temps par question, joueurs en duel) sont dans la fenêtre Réglages ; tout est retenu sur l'appareil. ---- */
+const sel = { mode: MENU_DEFAUT.mode, sujet: MENU_DEFAUT.sujet, diff: 2, time: 30, duo: 2, players: 1 };
+const MENU_KEY = 'wikiguessr-menu';
+try { Object.assign(sel, JSON.parse(localStorage.getItem(MENU_KEY)) || {}); } catch (e) {}
+if (!MODE[sel.mode]) sel.mode = MENU_DEFAUT.mode;
+if (!SUJET[sel.sujet]) sel.sujet = MENU_DEFAUT.sujet;
 const DIFFNOTE = {
   1: 'Entrées très connues et barème indulgent : les points baissent lentement avec la distance.',
   2: 'Un mélange d’entrées, avec le barème standard.',
   3: 'Sujets moins connus ou lieux surprenants, barème strict et photo masquée.'
 };
-/* Un bouton par thème dans le menu de l'accueil, avec la couleur de ses points sur le globe. */
-for (const [id, th] of Object.entries(THEMES)) {
-  const b = document.createElement('button'), dot = document.createElement('i');
-  b.type = 'button'; b.dataset.v = id; b.setAttribute('aria-pressed', 'false');
-  dot.style.background = dot.style.color = th.couleur;
-  b.append(dot, th.nom); $('modes').appendChild(b);
+const CHECK = '<span class="chk" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg></span>';
+MENU_MODES.forEach(m => {
+  const l = document.createElement('label'); l.className = 'mode';
+  l.innerHTML = '<input class="sr" type="radio" name="mode"><b></b><span></span>';
+  l.querySelector('input').value = m.id; l.querySelector('b').textContent = m.nom; l.querySelector('span').textContent = m.aide;
+  $('modes').appendChild(l);
+});
+MENU_SUJETS.forEach((s, i) => {
+  const l = document.createElement('label'); l.className = 'field' + (s.large ? ' wide' : '');
+  l.style.cssText = '--f:' + s.f + ';--f-ink:' + s.ink;
+  l.innerHTML = '<input class="sr" type="radio" name="sujet">' + CHECK + '<svg class="pic" viewBox="0 0 120 120" aria-hidden="true">' + s.dessin + '</svg><h2><span></span></h2>';
+  l.querySelector('input').value = s.id;
+  l.querySelector('h2').prepend(s.nom + ' '); l.querySelector('h2 span').textContent = s.sous;
+  $('sujets').appendChild(l);
+});
+/* Coche les bons boutons radio, met à jour le résumé, le bouton d'action et la couleur du sujet (bouton et contour du globe du logo). */
+function paintHome() {
+  document.querySelectorAll('#home input[name="mode"]').forEach(r => { r.checked = r.value === sel.mode; });
+  document.querySelectorAll('#home input[name="sujet"]').forEach(r => { r.checked = r.value === sel.sujet; });
+  ['diff', 'time', 'duo'].forEach(k => document.querySelectorAll('#prefs input[name="' + k + '"]').forEach(r => { r.checked = +r.value === sel[k]; }));
+  $('diffnote').textContent = DIFFNOTE[sel.diff];
+  const m = MODE[sel.mode], s = SUJET[sel.sujet];
+  $('home').style.setProperty('--f', s.f); $('home').style.setProperty('--f-ink', s.ink);
+  $('launch').textContent = m.bouton;
+  $('sum').textContent = [m.nom, s.nom, sel.diff !== 2 ? LEVELS[sel.diff] : ''].filter(Boolean).join(' · ');
+  try { localStorage.setItem(MENU_KEY, JSON.stringify({ mode: sel.mode, sujet: sel.sujet, diff: sel.diff, time: sel.time, duo: sel.duo })); } catch (e) {}
 }
-function choose(key, val) {
-  sel[key] = key === 'mode' ? val : +val;
-  if (key === 'diff') $('diffnote').textContent = DIFFNOTE[val];
-  document.querySelectorAll('.seg[data-key="' + key + '"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
-}
-document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  choose(g.dataset.key, b.dataset.v);
-  /* En duel la vitesse compte : sans chrono elle ne serait pas mesurée, on propose donc 30 s. */
-  if (g.dataset.key === 'players' && sel.players > 1 && sel.time === 0) choose('time', 30);
-}));
+$('home').addEventListener('change', e => {
+  const r = e.target; if (r.type !== 'radio') return;
+  sel[r.name] = r.name === 'mode' || r.name === 'sujet' ? r.value : +r.value;
+  paintHome();
+  if (window.homeGlobe) { homeGlobe.refresh(); if (r.name === 'sujet') homeGlobe.focus(sel.sujet); }
+});
+$('openprefs').onclick = () => $('prefs').showModal();
+/* Stats et Classement : points d'entrée prévus, pas encore construits. */
+let soonT = 0;
+document.querySelectorAll('[data-soon]').forEach(b => b.onclick = () => {
+  $('soon').textContent = b.dataset.soon; $('soon').hidden = false;
+  clearTimeout(soonT); soonT = setTimeout(() => { $('soon').hidden = true; }, 2600);
+});
+/* L'entrée animée ne se joue qu'une fois, au premier chargement. */
+setTimeout(() => document.querySelectorAll('#home .in').forEach(el => el.classList.remove('in')), 1400);
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
 function showHome() {
   stopTimer(); endCountdown(); document.body.classList.remove('fin');
@@ -813,21 +910,36 @@ function leaveHome() {
   const home = $('home');
   if (RM) { home.hidden = true; return; }
   home.style.pointerEvents = 'none';
-  home.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.03)' }], { duration: 240, easing: EASE }).onfinish = () => { home.hidden = true; };
+  home.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: EASE }).onfinish = () => { home.hidden = true; };
 }
-$('launch').onclick = () => {
-  daily = null; mode = sel.mode; timeLimit = sel.time; level = sel.diff; DECAY = DECAYS[level]; TOTAL = sel.rounds;
+/* Point d'entrée du moteur de jeu : reçoit { mode, sujet } (identifiants de menu.js) et lance la partie avec les réglages. */
+function lancerPartie({ mode: m, sujet: s }) {
+  const jeu = MODE[m].jeu;
+  daily = null; mode = s; level = sel.diff; DECAY = DECAYS[level]; TOTAL = jeu.manches;
+  sel.players = jeu.joueurs === 'duel' ? sel.duo : jeu.joueurs;
+  timeLimit = jeu.chrono ? sel.time : 0;
   leaveHome();
-};
-/* Défi du jour : réglages imposés (solo, moyen, tous les thèmes, sans limite, 5 manches) pour que tout le monde joue la même partie. */
+}
+$('launch').onclick = () => lancerPartie({ mode: sel.mode, sujet: sel.sujet });
+/* Défi du jour (à droite de l'en-tête) : réglages imposés (solo, moyen, tous les sujets, sans limite, 5 manches) pour que tout le monde joue la même partie. */
 $('daily').onclick = () => {
-  daily = today(); mode = 'mixte'; timeLimit = 0; level = 2; DECAY = DECAYS[2]; TOTAL = 5;
+  daily = today(); mode = 'mixte'; timeLimit = 0; level = 2; DECAY = DECAYS[2]; TOTAL = 5; sel.players = 1;
   leaveHome();
 };
+/* Série : jours d'affilée où le défi a été fait, jusqu'à aujourd'hui (ou hier, si celui du jour reste à faire). */
+function streak() {
+  const d = new Date(), key = () => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  let n = 0;
+  if (!dailyDone(key())) d.setDate(d.getDate() - 1);
+  while (n < 999 && dailyDone(key())) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
 function dailyLabel() {
-  const done = dailyDone(today()), b = $('daily');
-  b.classList.toggle('done', !!done);
-  $('dailynote').textContent = done ? 'Fait aujourd’hui : ' + done.tiles + ' ' + fmt(done.total) + ' pts' : 'Les mêmes 5 questions pour tout le monde aujourd’hui';
+  const done = dailyDone(today()), n = streak(), b = $('daily');
+  b.innerHTML = n ? '<b></b> · Défi du jour' : '<b>Défi du jour</b>';
+  if (n) b.querySelector('b').textContent = n + (n > 1 ? ' jours de suite' : ' jour de suite');
+  b.title = done ? 'Défi du jour fait : ' + done.tiles + ' ' + fmt(done.total) + ' pts. Seul le premier essai compte.' : 'Les mêmes 5 questions pour tout le monde aujourd’hui';
+  b.setAttribute('aria-label', (n ? 'Série de ' + n + ' jours. ' : '') + 'Jouer le défi du jour' + (done ? ', déjà fait aujourd’hui' : ''));
 }
 dailyLabel();
 new MutationObserver(() => { if (!$('home').hidden) dailyLabel(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
@@ -838,7 +950,7 @@ $('menu').onclick = () => {
   showHome();
 };
 $('tomenu').onclick = showHome;
-choose('diff', 2); /* affiche l'explication du niveau par défaut */
+paintHome();
 /* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
    Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
 const GEO = { grat: null, land: null, borders: null, countries: null, topo: null };
@@ -861,7 +973,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,30,.5)');
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
-/* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
+/* ---- globe de l'accueil, au centre du menu : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
    on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
 (function () {
@@ -873,10 +985,24 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   let raf = 0, lastInput = -1e4, pinch = 0;
   const ptrs = new Map();
 
+  let anim = null;
   function refresh() {
-    pts = ALL.filter(d => inMode(d, sel.mode));
+    pts = ALL.filter(d => inMode(d, sel.sujet));
     const lvl = pts.filter(d => d.lv === sel.diff).length;
-    $('poolnote').textContent = pts.length + ' questions sur le globe, dont ' + lvl + ' du niveau ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs).';
+    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe, dont ' + lvl + ' en ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs)';
+    kick();
+  }
+  /* Choisir un sujet fait pivoter le globe vers le centre de ses questions (moyenne des positions sur la sphère). */
+  function focus(id) {
+    const D = Math.PI / 180, list = ALL.filter(d => inMode(d, id));
+    let x = 0, y = 0, z = 0;
+    list.forEach(d => { x += Math.cos(d.a * D) * Math.cos(d.o * D); y += Math.cos(d.a * D) * Math.sin(d.o * D); z += Math.sin(d.a * D); });
+    if (!list.length) return;
+    const to = [-Math.atan2(y, x) / D, clampLat(-Math.atan2(z, Math.hypot(x, y)) / D)];
+    vel = [0, 0]; lastInput = performance.now() + 900;
+    if (still) { rot = to; kick(); return; }
+    let dl = ((to[0] - rot[0]) % 360 + 540) % 360 - 180;
+    anim = { from: rot.slice(), d: [dl, to[1] - rot[1]], t0: performance.now(), z0: zoom };
     kick();
   }
   function size() {
@@ -887,8 +1013,8 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     kick();
   }
   function draw(t) {
-    R = Math.min(w, w < 600 ? h - 90 : h) * 0.43 * zoom;
-    const cx = w / 2, cy = h / 2 + (w < 600 ? 28 : 0);
+    R = Math.min(w, h) * 0.44 * zoom;
+    const cx = w / 2, cy = h / 2;
     proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
     ctx.clearRect(0, 0, w, h);
     paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
@@ -910,12 +1036,16 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     raf = 0;
     if (home.hidden || !proj || !w) return;
     const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
-    if (!ptrs.size) {
+    if (anim && !ptrs.size) {
+      const p = Math.min(1, (t - anim.t0) / 950), e = 1 - Math.pow(1 - p, 3), bump = Math.sin(p * Math.PI) * 0.12;
+      rot = [anim.from[0] + anim.d[0] * e, anim.from[1] + anim.d[1] * e]; zoom = anim.z0 * (1 - bump);
+      if (p >= 1) { anim = null; zoom = Math.max(0.75, zoom); }
+    } else if (!ptrs.size) {
       if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
       else if (!still && t - lastInput > 2500) rot[0] += 0.06;
     }
     draw(t);
-    if (!still || moving || ptrs.size) raf = requestAnimationFrame(frame);
+    if (!still || moving || ptrs.size || anim) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
@@ -923,7 +1053,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
 
   cv.addEventListener('pointerdown', e => {
     cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-    vel = [0, 0]; if (ptrs.size === 2) pinch = gap(); touched();
+    vel = [0, 0]; if (anim) { zoom = anim.z0; anim = null; } if (ptrs.size === 2) pinch = gap(); touched();
   });
   cv.addEventListener('pointermove', e => {
     const p = ptrs.get(e.pointerId); if (!p) return;
@@ -940,10 +1070,10 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
     if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
   });
-  document.querySelectorAll('#home .seg').forEach(g => g.addEventListener('click', refresh));
+  window.homeGlobe = { refresh, focus };
   new ResizeObserver(size).observe(cv);
   new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
-  refresh();
+  refresh(); if (sel.sujet !== 'mixte') focus(sel.sujet);
 
   const J = 'https://cdn.jsdelivr.net/npm/';
   const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
@@ -1069,9 +1199,9 @@ function makeSky(cv, isOn, opt) {
   new ResizeObserver(size).observe(cv);
   return { kick, layer, reset() { rockets = []; meteors = []; next = -1; size(); } };
 }
+/* Le ciel de la partie suit le globe : les étoiles proches glissent un peu plus que les lointaines. */
 const homeSky = makeSky($('sky'), () => !$('home').hidden, { rockets: true });
 new MutationObserver(() => { if (!$('home').hidden) homeSky.reset(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
-/* Le ciel de la partie suit le globe : les étoiles proches glissent un peu plus que les lointaines. */
 const gameSky = makeSky($('gsky'), () => GG.on && $('final').hidden, { density: 1700, offset: () => GG.offset() });
 /* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
    noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
@@ -1207,8 +1337,8 @@ const GG = (function () {
       ctx.fillStyle = fill; ctx.fillText(name, x, y);
     };
     const sz = Math.round(Math.min(14, 10 + zoom));
-    SEAS.forEach(([n, o, a]) => put(n, [o, a], 'italic 700 ' + (sz - 1) + 'px Nunito, system-ui, sans-serif', 'rgba(200,232,255,.85)', 'rgba(4,30,70,.55)'));
-    for (const l of labels) if (l.area * R * R >= 500) put(l.name, l.at, '700 ' + sz + 'px Nunito, system-ui, sans-serif', '#f4f7f5', 'rgba(5,12,22,.85)');
+    SEAS.forEach(([n, o, a]) => put(n, [o, a], 'italic 700 ' + (sz - 1) + 'px "Bricolage Grotesque", system-ui, sans-serif', 'rgba(200,232,255,.85)', 'rgba(4,30,70,.55)'));
+    for (const l of labels) if (l.area * R * R >= 500) put(l.name, l.at, '700 ' + sz + 'px "Bricolage Grotesque", system-ui, sans-serif', '#f4f7f5', 'rgba(5,12,22,.85)');
   }
   /* Un repère apparaît en grossissant légèrement (pas depuis zéro), avec un halo qui s'efface. */
   function marker(p, c, now) {
@@ -1367,7 +1497,7 @@ const Recap = (function () {
       if (k === 1 && vis(it.r)) {
         const [x, y] = proj([it.r.o, it.r.a]);
         dotAt(x, y, 9, cssv('--truth'));
-        ctx.fillStyle = '#04241a'; ctx.font = '800 11px Nunito, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(i + 1, x, y + 0.5);
+        ctx.fillStyle = '#04241a'; ctx.font = '800 11px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(i + 1, x, y + 0.5);
       }
     });
     if (more) kick();
