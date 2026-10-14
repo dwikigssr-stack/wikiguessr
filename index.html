@@ -85,13 +85,15 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 @media (hover: hover) and (pointer: fine) { .mhead nav a:hover, .mhead nav button:hover, .streak:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; } }
 #soon { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 20; background: var(--ink); color: var(--ground); padding: 12px 16px; font-size: var(--step-small); }
 
-.mbody { flex: 1; display: grid; grid-template-columns: minmax(min-content, .8fr) minmax(0, 1.4fr); gap: clamp(24px, 4vw, 64px); padding: clamp(16px, 3vw, 40px) var(--gutter) var(--gutter); }
-.left { display: flex; flex-direction: column; gap: 32px; }
-#home h1 { font-size: var(--step-hero); line-height: .95; letter-spacing: -.04em; font-weight: 600; white-space: nowrap; }
+/* Ordinateur : le menu dans une colonne à gauche (qui défile seule), le globe au centre sur tout le reste de l'écran. */
+.mbody { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(380px, 34vw) minmax(0, 1fr); }
+.left { display: flex; flex-direction: column; gap: 20px; min-height: 0; overflow-y: auto; padding: clamp(20px, 3vw, 36px) var(--gutter) 0; scrollbar-width: thin; }
+@media (min-width: 860px) { #home { overflow: hidden; } }
+#home h1 { font-size: clamp(2.5rem, 4vw, 4rem); line-height: .95; letter-spacing: -.04em; font-weight: 600; white-space: nowrap; }
 .lead { font-size: 1.25rem; color: var(--ink-2); margin-top: -12px !important; }
 
 .modes { display: flex; flex-direction: column; gap: 8px; }
-.mode { display: block; cursor: pointer; padding: 16px 18px; min-height: 64px; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.mode { display: block; cursor: pointer; padding: 12px 18px; min-height: 56px; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
 .mode b { display: block; font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
 .mode span { display: block; font-size: var(--step-small); color: var(--ink-2); transition: color var(--dur-fast) var(--ease-out); }
 .mode:has(input:checked) { color: var(--ground); background: var(--ink); }
@@ -107,20 +109,34 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #launch:active { transform: scale(.985); }
 
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
-.field { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: clamp(160px, min(20vw, 26vh), 270px); padding: clamp(18px, 2vw, 28px);
+.field { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: clamp(120px, 15vh, 170px); padding: 16px;
   background: var(--f); color: var(--f-ink); cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
 .field:has(input:checked) { box-shadow: inset 0 0 0 6px var(--ink); }
 .field:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
 .field:active { transform: scale(.985); }
-.field h2 { position: relative; font-size: var(--step-title); line-height: 1; letter-spacing: -.03em; font-weight: 600; }
-.field h2 span { display: block; margin-top: 12px; font-size: var(--step-small); line-height: 1.45; letter-spacing: 0; font-weight: 400; }
-.pic { position: absolute; top: clamp(14px, 1.6vw, 24px); right: clamp(14px, 1.6vw, 24px); width: clamp(84px, 9vw, 136px); height: auto; transform: rotate(-8deg) scale(.96); transform-origin: 50% 60%; transition: transform 320ms var(--ease-out); }
+.field h2 { position: relative; font-size: clamp(1.25rem, 1.7vw, 1.6rem); line-height: 1; letter-spacing: -.03em; font-weight: 600; }
+.field h2 span { display: block; margin-top: 6px; font-size: var(--step-small); line-height: 1.45; letter-spacing: 0; font-weight: 400; }
+.pic { position: absolute; top: 12px; right: 12px; width: clamp(56px, 5vw, 80px); height: auto; transform: rotate(-8deg) scale(.96); transform-origin: 50% 60%; transition: transform 320ms var(--ease-out); }
 .field:has(input:checked) .pic { transform: rotate(0) scale(1.08); }
-.chk { position: absolute; top: clamp(14px, 1.6vw, 24px); left: clamp(14px, 1.6vw, 24px); width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--ground); display: flex; align-items: center; justify-content: center;
+.chk { position: absolute; top: 14px; left: 14px; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--ground); display: flex; align-items: center; justify-content: center;
   opacity: 0; transform: scale(.6); transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out); }
 .field:has(input:checked) .chk { opacity: 1; transform: none; }
-.field.wide { grid-column: 1 / -1; min-height: clamp(120px, 12vw, 160px); }
-.field.wide .pic { width: clamp(72px, 7vw, 104px); top: 50%; margin-top: calc(clamp(72px, 7vw, 104px) / -2); }
+.field.wide { grid-column: 1 / -1; min-height: 104px; }
+.field.wide .pic { width: 64px; top: 50%; margin-top: -32px; }
+
+/* Globe : une fenêtre sur l'espace, en aplat bleu nuit. On le fait tourner au doigt ; choisir un sujet le fait pivoter vers ses questions. */
+.stage { position: relative; overflow: hidden; background: var(--navy); color: #fff; min-height: 300px; }
+#globe, #sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#globe { touch-action: none; cursor: grab; }
+#globe:active { cursor: grabbing; }
+#home #globe:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+.noglobe #globe { display: none; }
+.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 60%; max-width: 360px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none; background: #0b5cb5; }
+.noglobe .stage::before { display: block; }
+#home #poolnote { position: absolute; left: 20px; top: 16px; max-width: 30ch; font-size: var(--step-small); line-height: 1.4; color: rgba(255,255,255,.75); pointer-events: none; }
+#poolnote b { color: #fff; font-weight: 600; }
+#home .globehint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: var(--step-small); color: #fff; background: rgba(11,21,48,.8); padding: 6px 12px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
+.spun .globehint, .noglobe .globehint { opacity: 0; }
 
 /* Réglages : ce que le menu ne montre pas (difficulté, temps par question, joueurs en duel). */
 #prefs { max-width: min(520px, calc(100vw - 32px)); width: 100%; box-sizing: border-box; padding: 28px; border: 0; border-radius: 0; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font); }
@@ -147,17 +163,17 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
   .chk { transform: none; }
 }
 @media (max-width: 859px) {
-  .mbody { display: flex; flex-direction: column; gap: 24px; padding-bottom: 0; }
+  .mbody { display: flex; flex-direction: column; gap: 24px; padding: 0 var(--gutter); }
   .left { display: contents; }
-  .modes-set { order: 2; }
-  .right { order: 3; }
+  .left > div:first-child { order: 2; } .lead { order: 3; } .modes-set { order: 4; } .subjects-set { order: 5; }
+  .stage { order: 1; height: 42vh; min-height: 280px; margin: 0 calc(var(--gutter) * -1); }
   .mhead nav { display: none; }
   .mhead wg-logo { font-size: 24px; }
-  .play { order: 4; position: sticky; bottom: 0; z-index: 2; background: var(--ground); margin: 0 calc(var(--gutter) * -1); padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .play { order: 6; position: sticky; bottom: 0; z-index: 2; background: var(--ground); margin: 0 calc(var(--gutter) * -1); padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 519px) {
   .grid { grid-template-columns: 1fr; }
-  .field { min-height: 150px; }
+  .field { min-height: 120px; }
 }
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
@@ -352,16 +368,20 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
           <legend>Choisis ton mode</legend>
           <div class="modes" id="modes"></div>
         </fieldset>
-        <div class="play in" style="--i:2">
+        <fieldset class="subjects-set in" style="--i:2">
+          <legend>Choisis ton sujet</legend>
+          <div class="grid" id="sujets"></div>
+        </fieldset>
+        <div class="play in" style="--i:3">
           <p class="sum" id="sum" aria-live="polite"></p>
           <button id="launch" type="button">Lancer la partie</button>
         </div>
       </div>
-      <div class="right">
-        <fieldset>
-          <legend>Choisis ton sujet</legend>
-          <div class="grid" id="sujets"></div>
-        </fieldset>
+      <div class="right stage in" style="--i:1">
+        <canvas id="sky" aria-hidden="true"></canvas>
+        <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
+        <p id="poolnote"></p>
+        <p class="globehint" aria-hidden="true">Fais tourner le globe</p>
       </div>
     </main>
     <dialog id="prefs" aria-labelledby="prefstitle">
@@ -844,8 +864,8 @@ MENU_MODES.forEach(m => {
   $('modes').appendChild(l);
 });
 MENU_SUJETS.forEach((s, i) => {
-  const l = document.createElement('label'); l.className = 'field in' + (s.large ? ' wide' : '');
-  l.style.cssText = '--f:' + s.f + ';--f-ink:' + s.ink + ';--i:' + (i + 2);
+  const l = document.createElement('label'); l.className = 'field' + (s.large ? ' wide' : '');
+  l.style.cssText = '--f:' + s.f + ';--f-ink:' + s.ink;
   l.innerHTML = '<input class="sr" type="radio" name="sujet">' + CHECK + '<svg class="pic" viewBox="0 0 120 120" aria-hidden="true">' + s.dessin + '</svg><h2><span></span></h2>';
   l.querySelector('input').value = s.id;
   l.querySelector('h2').prepend(s.nom + ' '); l.querySelector('h2 span').textContent = s.sous;
@@ -867,6 +887,7 @@ $('home').addEventListener('change', e => {
   const r = e.target; if (r.type !== 'radio') return;
   sel[r.name] = r.name === 'mode' || r.name === 'sujet' ? r.value : +r.value;
   paintHome();
+  if (window.homeGlobe) { homeGlobe.refresh(); if (r.name === 'sujet') homeGlobe.focus(sel.sujet); }
 });
 $('openprefs').onclick = () => $('prefs').showModal();
 /* Stats et Classement : points d'entrée prévus, pas encore construits. */
@@ -931,7 +952,7 @@ $('menu').onclick = () => {
 $('tomenu').onclick = showHome;
 paintHome();
 /* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
-   Les contours des pays (world-atlas 110m) sont chargés une seule fois, dès l'accueil, et rangés dans GEO. ---- */
+   Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
 const GEO = { grat: null, land: null, borders: null, countries: null, topo: null };
 /* landFn (globe de jeu) dessine lui-même les terres, pays par pays ; s'il n'a rien à dessiner, on retombe sur la terre d'un seul tenant. */
 function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
@@ -952,20 +973,124 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,30,.5)');
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
-/* ---- données du globe de jeu : d3-geo, topojson et les contours des pays sont chargés dès l'accueil, pour que la partie démarre sans attendre.
-   Si rien ne charge, la partie se joue sur la carte Leaflet. ---- */
-(async function () {
+/* ---- globe de l'accueil, au centre du menu : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
+   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
+   Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
+(function () {
+  const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clampLat = v => Math.max(-70, Math.min(70, v));
+  let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
+  let proj = null, path = null, pts = [];
+  let raf = 0, lastInput = -1e4, pinch = 0;
+  const ptrs = new Map();
+
+  let anim = null;
+  function refresh() {
+    pts = ALL.filter(d => inMode(d, sel.sujet));
+    const lvl = pts.filter(d => d.lv === sel.diff).length;
+    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe, dont ' + lvl + ' en ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs)';
+    kick();
+  }
+  /* Choisir un sujet fait pivoter le globe vers le centre de ses questions (moyenne des positions sur la sphère). */
+  function focus(id) {
+    const D = Math.PI / 180, list = ALL.filter(d => inMode(d, id));
+    let x = 0, y = 0, z = 0;
+    list.forEach(d => { x += Math.cos(d.a * D) * Math.cos(d.o * D); y += Math.cos(d.a * D) * Math.sin(d.o * D); z += Math.sin(d.a * D); });
+    if (!list.length) return;
+    const to = [-Math.atan2(y, x) / D, clampLat(-Math.atan2(z, Math.hypot(x, y)) / D)];
+    vel = [0, 0]; lastInput = performance.now() + 900;
+    if (still) { rot = to; kick(); return; }
+    let dl = ((to[0] - rot[0]) % 360 + 540) % 360 - 180;
+    anim = { from: rot.slice(), d: [dl, to[1] - rot[1]], t0: performance.now(), z0: zoom };
+    kick();
+  }
+  function size() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    kick();
+  }
+  function draw(t) {
+    R = Math.min(w, h) * 0.44 * zoom;
+    const cx = w / 2, cy = h / 2;
+    proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
+    ctx.clearRect(0, 0, w, h);
+    paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
+    const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
+    pts.forEach((d, i) => {
+      const a = d3.geoDistance([d.o, d.a], centre);
+      if (a > 1.45) return;
+      const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
+      const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
+      ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
+      ctx.fillStyle = THEMES[d.h].couleur;
+      ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = edge * (on ? 1 : 0.5);
+      ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function frame(t) {
+    raf = 0;
+    if (home.hidden || !proj || !w) return;
+    const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
+    if (anim && !ptrs.size) {
+      const p = Math.min(1, (t - anim.t0) / 950), e = 1 - Math.pow(1 - p, 3), bump = Math.sin(p * Math.PI) * 0.12;
+      rot = [anim.from[0] + anim.d[0] * e, anim.from[1] + anim.d[1] * e]; zoom = anim.z0 * (1 - bump);
+      if (p >= 1) { anim = null; zoom = Math.max(0.75, zoom); }
+    } else if (!ptrs.size) {
+      if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
+      else if (!still && t - lastInput > 2500) rot[0] += 0.06;
+    }
+    draw(t);
+    if (!still || moving || ptrs.size || anim) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
+  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    vel = [0, 0]; if (anim) { zoom = anim.z0; anim = null; } if (ptrs.size === 2) pinch = gap(); touched();
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const d = gap(); if (pinch) zoom = Math.max(0.75, Math.min(2.6, zoom * d / pinch)); pinch = d; }
+    else { const k = 57.3 / Math.max(R, 1); vel = [dx * k, -dy * k]; rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); }
+    touched();
+  });
+  const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (ptrs.size) vel = [0, 0]; touched(); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(0.75, Math.min(2.6, zoom * Math.exp(-e.deltaY * 0.0015))); touched(); }, { passive: false });
+  cv.addEventListener('keydown', e => {
+    const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
+    if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
+  });
+  window.homeGlobe = { refresh, focus };
+  new ResizeObserver(size).observe(cv);
+  new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
+  refresh(); if (sel.sujet !== 'mixte') focus(sel.sujet);
+
   const J = 'https://cdn.jsdelivr.net/npm/';
   const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
-  try {
-    if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
-    if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
-    GEO.grat = d3.geoGraticule10();
-    const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
-    GEO.land = topojson.feature(t, t.objects.land);
-    GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
-    GEO.countries = topojson.feature(t, t.objects.countries).features; GEO.topo = t;
-  } catch (e) {}
+  (async () => {
+    try {
+      if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
+      if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
+      proj = d3.geoOrthographic().clipAngle(90).precision(0.5);
+      path = d3.geoPath(proj, ctx); GEO.grat = d3.geoGraticule10();
+      size(); kick();
+      const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
+      GEO.land = topojson.feature(t, t.objects.land);
+      GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+      GEO.countries = topojson.feature(t, t.objects.countries).features; GEO.topo = t;
+      kick();
+    } catch (e) { if (!proj) home.classList.add('noglobe'); }
+  })();
 })();
 /* ---- ciel étoilé : des étoiles qui scintillent derrière le globe. Sur l'accueil, une petite fusée le traverse de temps en temps ;
    pendant la partie (facile et moyen), des étoiles filantes, et le ciel glisse un peu quand on fait tourner le globe.
@@ -1075,6 +1200,8 @@ function makeSky(cv, isOn, opt) {
   return { kick, layer, reset() { rockets = []; meteors = []; next = -1; size(); } };
 }
 /* Le ciel de la partie suit le globe : les étoiles proches glissent un peu plus que les lointaines. */
+const homeSky = makeSky($('sky'), () => !$('home').hidden, { rockets: true });
+new MutationObserver(() => { if (!$('home').hidden) homeSky.reset(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
 const gameSky = makeSky($('gsky'), () => GG.on && $('final').hidden, { density: 1700, offset: () => GG.offset() });
 /* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
    noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
