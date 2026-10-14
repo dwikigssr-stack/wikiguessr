@@ -1289,11 +1289,13 @@ const GG = (function () {
       ctx.beginPath(); seen(set.land).forEach(x => path(x.g)); ctx.fillStyle = '#3ecf5c'; ctx.fill();
       const rel = level === 2 && relief;
       if (rel) {
-        /* Déserts en sable, massifs montagneux en brun, coupés à la côte. */
+        /* Déserts en sable, massifs montagneux en brun, coupés à la côte et fondus dans le vert : on ne peint que l'ombre floue
+           des formes, décalée depuis hors de l'écran (shadowBlur marche partout, contrairement à ctx.filter). */
         ctx.save(); ctx.clip();
-        ctx.beginPath(); seen(rel.deserts).forEach(x => path(x.g)); ctx.fillStyle = 'rgba(244,212,120,.75)'; ctx.fill();
-        ctx.beginPath(); seen(rel.mountains).forEach(x => path(x.g)); ctx.fillStyle = 'rgba(150,108,52,.55)'; ctx.fill();
-        ctx.strokeStyle = 'rgba(90,60,25,.35)'; ctx.lineWidth = 0.8; ctx.stroke();
+        const dpr = ctx.getTransform().a, off = 4 * (w + h);
+        ctx.translate(-off, 0); ctx.shadowOffsetX = off * dpr; ctx.shadowBlur = Math.min(40, 6 + 4 * zoom) * dpr;
+        ctx.beginPath(); seen(rel.deserts).forEach(x => path(x.g)); ctx.shadowColor = ctx.fillStyle = 'rgba(244,212,120,.8)'; ctx.fill();
+        ctx.beginPath(); seen(rel.mountains).forEach(x => path(x.g)); ctx.shadowColor = ctx.fillStyle = 'rgba(150,108,52,.6)'; ctx.fill();
         ctx.restore();
         ctx.beginPath(); seen(set.land).forEach(x => path(x.g));
       }
