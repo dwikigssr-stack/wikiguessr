@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:dark}body{margin:0;background:#0b1530}img{max-width:100%}</style>
+<style>:root{color-scheme:dark}body{margin:0;background:#050c16}img{max-width:100%}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -11,14 +11,15 @@
 <body>
 <title>Wikiguessr</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Titan+One&display=swap">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
   /* La partie garde l'ambiance de l'accueil : nuit étoilée, cartes translucides, accent ambre. Toujours sombre, quel que soit le thème de l'appareil. */
-  --bg: #0b1530;
+  --bg: #050c16;
   --sky: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.6), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.4), transparent),
     radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.5), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.35), transparent) 0 0/211px 211px,
-    radial-gradient(ellipse 70% 55% at 35% 20%, #16285e 0, transparent 70%), #0b1530;
+    radial-gradient(ellipse 70% 55% at 35% 20%, #13324d 0, transparent 70%), #050c16;
   --card: rgba(16,32,50,.82);
   --sea: #0f2029;
   --land: #223f4a;
@@ -33,181 +34,131 @@
   --btn-ink: #1a1206;
   --btn: #ffb547;
   color-scheme: dark;
-  /* Même police partout : Bricolage Grotesque pour le texte, Titan One (celle du logo) pour les boutons, les titres et les grands chiffres. */
-  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  /* Même police partout : Bricolage Grotesque. Titan One est réservée au logo (logo.js). */
+  --font-display: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-body: "Bricolage Grotesque", system-ui, sans-serif;
   --font-mono: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-logo: "Titan One", "Bricolage Grotesque", system-ui, sans-serif;
+  --font-logo: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body { background: var(--sky); color: var(--ink); font-family: var(--font-body); overflow: hidden; }
 #app { position: relative; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 16px; padding-block: 12px; max-width: 980px; margin-inline: auto; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 0.18em; font: 400 22px/1 var(--font-logo); }
-.brand .lg-tag { font-size: 0.5em; box-shadow: 0 0.12em 0 #ff5a6e; }
+.brand { font-size: 20px; }
 .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 500; }
 .meta { flex: 1 1 100%; flex-wrap: wrap; gap: 4px 14px; }
 .meta span { white-space: nowrap; }
 .menubtn { margin-left: auto; font: 500 12.5px var(--font-mono); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-/* Accueil : nuit étoilée bleu marine (celle du logo). À gauche le logo, les modes de jeu et le bouton pour lancer ;
-   à droite le globe qu'on fait tourner, et dessous une mosaïque de tuiles aux couleurs vives, une par thème.
-   Choisir une tuile teinte le bouton et fait pivoter le globe vers les questions du thème. Sur téléphone, tout s'empile et le bouton reste collé en bas. */
-#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden; color-scheme: dark;
-  --navy: #0b1530; --navy-2: #13204a; --ink: #f4f6ff; --muted: #a9b3d6; --line: rgba(255,255,255,.14); --card: rgba(255,255,255,.07);
-  --f: #ffc857; --fi: #2b1a00;
-  color: var(--ink); background: var(--navy); font-family: var(--font-body);
+/* Accueil : le menu principal. En-tête bleu nuit avec le logo, puis à gauche le titre, les modes et le bouton d'action,
+   à droite la grille des sujets. Style plat : aplats, angles droits, ni dégradé ni ombre (le relief du logo est la seule exception).
+   Clair ou sombre selon l'appareil ; les couleurs des sujets restent les mêmes. Le bouton d'action et le contour du globe du logo
+   prennent la couleur du sujet choisi (--f, --f-ink). Les données des modes et des sujets sont dans menu.js. */
+#home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden;
+  --font: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --ground: #F3F3F0; --ink: #1C1C1B; --ink-2: #484846; --navy: #0B1530;
+  --step-hero: clamp(2.75rem, 5.4vw, 5.5rem); --step-title: clamp(1.75rem, 2.7vw, 2.6rem); --step-body: 1.0625rem; --step-small: .9375rem;
+  --gutter: clamp(16px, 3vw, 40px); --gap: 12px; --dur-fast: 160ms; --dur-base: 220ms;
+  --f: #FFC400; --f-ink: #2B1A00;
+  color-scheme: light; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font);
   display: flex; flex-direction: column; }
-#home::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse 60% 50% at 75% 30%, color-mix(in srgb, var(--f) 16%, transparent), transparent 70%), radial-gradient(ellipse 70% 60% at 20% 0%, #16285e, transparent 70%);
-  transition: background 400ms ease; }
-.skywrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.col { display: contents; }
-.top, .side, .board, .stage, .play { position: relative; z-index: 1; flex-shrink: 0; }
-.top { order: 1; padding: 18px 16px 0; }
-.stage { order: 2; }
-.side { order: 3; display: flex; flex-direction: column; gap: 18px; padding: 4px 16px 22px; }
-.board { order: 4; }
-.play { order: 5; }
-.toprow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.streak { font: 700 14px var(--font-body); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
-.streak[hidden] { display: none; }
-.hello h2 { margin: 0; font: 400 clamp(28px, 3vw, 38px)/1.05 var(--font-logo); letter-spacing: .01em; }
-.hello p { margin: 8px 0 0; color: var(--muted); font-size: 16px; line-height: 1.4; }
+@media (prefers-color-scheme: dark) { #home { --ground: #1A1A19; --ink: #ECECEA; --ink-2: #C4C4C0; color-scheme: dark; } }
+#home h1, #home h2, #home p, #home ul, #home fieldset { margin: 0; padding: 0; }
+#home fieldset { border: 0; min-width: 0; }
+#home ul { list-style: none; }
+#home a { color: inherit; }
+#home .sr, #home legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#home :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+#home .skip { position: absolute; left: var(--gutter); top: -80px; background: var(--ink); color: var(--ground); padding: 12px 16px; z-index: 10; text-decoration: none; }
+#home .skip:focus { top: 12px; }
 
-/* Logo : étiquette WIKI inclinée avec sa fusée, GUESSR en relief, petit globe aux quatre couleurs. */
-.logo { display: inline-flex; align-items: center; gap: .16em; margin: 0; padding-top: .2em; font: 400 clamp(40px, 11vw, 54px)/1 var(--font-logo); }
-.lg-tag { position: relative; display: inline-block; font: 400 .42em/1 var(--font-logo); letter-spacing: .03em; background: #fff; color: #0b1530;
-  padding: .26em .5em .2em; border-radius: .3em; transform: rotate(-6deg); box-shadow: 0 .18em 0 #ff5a6e; }
-.lg-ship { position: absolute; left: -.32em; top: -.62em; width: .95em; height: auto; transform: rotate(-14deg); }
-.lg-word { color: #ffc857; letter-spacing: .01em; text-shadow: .011em .011em 0 #ffa23c, .022em .022em 0 #ff9540, .033em .033em 0 #ff8848, .044em .044em 0 #ff7a52,
-  .055em .055em 0 #f96a5e, .066em .066em 0 #f25c6c, .077em .077em 0 #e94f78, .088em .088em 0 #e04282, .1em .16em .3em rgba(0,0,0,.45); }
-.lg-globe { width: .82em; height: .82em; flex: none; margin-left: .06em; }
-@media (prefers-reduced-motion: no-preference) {
-  .lg-ship { animation: hover 3.2s ease-in-out infinite; }
-  @keyframes hover { 50% { transform: rotate(-8deg) translate(.04em, -.06em); } }
-}
+.mhead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px var(--gutter); background: var(--navy); color: #fff; }
+.mhead :focus-visible { outline-color: #fff !important; }
+.mhead wg-logo { font-size: 30px; padding: 6px 0 8px; }
+.mhead nav ul { display: flex; gap: 4px; }
+.mhead nav a, .mhead nav button { display: flex; align-items: center; min-height: 44px; padding: 0 14px; border: 0; background: none; font: 400 var(--step-small) var(--font); color: rgba(255,255,255,.72); text-decoration: none; cursor: pointer; }
+.mhead nav [aria-current] { color: #fff; font-weight: 600; }
+.streak { min-height: 44px; padding: 0 4px; border: 0; background: none; font: 400 var(--step-small) var(--font); color: #fff; white-space: nowrap; cursor: pointer; text-align: right; }
+.streak b { font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .mhead nav a:hover, .mhead nav button:hover, .streak:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; } }
+#soon { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 20; background: var(--ink); color: var(--ground); padding: 12px 16px; font-size: var(--step-small); }
 
-/* Modes de jeu : une liste ; le mode choisi s'inverse (fond clair) et déplie ses options. */
+.mbody { flex: 1; display: grid; grid-template-columns: minmax(min-content, .8fr) minmax(0, 1.4fr); gap: clamp(24px, 4vw, 64px); padding: clamp(16px, 3vw, 40px) var(--gutter) var(--gutter); }
+.left { display: flex; flex-direction: column; gap: 32px; }
+#home h1 { font-size: var(--step-hero); line-height: .95; letter-spacing: -.04em; font-weight: 600; white-space: nowrap; }
+.lead { font-size: 1.25rem; color: var(--ink-2); margin-top: -12px !important; }
+
 .modes { display: flex; flex-direction: column; gap: 8px; }
-.mode { border-radius: 16px; background: var(--card); border: 1px solid var(--line); transition: background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out); }
-.mode > button { appearance: none; display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: none; border: 0; color: inherit; cursor: pointer; padding: 14px 16px; font: inherit; border-radius: 16px; }
-.mode .mi { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.1); font-size: 21px; transition: background-color 180ms var(--ease-out); }
-.mode b { display: block; font: 400 19px/1.1 var(--font-logo); letter-spacing: .01em; }
-.mode small { display: block; margin-top: 3px; font-size: 14.5px; line-height: 1.35; color: var(--muted); transition: color 180ms var(--ease-out); }
-.mode.on { background: #f4f6ff; color: #0b1530; border-color: #f4f6ff; }
-.mode.on small { color: #3c4670; }
-.mode.on .mi { background: var(--f); }
-.mode .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 260ms var(--ease-out); }
-.mode.on .more { grid-template-rows: 1fr; }
-.mode .more > div { overflow: hidden; min-height: 0; }
-.mode .more .seg { padding: 0 14px 14px; }
-.mode .seg button { background: rgba(11,21,48,.06); border-color: rgba(11,21,48,.16); color: #0b1530; padding: 8px 10px; font-size: 14px; }
-.mode .seg button[aria-pressed="true"] { background: #0b1530; color: #fff; border-color: #0b1530; }
-.mode .seg + .seg { padding-top: 0; }
-.mode .seglab { display: block; padding: 0 16px 6px; font: 800 11.5px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: #5a6390; }
-.mode:not(.on) .more { visibility: hidden; }
-.mode.on .more { visibility: visible; }
-.mode.done small { color: var(--truth); }
-.mode.on.done small { color: #0d7a52; }
+.mode { display: block; cursor: pointer; padding: 16px 18px; min-height: 64px; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.mode b { display: block; font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
+.mode span { display: block; font-size: var(--step-small); color: var(--ink-2); transition: color var(--dur-fast) var(--ease-out); }
+.mode:has(input:checked) { color: var(--ground); background: var(--ink); }
+.mode:has(input:checked) span { color: var(--ground); }
+.mode:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .mode:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--ink) 7%, transparent); } }
 
-/* Boutons à choix (difficulté, manches, options des modes). */
-.opt { display: flex; flex-direction: column; gap: 8px; }
-.optname { font: 800 12.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.seg button { flex: 1 1 auto; font: 700 15px var(--font-body); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: #f4f6ff; color: #0b1530; border-color: #f4f6ff; }
-.settings { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.note { font: 500 13.5px/1.45 var(--font-body); color: var(--muted); }
+/* Le bouton d'action reste visible : collé en bas de l'écran si la grille des sujets dépasse. */
+.play { margin-top: auto; position: sticky; bottom: 0; z-index: 2; background: var(--ground); padding: 12px 0 var(--gutter); }
+.sum { font-size: var(--step-small); color: var(--ink-2); margin-bottom: 12px !important; }
+#launch { display: block; width: 100%; min-height: 68px; padding: 16px 24px; border: 0; border-radius: 0; background: var(--f); color: var(--f-ink); font: 600 1.375rem/1.2 var(--font); letter-spacing: -.01em; text-align: left; cursor: pointer;
+  transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+#launch:active { transform: scale(.985); }
 
-/* Bouton de lancement : prend la couleur du thème choisi, enfoncé comme une touche de jeu. */
-.play { position: sticky; bottom: 0; z-index: 2; padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(to top, var(--navy) calc(100% - 22px), transparent); padding-top: 26px; }
-.sum { margin: 0 0 8px; font-size: 14px; color: var(--muted); text-wrap: balance; }
-#launch { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 64px; padding: 14px 22px; border: 0; border-radius: 18px; cursor: pointer;
-  background: var(--f); color: var(--fi); font: 400 22px/1.1 var(--font-logo); letter-spacing: .01em; text-align: left;
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--f) 55%, #000), 0 18px 40px -14px color-mix(in srgb, var(--f) 70%, transparent);
-  transition: background-color 260ms var(--ease-out), color 260ms var(--ease-out), box-shadow 260ms var(--ease-out), transform 120ms var(--ease-out); }
-#launch::after { content: "→"; font-size: 1.1em; }
-#launch:active { transform: translateY(4px); box-shadow: 0 2px 0 color-mix(in srgb, var(--f) 55%, #000), 0 10px 26px -14px color-mix(in srgb, var(--f) 70%, transparent); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+.field { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: clamp(160px, min(20vw, 26vh), 270px); padding: clamp(18px, 2vw, 28px);
+  background: var(--f); color: var(--f-ink); cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.field:has(input:checked) { box-shadow: inset 0 0 0 6px var(--ink); }
+.field:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+.field:active { transform: scale(.985); }
+.field h2 { position: relative; font-size: var(--step-title); line-height: 1; letter-spacing: -.03em; font-weight: 600; }
+.field h2 span { display: block; margin-top: 12px; font-size: var(--step-small); line-height: 1.45; letter-spacing: 0; font-weight: 400; }
+.pic { position: absolute; top: clamp(14px, 1.6vw, 24px); right: clamp(14px, 1.6vw, 24px); width: clamp(84px, 9vw, 136px); height: auto; transform: rotate(-8deg) scale(.96); transform-origin: 50% 60%; transition: transform 320ms var(--ease-out); }
+.field:has(input:checked) .pic { transform: rotate(0) scale(1.08); }
+.chk { position: absolute; top: clamp(14px, 1.6vw, 24px); left: clamp(14px, 1.6vw, 24px); width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--ground); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.6); transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+.field:has(input:checked) .chk { opacity: 1; transform: none; }
+.field.wide { grid-column: 1 / -1; min-height: clamp(120px, 12vw, 160px); }
+.field.wide .pic { width: clamp(72px, 7vw, 104px); top: 50%; margin-top: calc(clamp(72px, 7vw, 104px) / -2); }
 
-/* Globe : on le fait tourner au doigt ; une étiquette dit combien de questions il porte. */
-.stage { height: clamp(260px, 42vh, 420px); }
-#globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; display: block; }
-#globe:active { cursor: grabbing; }
-#globe:focus-visible { outline: none; }
-.noglobe #globe { display: none; }
-.stage::before { content: ""; position: absolute; left: 50%; top: 50%; width: 64%; max-width: 340px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: none;
-  background: radial-gradient(circle at 35% 30%, #2a9df4, #0b5cb5 55%, #062a63); box-shadow: 0 0 60px rgba(94,200,255,.35); }
-.noglobe .stage::before { display: block; }
-.globehint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 700 13px var(--font-body); color: var(--ink); background: rgba(11,21,48,.7); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
-.spun .globehint, .noglobe .globehint { opacity: 0; }
-#poolnote { position: absolute; left: 16px; top: 10px; max-width: 26ch; margin: 0; font: 600 13px/1.35 var(--font-body); color: var(--muted); pointer-events: none; text-shadow: 0 1px 10px var(--navy); }
-#poolnote b { color: var(--ink); }
+/* Réglages : ce que le menu ne montre pas (difficulté, temps par question, joueurs en duel). */
+#prefs { max-width: min(520px, calc(100vw - 32px)); width: 100%; box-sizing: border-box; padding: 28px; border: 0; border-radius: 0; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font); }
+#prefs::backdrop { background: rgba(11,21,48,.6); }
+#prefs h2 { margin: 0 0 20px; font-size: 1.75rem; font-weight: 600; letter-spacing: -.02em; }
+#prefs fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+#prefs legend { position: static; width: auto; height: auto; clip: auto; overflow: visible; padding: 0; margin-bottom: 8px; font-weight: 600; }
+#prefs .row { display: flex; flex-wrap: wrap; gap: 6px; }
+#prefs label { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px; cursor: pointer; background: color-mix(in srgb, var(--ink) 7%, transparent); transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+#prefs label:has(input:checked) { background: var(--ink); color: var(--ground); font-weight: 600; }
+#prefs label:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+#prefs input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+#prefs p { margin: 6px 0 0; font-size: var(--step-small); color: var(--ink-2); }
+#prefs .close { display: block; width: 100%; min-height: 52px; border: 0; border-radius: 0; background: var(--ink); color: var(--ground); font: 600 1.125rem var(--font); cursor: pointer; }
+#prefs :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
-/* Mosaïque des thèmes : une tuile pleine couleur par thème, avec son dessin. La tuile choisie se redresse, prend un liseré blanc et une coche. */
-.board { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 18px; }
-.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.tile { --d: var(--fi); appearance: none; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 2px;
-  min-height: 112px; padding: 14px; border: 0; border-radius: 18px; text-align: left; cursor: pointer;
-  background: var(--tf); color: var(--fi); font: inherit; box-shadow: 0 5px 0 color-mix(in srgb, var(--tf) 50%, #000);
-  transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out), opacity 200ms ease; }
-.tile b { position: relative; font: 400 clamp(17px, 1.5vw, 21px)/1.05 var(--font-logo); letter-spacing: .01em; }
-.tile small { position: relative; font: 600 13px var(--font-body); opacity: .8; }
-.tile svg.pic { position: absolute; top: 10px; right: 10px; width: clamp(56px, 30%, 92px); height: auto; transform: rotate(-8deg) scale(.94); transform-origin: 50% 60%; transition: transform 320ms var(--ease-out); }
-.tile[aria-checked="true"] { box-shadow: inset 0 0 0 4px #fff, 0 5px 0 color-mix(in srgb, var(--tf) 50%, #000); }
-.tile[aria-checked="true"] svg.pic { transform: rotate(0) scale(1.08); }
-.tile .chk { position: absolute; top: 12px; left: 12px; width: 28px; height: 28px; border-radius: 50%; background: #fff; color: #0b1530; display: grid; place-items: center;
-  opacity: 0; transform: scale(.5); transition: opacity 160ms var(--ease-out), transform 220ms var(--ease-out); }
-.tile[aria-checked="true"] .chk { opacity: 1; transform: none; }
-.tile:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--tf) 50%, #000); }
-.tile[aria-checked="true"]:active { box-shadow: inset 0 0 0 4px #fff, 0 2px 0 color-mix(in srgb, var(--tf) 50%, #000); }
-.tile.all { grid-column: 1 / -1; min-height: 96px; }
-.tile.all svg.pic { width: 76px; top: 50%; margin-top: -38px; right: 18px; }
-.tile .w { fill: #fff; } .tile .d { fill: var(--d); } .tile .s { stroke: var(--d); fill: none; stroke-linecap: round; stroke-linejoin: round; } .tile .y { fill: #ffe14d; }
-@media (hover: hover) and (pointer: fine) {
-  .tile:hover { transform: translateY(-2px); }
-  .tile:hover svg.pic { transform: rotate(-3deg) scale(1.02); }
-  .tile[aria-checked="true"]:hover svg.pic { transform: rotate(0) scale(1.08); }
-  .mode:not(.on):hover { border-color: rgba(255,255,255,.3); }
-  .seg button:hover:not([aria-pressed="true"]) { border-color: rgba(255,255,255,.35); }
-  .mode .seg button:hover:not([aria-pressed="true"]) { border-color: rgba(11,21,48,.4); }
-}
-/* Défi du jour : thème et réglages imposés, la mosaïque et les réglages s'effacent. */
-.locked .tiles, .locked .settings { opacity: .32; pointer-events: none; filter: saturate(.6); }
-.locknote { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); font-size: 14.5px; color: var(--ink); }
-.optname.big { font: 400 20px var(--font-logo); letter-spacing: .01em; text-transform: none; color: var(--ink); }
-
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-  #home:not([hidden]) .in { animation: rise 420ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
-}
+/* Entrée au chargement : les blocs montent de 16px en fondu, décalés de 70ms, une seule fois. */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+#home .in { animation: rise 420ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
 @media (prefers-reduced-motion: reduce) {
-  .tile svg.pic, .tile[aria-checked="true"] svg.pic { transform: none; transition: none; }
-  .mode .more { transition: none; }
+  @keyframes rise { from { opacity: 0; } }
+  .field:active, #launch:active { transform: none; }
+  .pic, .field:has(input:checked) .pic { transform: none; transition: none; }
+  .chk { transform: none; }
 }
-@media (min-width: 560px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tile.all { grid-column: span 3; } }
-@media (min-width: 760px) { .settings { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1000px) {
-  #home { display: grid; grid-template-columns: minmax(360px, 420px) minmax(0, 1fr); overflow: hidden; }
-  .col { display: flex; flex-direction: column; position: relative; z-index: 1; height: 100%; min-height: 0; overflow-y: auto; box-sizing: border-box; scrollbar-width: thin; }
-  .col.left { padding-top: 28px; }
-  .top { padding: 0 28px; }
-  .side { padding: 22px 28px 18px; }
-  .play { margin-top: auto; padding: 26px 28px 24px; }
-  .col.right { padding: 16px 28px 24px 8px; gap: 14px; }
-  .stage { flex: 1 0 240px; height: auto; }
-  .board { padding: 0; }
-  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .tile.all { grid-column: span 2; }
-  .tile { min-height: clamp(100px, 13vh, 140px); }
-  .settings { grid-template-columns: 1fr 1fr; }
-  #poolnote { left: 8px; top: 8px; }
+@media (max-width: 859px) {
+  .mbody { display: flex; flex-direction: column; gap: 24px; padding-bottom: 0; }
+  .left { display: contents; }
+  .modes-set { order: 2; }
+  .right { order: 3; }
+  .mhead nav { display: none; }
+  .mhead wg-logo { font-size: 24px; }
+  .play { order: 4; position: sticky; bottom: 0; z-index: 2; background: var(--ground); margin: 0 calc(var(--gutter) * -1); padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); }
 }
-@media (min-width: 1000px) and (max-height: 760px) { .tile { min-height: 92px; } .tile svg.pic { width: 54px; } .mode > button { padding: 11px 14px; } .mode small { font-size: 13.5px; } }
+@media (max-width: 519px) {
+  .grid { grid-template-columns: 1fr; }
+  .field { min-height: 150px; }
+}
 .p1 { color: var(--guess); }
 .p2 { color: var(--p2); }
 .p3 { color: var(--p3); }
@@ -276,8 +227,8 @@ td.t { min-width: 0; }
 @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pts { font-weight: 700; }
 /* Écrans de jeu : mêmes polices que le menu d'accueil. */
-button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0.02em; }
-#cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0; }
+button.main { font-family: var(--font-logo); font-weight: 600; letter-spacing: 0; }
+#cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 700; letter-spacing: -0.02em; }
 #title, .dist, #fwinner, #handoff h2, #final h2 { font-weight: 800; letter-spacing: -0.01em; }
 .meta { font-size: 14px; font-weight: 600; } .meta b { font-weight: 800; }
 .chip, .optname { font-weight: 800; }
@@ -286,16 +237,14 @@ button.main { font-family: var(--font-logo); font-weight: 400; letter-spacing: 0
 :root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
 @supports (height: 100dvh) { body { height: 100dvh; } }
 button { -webkit-tap-highlight-color: transparent; }
-button.main, .seg button, .menubtn, .zoom button { transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease; }
+button.main, .menubtn, .zoom button { transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease; }
 button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transform: scale(0.97); }
-.seg button:active { transform: scale(0.96); }
 @media (hover: hover) and (pointer: fine) {
-  .seg button:hover:not([aria-pressed="true"]) { border-color: rgba(255,255,255,.35); }
   .menubtn:hover, .zoom button:hover { border-color: var(--border); }
 }
 #timebar i { transform-origin: left center; transition: transform 200ms linear; will-change: transform; }
 #gsky { position: absolute; inset: 0; z-index: 499; width: 100%; height: 100%; display: block; pointer-events: none; }
-#mapwrap.globe { background: radial-gradient(ellipse 70% 60% at 40% 35%, #16285e 0, transparent 70%), #0b1530; }
+#mapwrap.globe { background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
 @media (prefers-reduced-motion: no-preference) {
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
   @keyframes fadein { from { opacity: 0; } }
@@ -313,9 +262,9 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 #final .big { color: #ffd166; text-shadow: 0.03em 0.03em 0 #ff8a3d, 0.06em 0.06em 0 #f2545b, 0.09em 0.09em 0 #b8336a; }
 #frank { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: 18px; padding: 8px 14px 8px 10px; border-radius: 999px;
   background: color-mix(in srgb, var(--rk, #ffb547) 18%, transparent); border: 1px solid color-mix(in srgb, var(--rk, #ffb547) 55%, transparent); color: var(--rk, #ffb547); }
-#frank::before { content: var(--rki, "★"); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--rk, #ffb547); color: #0b1530; font-size: 15px; }
+#frank::before { content: var(--rki, "★"); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--rk, #ffb547); color: #050c16; font-size: 15px; }
 #recap { position: relative; flex: none; height: clamp(240px, 42vh, 380px); border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
-  background: radial-gradient(ellipse 70% 60% at 40% 35%, #16285e 0, transparent 70%), #0b1530; }
+  background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
 #recap[hidden] { display: none; }
 #rglobe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #rglobe:active { cursor: grabbing; }
@@ -329,10 +278,7 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 
 <div id="app">
   <header>
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="lggc"><circle cx="50" cy="50" r="40"/></clipPath>
-    <symbol id="lgglobe" viewBox="0 0 100 100"><g clip-path="url(#lggc)"><rect x="10" y="10" width="40" height="40" fill="#2F6BFF"/><rect x="50" y="10" width="40" height="40" fill="#19D48B"/><rect x="10" y="50" width="40" height="40" fill="#FF4D94"/><rect x="50" y="50" width="40" height="40" fill="#FFC857"/>
-      <ellipse cx="50" cy="50" rx="17" ry="40" fill="none" stroke="#fff" stroke-width="4"/><path d="M10 50H90M16 31Q50 39 84 31M16 69Q50 61 84 69" fill="none" stroke="#fff" stroke-width="4"/></g><circle cx="50" cy="50" r="40" fill="none" stroke="var(--o, #FFC857)" stroke-width="6"/></symbol></defs></svg>
-    <div class="brand" role="img" aria-label="Wikiguessr"><span class="lg-tag">WIKI</span><span class="lg-word">GUESSR</span><svg class="lg-globe" viewBox="0 0 100 100" aria-hidden="true"><use href="#lgglobe"/></svg></div>
+    <wg-logo class="brand"></wg-logo>
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
     <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/<span id="rtot">5</span></span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
   </header>
@@ -384,76 +330,66 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
     <button class="main alt" id="tomenu">Changer les réglages</button>
   </div>
   <div id="home">
-    <div class="skywrap" aria-hidden="true"><canvas id="sky"></canvas></div>
-    <div class="col left">
-      <div class="top toprow in">
-        <h1 class="logo" aria-label="Wikiguessr"><span class="lg-tag" aria-hidden="true">WIKI<svg class="lg-ship" viewBox="0 0 34 30"><path d="M2 14L32 2 22 28 16 18Z" fill="#FF5A6E"/><path d="M16 18L32 2" stroke="#FFC857" stroke-width="3" stroke-linecap="round"/></svg></span><span class="lg-word" aria-hidden="true">GUESSR</span><svg class="lg-globe" viewBox="0 0 100 100" aria-hidden="true" style="--o:#FFC857"><use href="#lgglobe"/></svg></h1>
-        <p class="streak" id="streak" hidden></p>
-      </div>
-      <div class="side">
-        <div class="hello in" style="--i:1"><h2>À vous de jouer</h2><p>Choisissez un mode et un thème, puis placez la réponse sur le globe.</p></div>
-        <div class="modes in" style="--i:2" role="radiogroup" aria-label="Mode de jeu" id="kinds">
-          <div class="mode" data-kind="libre"><button type="button" role="radio" aria-checked="true"><span class="mi" aria-hidden="true">🌍</span><span><b>Partie libre</b><small>Seul, sans chrono. Prenez le temps de chercher.</small></span></button></div>
-          <div class="mode" data-kind="chrono"><button type="button" role="radio" aria-checked="false"><span class="mi" aria-hidden="true">⏱️</span><span><b>Contre-la-montre</b><small>Seul, avec un chrono. Répondre vite rapporte jusqu’à +25 % de points.</small></span></button>
-            <div class="more"><div>
-              <span class="seglab">Temps par manche</span>
-              <div class="seg" data-key="chrono"><button type="button" data-v="60" aria-pressed="false">60 s</button><button type="button" data-v="30" aria-pressed="true">30 s</button><button type="button" data-v="15" aria-pressed="false">15 s</button></div>
-            </div></div></div>
-          <div class="mode" data-kind="duel"><button type="button" role="radio" aria-checked="false"><span class="mi" aria-hidden="true">⚔️</span><span><b>Duel</b><small>À 2 ou 3 sur le même appareil, chacun son tour. Le plus près marque.</small></span></button>
-            <div class="more"><div>
-              <span class="seglab">Joueurs</span>
-              <div class="seg" data-key="players"><button type="button" data-v="2" aria-pressed="true">2 joueurs</button><button type="button" data-v="3" aria-pressed="false">3 joueurs</button></div>
-              <span class="seglab">Temps par manche</span>
-              <div class="seg" data-key="dtime"><button type="button" data-v="0" aria-pressed="false">Sans limite</button><button type="button" data-v="60" aria-pressed="false">60 s</button><button type="button" data-v="30" aria-pressed="true">30 s</button><button type="button" data-v="15" aria-pressed="false">15 s</button></div>
-            </div></div></div>
-          <div class="mode" data-kind="defi" id="daily"><button type="button" role="radio" aria-checked="false"><span class="mi" aria-hidden="true">📅</span><span><b>Défi du jour</b><small id="dailynote">Les mêmes 5 questions pour tout le monde aujourd’hui</small></span></button></div>
+    <a class="skip" href="#jeu">Aller au jeu</a>
+    <header class="mhead">
+      <wg-logo></wg-logo>
+      <nav aria-label="Navigation principale">
+        <ul>
+          <li><a href="#jeu" aria-current="page">Jouer</a></li>
+          <li><button type="button" data-soon="Les statistiques arrivent bientôt.">Stats</button></li>
+          <li><button type="button" data-soon="Le classement arrive bientôt.">Classement</button></li>
+          <li><button type="button" id="openprefs" aria-haspopup="dialog">Réglages</button></li>
+        </ul>
+      </nav>
+      <button type="button" class="streak" id="daily"></button>
+    </header>
+    <p id="soon" role="status" hidden></p>
+    <main class="mbody" id="jeu" tabindex="-1">
+      <div class="left">
+        <div class="in" style="--i:0"><h1>À toi de jouer</h1></div>
+        <p class="lead in" style="--i:0">Choisis un mode et un sujet.</p>
+        <fieldset class="modes-set in" style="--i:1">
+          <legend>Choisis ton mode</legend>
+          <div class="modes" id="modes"></div>
+        </fieldset>
+        <div class="play in" style="--i:2">
+          <p class="sum" id="sum" aria-live="polite"></p>
+          <button id="launch" type="button">Lancer la partie</button>
         </div>
       </div>
-      <div class="play">
-        <p class="sum" id="sum" aria-live="polite"></p>
-        <button id="launch" type="button">Lancer la partie</button>
+      <div class="right">
+        <fieldset>
+          <legend>Choisis ton sujet</legend>
+          <div class="grid" id="sujets"></div>
+        </fieldset>
       </div>
-    </div>
-    <div class="col right">
-      <div class="stage in" style="--i:1">
-        <canvas id="globe" tabindex="0" aria-label="Globe : faites-le tourner en le glissant, ou avec les flèches du clavier. Chaque point est une question du jeu."></canvas>
-        <p id="poolnote"></p>
-        <div class="globehint">Faites tourner le globe</div>
-      </div>
-      <div class="board" id="board">
-        <div class="optname big in" style="--i:2">Thème</div>
-        <p class="locknote" id="locknote" hidden>Défi du jour : tous les thèmes, niveau moyen, sans chrono et 5 manches, pour que tout le monde joue la même partie. Seul le premier essai compte.</p>
-        <div class="tiles" id="modes" role="radiogroup" aria-label="Thème"></div>
-        <div class="settings in" style="--i:5">
-          <div class="opt">
-            <div class="optname">Difficulté</div>
-            <div class="seg" data-key="diff">
-              <button type="button" data-v="1" aria-pressed="false">Facile</button>
-              <button type="button" data-v="2" aria-pressed="true">Moyen</button>
-              <button type="button" data-v="3" aria-pressed="false">Difficile</button>
-            </div>
-            <div class="note" id="diffnote"></div>
-          </div>
-          <div class="opt">
-            <div class="optname">Manches</div>
-            <div class="seg" data-key="rounds">
-              <button type="button" data-v="5" aria-pressed="true">5 manches</button>
-              <button type="button" data-v="10" aria-pressed="false">10 manches</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </main>
+    <dialog id="prefs" aria-labelledby="prefstitle">
+      <h2 id="prefstitle">Réglages</h2>
+      <fieldset><legend>Difficulté</legend><div class="row">
+        <label><input type="radio" name="diff" value="1">Facile</label><label><input type="radio" name="diff" value="2">Moyen</label><label><input type="radio" name="diff" value="3">Difficile</label>
+      </div><p id="diffnote"></p></fieldset>
+      <fieldset><legend>Temps par question (Contre-la-montre et Duel)</legend><div class="row">
+        <label><input type="radio" name="time" value="60">60 s</label><label><input type="radio" name="time" value="30">30 s</label><label><input type="radio" name="time" value="15">15 s</label>
+      </div><p>Répondre vite rapporte jusqu’à 25 % de points en plus.</p></fieldset>
+      <fieldset><legend>Joueurs en duel</legend><div class="row">
+        <label><input type="radio" name="duo" value="2">2 joueurs</label><label><input type="radio" name="duo" value="3">3 joueurs</label>
+      </div><p>Chacun son tour sur le même appareil.</p></fieldset>
+      <form method="dialog"><button class="close">C’est bon</button></form>
+    </dialog>
   </div>
 </div>
 
 <script src="questions.js"></script>
+<script src="menu.js"></script>
+<script src="logo.js"></script>
 <script>
 /* Les questions, les thèmes et les types de manche sont dans questions.js (mode d'emploi en tête du fichier).
    lv : niveau de difficulté (1 = très connu, 2 = moyen, 3 = peu connu ou lieu surprenant). */
 const ALL = QUESTIONS.map(d => Object.assign(d, { lv: d.n || 2 }));
-/* Le menu propose « Tout » ou un seul thème. */
-const inMode = (d, m) => m === 'mixte' || d.h === m;
+/* Le menu propose un sujet (menu.js), qui regroupe un ou plusieurs thèmes de questions.js, ou « Tout mélanger ». */
+const SUJET = Object.fromEntries(MENU_SUJETS.map(s => [s.id, s])), MODE = Object.fromEntries(MENU_MODES.map(m => [m.id, m]));
+const inMode = (d, m) => m === 'mixte' || (SUJET[m] ? !SUJET[m].themes || SUJET[m].themes.includes(d.h) : d.h === m);
 /* Barème : plus la difficulté monte, plus les points baissent vite avec la distance. */
 const DECAYS = { 1: 2000, 2: 1500, 3: 1000 }, LEVELS = { 1: 'Facile', 2: 'Moyen', 3: 'Difficile' };
 let TOTAL = 5; /* manches par partie : 5 ou 10 */
@@ -858,9 +794,9 @@ function finish() {
   } else {
     let best = 0;
     /* Un meilleur score par durée, niveau, thème et nombre de manches : les clés historiques restent celles de « Tout » en 5 manches. */
-    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '') + (mode !== 'mixte' ? '-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
+    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '') + (mode !== 'mixte' ? '-sujet-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
     try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
-    const what = [LEVELS[level].toLowerCase(), mode === 'mixte' ? '' : THEMES[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
+    const what = [LEVELS[level].toLowerCase(), mode === 'mixte' ? '' : SUJET[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
     $('fbest').textContent = best ? 'Meilleur score sur cet appareil (' + what + ') : ' + fmt(best) : '';
   }
   $('final').hidden = false;
@@ -888,102 +824,59 @@ map.on('click', e => place(e.latlng.lat, e.latlng.lng));
 $('zin').onclick = () => GG.on ? GG.zoomBy(1.6) : map.zoomIn();
 $('zout').onclick = () => GG.on ? GG.zoomBy(1 / 1.6) : map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
-/* Réglages de l'accueil. kind : mode de jeu (libre, chrono, duel, defi). players et time sont déduits du mode au lancement. */
-const sel = { kind: 'libre', players: 1, time: 0, mode: 'mixte', diff: 2, rounds: 5, chrono: 30, dtime: 30 };
+/* ---- menu principal : construit à partir de menu.js (modes et sujets). Un mode et un sujet actifs, de vrais boutons radio.
+   Les réglages (difficulté, temps par question, joueurs en duel) sont dans la fenêtre Réglages ; tout est retenu sur l'appareil. ---- */
+const sel = { mode: MENU_DEFAUT.mode, sujet: MENU_DEFAUT.sujet, diff: 2, time: 30, duo: 2, players: 1 };
 const MENU_KEY = 'wikiguessr-menu';
 try { Object.assign(sel, JSON.parse(localStorage.getItem(MENU_KEY)) || {}); } catch (e) {}
-if (sel.mode !== 'mixte' && !THEMES[sel.mode]) sel.mode = 'mixte';
+if (!MODE[sel.mode]) sel.mode = MENU_DEFAUT.mode;
+if (!SUJET[sel.sujet]) sel.sujet = MENU_DEFAUT.sujet;
 const DIFFNOTE = {
   1: 'Entrées très connues et barème indulgent : les points baissent lentement avec la distance.',
   2: 'Un mélange d’entrées, avec le barème standard.',
   3: 'Sujets moins connus ou lieux surprenants, barème strict et photo masquée.'
 };
-/* Une tuile par thème : sa couleur vive (tf), la couleur du texte (fi), celle des traits du dessin (d), et le dessin.
-   Un thème ajouté dans questions.js sans tuile ici prend sa couleur du globe et son emoji. */
-const TILES = {
-  mixte:     { tf: '#1d2c66', fi: '#fff', d: '#0b1530', art: '<use href="#lgglobe" style="--o:#FFC857"/>' },
-  lieux:     { tf: '#FFC400', fi: '#2B1A00', d: '#5C3A00', art: '<path class="w" d="M10 36l30-12 40 12 30-12v68l-30 12-40-12-30 12z"/><path class="s" d="M40 24v68M80 36v68" stroke-width="4"/><path class="d" d="M60 10c-13 0-23 10-23 22 0 17 23 40 23 40s23-23 23-40c0-12-10-22-23-22z"/><circle class="w" cx="60" cy="32" r="9"/>' },
-  celeb:     { tf: '#FF4D94', fi: '#3A0020', d: '#3A0020', art: '<path class="w" d="M60 10l14 29 31 4-23 22 6 31-28-15-28 15 6-31-23-22 31-4z"/><circle class="d" cx="50" cy="58" r="4.5"/><circle class="d" cx="70" cy="58" r="4.5"/><path class="s" d="M50 72q10 8 20 0" stroke-width="4.5"/><path class="y" d="M104 8l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path class="y" d="M14 86l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>' },
-  sport:     { tf: '#2F6BFF', fi: '#fff', d: '#0B1F66', art: '<path class="s" d="M4 40h16M0 60h14M6 80h16" stroke-width="5"/><circle class="w" cx="70" cy="60" r="42"/><polygon class="d" points="70,46 83.3,55.7 78.2,71.3 61.8,71.3 56.7,55.7"/><path class="s" d="M70 46V30M83.3 55.7l15-5M78.2 71.3l9 13M61.8 71.3l-9 13M56.7 55.7l-15-5" stroke-width="4"/><circle class="s" cx="70" cy="60" r="42" stroke-width="5"/>' },
-  politique: { tf: '#8B5CFF', fi: '#fff', d: '#2A1170', art: '<path class="d" d="M8 46L60 12l52 34z"/><rect class="w" x="14" y="48" width="92" height="9"/><rect class="w" x="20" y="60" width="12" height="38"/><rect class="w" x="42" y="60" width="12" height="38"/><rect class="w" x="66" y="60" width="12" height="38"/><rect class="w" x="88" y="60" width="12" height="38"/><rect class="d" x="8" y="100" width="104" height="11"/><circle class="y" cx="60" cy="34" r="6"/>' },
-  histoire:  { tf: '#19D48B', fi: '#00291B', d: '#00291B', art: '<rect class="d" x="24" y="8" width="72" height="11" rx="5.5"/><rect class="d" x="24" y="101" width="72" height="11" rx="5.5"/><path class="w" d="M33 19h54c0 24-19 31-19 41s19 17 19 41H33c0-24 19-31 19-41S33 43 33 19z"/><path class="d" d="M44 34h32c-5 9-16 13-16 22 0-9-11-13-16-22zM60 80c-7 0-19 8-21 18h42c-2-10-14-18-21-18z"/>' },
-  crime:     { tf: '#FF5A4E', fi: '#330604', d: '#330604', art: '<circle class="w" cx="50" cy="50" r="34"/><path class="s" d="M76 76l30 30" stroke-width="13"/><circle class="s" cx="50" cy="50" r="34" stroke-width="7"/><path class="s" stroke-width="3.5" d="M36 60c-4-14 4-26 14-26s18 9 13 24M43 63c-3-10 1-20 7-20s10 6 7 17M50 65c-1-6 0-13 0-13"/>' },
-  culture:   { tf: '#FF8A1F', fi: '#2E1400', d: '#4A2200', art: '<path class="s" d="M42 92l-10 22M78 92l10 22M60 92v20" stroke-width="5"/><rect class="d" x="12" y="14" width="96" height="80" rx="6"/><rect class="w" x="22" y="24" width="76" height="60"/><path class="d" d="M22 84l24-30 16 18 12-12 24 24z"/><circle class="y" cx="80" cy="42" r="8"/>' },
-  evt:       { tf: '#B7C4FF', fi: '#0E1A4F', d: '#0E1A4F', art: '<rect class="w" x="12" y="22" width="96" height="88" rx="12"/><path class="d" d="M12 34a12 12 0 0 1 12-12h72a12 12 0 0 1 12 12v14H12z"/><rect class="d" x="32" y="10" width="9" height="24" rx="4.5"/><rect class="d" x="79" y="10" width="9" height="24" rx="4.5"/><g class="d"><rect x="26" y="58" width="12" height="10" rx="2"/><rect x="46" y="58" width="12" height="10" rx="2"/><rect x="66" y="58" width="12" height="10" rx="2"/><rect x="26" y="78" width="12" height="10" rx="2"/><rect x="46" y="78" width="12" height="10" rx="2"/></g><circle cx="80" cy="84" r="13" fill="none" stroke="#FF4D94" stroke-width="5"/>' },
-  science:   { tf: '#22D3EE', fi: '#00262D', d: '#00363F', art: '<rect class="d" x="40" y="6" width="40" height="10" rx="5"/><path class="w" d="M47 16h26v30l29 50c4 8-2 16-10 16H28c-8 0-14-8-10-16l29-50z"/><path class="d" d="M34 72h52l15 26c2 5-1 10-7 10H26c-6 0-9-5-7-10z"/><circle class="w" cx="52" cy="90" r="5"/><circle class="w" cx="68" cy="82" r="3.5"/><circle class="d" cx="62" cy="54" r="4"/><circle class="d" cx="56" cy="40" r="3"/>' },
-  pop:       { tf: '#A6E22E', fi: '#1B2A00', d: '#1B2A00', art: '<rect class="w" x="44" y="8" width="32" height="56" rx="16"/><path class="s" d="M46 26h28M46 38h28M46 50h28" stroke-width="4"/><path class="s" d="M30 50a30 30 0 0 0 60 0" stroke-width="7"/><rect class="d" x="56" y="80" width="8" height="18"/><rect class="d" x="36" y="98" width="48" height="10" rx="5"/><path class="y" d="M100 14l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/><path class="y" d="M16 28l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>' }
-};
-const tileOf = id => TILES[id] || { tf: THEMES[id].couleur, fi: '#0b1530', d: '#0b1530' };
-const KINDS = {
-  libre:  { nom: 'Partie libre',     go: 'Lancer la partie' },
-  chrono: { nom: 'Contre-la-montre', go: 'Lancer le chrono' },
-  duel:   { nom: 'Duel',             go: 'Lancer le duel' },
-  defi:   { nom: 'Défi du jour',     go: 'Relever le défi' }
-};
-const curTheme = () => sel.kind === 'defi' ? 'mixte' : sel.mode;
-/* La mosaïque : « Tout » en grand, puis un thème par tuile, dans l'ordre de THEMES. */
-(function () {
-  const box = $('modes'), chk = '<span class="chk" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg></span>';
-  const add = (id, nom, n, i) => {
-    const t = tileOf(id), b = document.createElement('button');
-    b.type = 'button'; b.className = 'tile in' + (id === 'mixte' ? ' all' : ''); b.dataset.v = id;
-    b.setAttribute('role', 'radio'); b.style.cssText = '--tf:' + t.tf + ';--fi:' + t.fi + ';--d:' + t.d + ';--i:' + Math.min(3 + i * 0.5, 8);
-    const art = t.art ? '<svg class="pic" viewBox="' + (id === 'mixte' ? '0 0 100 100' : '0 0 120 120') + '" aria-hidden="true">' + t.art + '</svg>'
-      : '<svg class="pic" viewBox="0 0 120 120" aria-hidden="true"><text x="60" y="84" font-size="64" text-anchor="middle">' + (ICONS[id] || '🌍') + '</text></svg>';
-    b.innerHTML = chk + art + '<b></b><small></small>';
-    b.querySelector('b').textContent = nom;
-    b.querySelector('small').textContent = n + ' questions';
-    box.appendChild(b);
-  };
-  add('mixte', 'Tout mélanger', ALL.length, 0);
-  Object.entries(THEMES).forEach(([id, th], i) => add(id, th.nom, ALL.filter(d => d.h === id).length, i + 1));
-})();
-function choose(key, val) {
-  sel[key] = key === 'mode' ? val : +val;
-  if (key === 'diff') $('diffnote').textContent = DIFFNOTE[val];
-  document.querySelectorAll('.seg[data-key="' + key + '"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
-}
-/* Met l'accueil à jour : mode choisi, tuile choisie, couleur du bouton, résumé, globe. */
+const CHECK = '<span class="chk" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg></span>';
+MENU_MODES.forEach(m => {
+  const l = document.createElement('label'); l.className = 'mode';
+  l.innerHTML = '<input class="sr" type="radio" name="mode"><b></b><span></span>';
+  l.querySelector('input').value = m.id; l.querySelector('b').textContent = m.nom; l.querySelector('span').textContent = m.aide;
+  $('modes').appendChild(l);
+});
+MENU_SUJETS.forEach((s, i) => {
+  const l = document.createElement('label'); l.className = 'field in' + (s.large ? ' wide' : '');
+  l.style.cssText = '--f:' + s.f + ';--f-ink:' + s.ink + ';--i:' + (i + 2);
+  l.innerHTML = '<input class="sr" type="radio" name="sujet">' + CHECK + '<svg class="pic" viewBox="0 0 120 120" aria-hidden="true">' + s.dessin + '</svg><h2><span></span></h2>';
+  l.querySelector('input').value = s.id;
+  l.querySelector('h2').prepend(s.nom + ' '); l.querySelector('h2 span').textContent = s.sous;
+  $('sujets').appendChild(l);
+});
+/* Coche les bons boutons radio, met à jour le résumé, le bouton d'action et la couleur du sujet (bouton et contour du globe du logo). */
 function paintHome() {
-  document.querySelectorAll('#kinds .mode').forEach(m => {
-    const on = m.dataset.kind === sel.kind;
-    m.classList.toggle('on', on); m.firstElementChild.setAttribute('aria-checked', String(on));
-  });
-  document.querySelectorAll('#modes .tile').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === curTheme())));
-  const defi = sel.kind === 'defi', t = tileOf(curTheme());
-  $('board').classList.toggle('locked', defi); $('locknote').hidden = !defi;
-  $('board').querySelectorAll('.tiles, .settings').forEach(el => { el.inert = defi; });
-  $('home').style.setProperty('--f', defi ? '#ffc857' : curTheme() === 'mixte' ? '#ffc857' : t.tf);
-  $('home').style.setProperty('--fi', defi || curTheme() === 'mixte' ? '#2b1a00' : t.fi);
-  const done = dailyDone(today());
-  $('launch').textContent = defi && done ? 'Rejouer le défi' : KINDS[sel.kind].go;
-  const time = sel.kind === 'chrono' ? sel.chrono : sel.kind === 'duel' ? sel.dtime : 0;
-  $('sum').textContent = defi ? 'Défi du jour · Tous les thèmes · Moyen · 5 manches'
-    : [sel.kind === 'duel' ? 'Duel à ' + sel.players : KINDS[sel.kind].nom, time ? time + ' s par manche' : '', curTheme() === 'mixte' ? 'Tous les thèmes' : THEMES[curTheme()].long, LEVELS[sel.diff], sel.rounds + ' manches'].filter(Boolean).join(' · ');
-  try { localStorage.setItem(MENU_KEY, JSON.stringify({ kind: sel.kind, mode: sel.mode, diff: sel.diff, rounds: sel.rounds, chrono: sel.chrono, players: sel.players, dtime: sel.dtime })); } catch (e) {}
-  if (window.homeGlobe) homeGlobe.refresh();
+  document.querySelectorAll('#home input[name="mode"]').forEach(r => { r.checked = r.value === sel.mode; });
+  document.querySelectorAll('#home input[name="sujet"]').forEach(r => { r.checked = r.value === sel.sujet; });
+  ['diff', 'time', 'duo'].forEach(k => document.querySelectorAll('#prefs input[name="' + k + '"]').forEach(r => { r.checked = +r.value === sel[k]; }));
+  $('diffnote').textContent = DIFFNOTE[sel.diff];
+  const m = MODE[sel.mode], s = SUJET[sel.sujet];
+  $('home').style.setProperty('--f', s.f); $('home').style.setProperty('--f-ink', s.ink);
+  $('launch').textContent = m.bouton;
+  $('sum').textContent = [m.nom, s.nom, sel.diff !== 2 ? LEVELS[sel.diff] : ''].filter(Boolean).join(' · ');
+  try { localStorage.setItem(MENU_KEY, JSON.stringify({ mode: sel.mode, sujet: sel.sujet, diff: sel.diff, time: sel.time, duo: sel.duo })); } catch (e) {}
 }
-document.querySelectorAll('#home .seg').forEach(g => g.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  choose(g.dataset.key, b.dataset.v); paintHome();
-}));
-$('kinds').addEventListener('click', e => {
-  const m = e.target.closest('.mode'); if (!m || e.target.closest('.seg')) return;
-  if (sel.kind === m.dataset.kind) return;
-  sel.kind = m.dataset.kind; paintHome();
-  if (sel.kind === 'defi' && window.homeGlobe) homeGlobe.focus('mixte');
+$('home').addEventListener('change', e => {
+  const r = e.target; if (r.type !== 'radio') return;
+  sel[r.name] = r.name === 'mode' || r.name === 'sujet' ? r.value : +r.value;
+  paintHome();
 });
-/* Flèches haut et bas pour passer d'un mode à l'autre, comme un groupe de boutons radio. */
-$('kinds').addEventListener('keydown', e => {
-  const k = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!k || !e.target.matches('[role="radio"]')) return;
-  const list = [...document.querySelectorAll('#kinds .mode')], i = list.findIndex(m => m.dataset.kind === sel.kind), next = list[(i + k + list.length) % list.length];
-  e.preventDefault(); sel.kind = next.dataset.kind; paintHome(); next.firstElementChild.focus();
+$('openprefs').onclick = () => $('prefs').showModal();
+/* Stats et Classement : points d'entrée prévus, pas encore construits. */
+let soonT = 0;
+document.querySelectorAll('[data-soon]').forEach(b => b.onclick = () => {
+  $('soon').textContent = b.dataset.soon; $('soon').hidden = false;
+  clearTimeout(soonT); soonT = setTimeout(() => { $('soon').hidden = true; }, 2600);
 });
-$('modes').addEventListener('click', e => {
-  const b = e.target.closest('.tile'); if (!b) return;
-  choose('mode', b.dataset.v); paintHome();
-  if (window.homeGlobe) homeGlobe.focus(b.dataset.v);
-});
+/* L'entrée animée ne se joue qu'une fois, au premier chargement. */
+setTimeout(() => document.querySelectorAll('#home .in').forEach(el => el.classList.remove('in')), 1400);
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
 function showHome() {
   stopTimer(); endCountdown(); document.body.classList.remove('fin');
@@ -996,32 +889,38 @@ function leaveHome() {
   const home = $('home');
   if (RM) { home.hidden = true; return; }
   home.style.pointerEvents = 'none';
-  home.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.03)' }], { duration: 240, easing: EASE }).onfinish = () => { home.hidden = true; };
+  home.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: EASE }).onfinish = () => { home.hidden = true; };
 }
-/* Défi du jour : réglages imposés (solo, moyen, tous les thèmes, sans limite, 5 manches) pour que tout le monde joue la même partie. */
-$('launch').onclick = () => {
-  if (sel.kind === 'defi') { daily = today(); mode = 'mixte'; timeLimit = 0; level = 2; DECAY = DECAYS[2]; TOTAL = 5; sel.players = 1; return leaveHome(); }
-  sel.players = sel.kind === 'duel' ? Math.max(2, sel.players) : 1;
-  sel.time = sel.kind === 'chrono' ? sel.chrono : sel.kind === 'duel' ? sel.dtime : 0;
-  daily = null; mode = sel.mode; timeLimit = sel.time; level = sel.diff; DECAY = DECAYS[level]; TOTAL = sel.rounds;
+/* Point d'entrée du moteur de jeu : reçoit { mode, sujet } (identifiants de menu.js) et lance la partie avec les réglages. */
+function lancerPartie({ mode: m, sujet: s }) {
+  const jeu = MODE[m].jeu;
+  daily = null; mode = s; level = sel.diff; DECAY = DECAYS[level]; TOTAL = jeu.manches;
+  sel.players = jeu.joueurs === 'duel' ? sel.duo : jeu.joueurs;
+  timeLimit = jeu.chrono ? sel.time : 0;
+  leaveHome();
+}
+$('launch').onclick = () => lancerPartie({ mode: sel.mode, sujet: sel.sujet });
+/* Défi du jour (à droite de l'en-tête) : réglages imposés (solo, moyen, tous les sujets, sans limite, 5 manches) pour que tout le monde joue la même partie. */
+$('daily').onclick = () => {
+  daily = today(); mode = 'mixte'; timeLimit = 0; level = 2; DECAY = DECAYS[2]; TOTAL = 5; sel.players = 1;
   leaveHome();
 };
-/* Série : nombre de jours d'affilée où le défi a été fait, jusqu'à aujourd'hui (ou hier, si celui du jour reste à faire). */
+/* Série : jours d'affilée où le défi a été fait, jusqu'à aujourd'hui (ou hier, si celui du jour reste à faire). */
 function streak() {
-  const d = new Date(); let n = 0;
-  const key = () => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const d = new Date(), key = () => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  let n = 0;
   if (!dailyDone(key())) d.setDate(d.getDate() - 1);
-  while (dailyDone(key()) && n < 999) { n++; d.setDate(d.getDate() - 1); }
+  while (n < 999 && dailyDone(key())) { n++; d.setDate(d.getDate() - 1); }
   return n;
 }
 function dailyLabel() {
-  const done = dailyDone(today()), n = streak();
-  $('daily').classList.toggle('done', !!done);
-  $('dailynote').textContent = done ? 'Fait aujourd’hui : ' + done.tiles + ' ' + fmt(done.total) + ' pts' : 'Les mêmes 5 questions pour tout le monde aujourd’hui';
-  $('streak').hidden = !n;
-  $('streak').textContent = '🔥 ' + (n > 1 ? n + ' jours de suite' : '1 jour de défi');
-  paintHome();
+  const done = dailyDone(today()), n = streak(), b = $('daily');
+  b.innerHTML = n ? '<b></b> · Défi du jour' : '<b>Défi du jour</b>';
+  if (n) b.querySelector('b').textContent = n + (n > 1 ? ' jours de suite' : ' jour de suite');
+  b.title = done ? 'Défi du jour fait : ' + done.tiles + ' ' + fmt(done.total) + ' pts. Seul le premier essai compte.' : 'Les mêmes 5 questions pour tout le monde aujourd’hui';
+  b.setAttribute('aria-label', (n ? 'Série de ' + n + ' jours. ' : '') + 'Jouer le défi du jour' + (done ? ', déjà fait aujourd’hui' : ''));
 }
+dailyLabel();
 new MutationObserver(() => { if (!$('home').hidden) dailyLabel(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
 $('menu').onclick = () => {
   /* Partie en cours : une manche jouée, un repère posé, ou un joueur qui a déjà validé en duel. */
@@ -1030,11 +929,9 @@ $('menu').onclick = () => {
   showHome();
 };
 $('tomenu').onclick = showHome;
-/* Réglages retrouvés de la dernière visite (ou par défaut), puis premier affichage de l'accueil. */
-choose('diff', sel.diff); choose('rounds', sel.rounds); choose('chrono', sel.chrono); choose('players', Math.max(2, sel.players)); choose('dtime', sel.dtime);
-dailyLabel();
+paintHome();
 /* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
-   Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
+   Les contours des pays (world-atlas 110m) sont chargés une seule fois, dès l'accueil, et rangés dans GEO. ---- */
 const GEO = { grat: null, land: null, borders: null, countries: null, topo: null };
 /* landFn (globe de jeu) dessine lui-même les terres, pays par pays ; s'il n'a rien à dessiner, on retombe sur la terre d'un seul tenant. */
 function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
@@ -1055,124 +952,20 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,8,30,.5)');
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
-/* ---- globe de l'accueil : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
-   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
-   Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
-(function () {
-  const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const clampLat = v => Math.max(-70, Math.min(70, v));
-  let rot = [-15, -25], vel = [0, 0], zoom = 1, w = 0, h = 0, R = 0;
-  let proj = null, path = null, pts = [];
-  let raf = 0, lastInput = -1e4, pinch = 0;
-  const ptrs = new Map();
-
-  let anim = null;
-  function refresh() {
-    pts = ALL.filter(d => inMode(d, curTheme()));
-    const lvl = pts.filter(d => d.lv === sel.diff).length;
-    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe, dont ' + lvl + ' du niveau ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs).';
-    kick();
-  }
-  /* Choisir un thème fait pivoter le globe vers le centre de ses questions (moyenne des positions sur la sphère). */
-  function focus(id) {
-    const D = Math.PI / 180, list = ALL.filter(d => inMode(d, id));
-    let x = 0, y = 0, z = 0;
-    list.forEach(d => { x += Math.cos(d.a * D) * Math.cos(d.o * D); y += Math.cos(d.a * D) * Math.sin(d.o * D); z += Math.sin(d.a * D); });
-    if (!list.length) return;
-    const to = [-Math.atan2(y, x) / D, clampLat(-Math.atan2(z, Math.hypot(x, y)) / D)];
-    vel = [0, 0]; lastInput = performance.now() + 900;
-    if (still) { rot = to; kick(); return; }
-    let dl = ((to[0] - rot[0]) % 360 + 540) % 360 - 180;
-    anim = { from: rot.slice(), d: [dl, to[1] - rot[1]], t0: performance.now(), z0: zoom };
-    kick();
-  }
-  function size() {
-    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
-    w = r.width; h = r.height; if (!w || !h) return;
-    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    kick();
-  }
-  function draw(t) {
-    R = Math.min(w, h) * 0.44 * zoom;
-    const cx = w / 2, cy = h / 2;
-    proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
-    ctx.clearRect(0, 0, w, h);
-    paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
-    const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
-    pts.forEach((d, i) => {
-      const a = d3.geoDistance([d.o, d.a], centre);
-      if (a > 1.45) return;
-      const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
-      const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
-      ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
-      ctx.fillStyle = THEMES[d.h].couleur;
-      ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
-      ctx.globalAlpha = edge * (on ? 1 : 0.5);
-      ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
-    });
-    ctx.globalAlpha = 1;
-  }
-  function frame(t) {
-    raf = 0;
-    if (home.hidden || !proj || !w) return;
-    const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
-    if (anim && !ptrs.size) {
-      const p = Math.min(1, (t - anim.t0) / 950), e = 1 - Math.pow(1 - p, 3), bump = Math.sin(p * Math.PI) * 0.12;
-      rot = [anim.from[0] + anim.d[0] * e, anim.from[1] + anim.d[1] * e]; zoom = anim.z0 * (1 - bump);
-      if (p >= 1) { anim = null; zoom = Math.max(0.75, zoom); }
-    } else if (!ptrs.size) {
-      if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
-      else if (!still && t - lastInput > 2500) rot[0] += 0.06;
-    }
-    draw(t);
-    if (!still || moving || ptrs.size || anim) raf = requestAnimationFrame(frame);
-  }
-  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
-  function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
-  const gap = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-
-  cv.addEventListener('pointerdown', e => {
-    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-    vel = [0, 0]; if (anim) { zoom = anim.z0; anim = null; } if (ptrs.size === 2) pinch = gap(); touched();
-  });
-  cv.addEventListener('pointermove', e => {
-    const p = ptrs.get(e.pointerId); if (!p) return;
-    const dx = e.clientX - p[0], dy = e.clientY - p[1];
-    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-    if (ptrs.size === 2) { const d = gap(); if (pinch) zoom = Math.max(0.75, Math.min(2.6, zoom * d / pinch)); pinch = d; }
-    else { const k = 57.3 / Math.max(R, 1); vel = [dx * k, -dy * k]; rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); }
-    touched();
-  });
-  const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (ptrs.size) vel = [0, 0]; touched(); };
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-  cv.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(0.75, Math.min(2.6, zoom * Math.exp(-e.deltaY * 0.0015))); touched(); }, { passive: false });
-  cv.addEventListener('keydown', e => {
-    const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
-    if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
-  });
-  window.homeGlobe = { refresh, focus };
-  new ResizeObserver(size).observe(cv);
-  new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
-  refresh(); if (curTheme() !== 'mixte') focus(curTheme());
-
+/* ---- données du globe de jeu : d3-geo, topojson et les contours des pays sont chargés dès l'accueil, pour que la partie démarre sans attendre.
+   Si rien ne charge, la partie se joue sur la carte Leaflet. ---- */
+(async function () {
   const J = 'https://cdn.jsdelivr.net/npm/';
   const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
-  (async () => {
-    try {
-      if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
-      if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
-      proj = d3.geoOrthographic().clipAngle(90).precision(0.5);
-      path = d3.geoPath(proj, ctx); GEO.grat = d3.geoGraticule10();
-      size(); kick();
-      const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
-      GEO.land = topojson.feature(t, t.objects.land);
-      GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
-      GEO.countries = topojson.feature(t, t.objects.countries).features; GEO.topo = t;
-      kick();
-    } catch (e) { if (!proj) home.classList.add('noglobe'); }
-  })();
+  try {
+    if (!(window.d3 && d3.geoOrthographic)) { await load(J + 'd3-array@3.2.4/dist/d3-array.min.js'); await load(J + 'd3-geo@3.1.1/dist/d3-geo.min.js'); }
+    if (!window.topojson) await load(J + 'topojson-client@3.1.0/dist/topojson-client.min.js');
+    GEO.grat = d3.geoGraticule10();
+    const t = await (await fetch(J + 'world-atlas@2.0.2/countries-110m.json')).json();
+    GEO.land = topojson.feature(t, t.objects.land);
+    GEO.borders = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
+    GEO.countries = topojson.feature(t, t.objects.countries).features; GEO.topo = t;
+  } catch (e) {}
 })();
 /* ---- ciel étoilé : des étoiles qui scintillent derrière le globe. Sur l'accueil, une petite fusée le traverse de temps en temps ;
    pendant la partie (facile et moyen), des étoiles filantes, et le ciel glisse un peu quand on fait tourner le globe.
@@ -1281,8 +1074,6 @@ function makeSky(cv, isOn, opt) {
   new ResizeObserver(size).observe(cv);
   return { kick, layer, reset() { rockets = []; meteors = []; next = -1; size(); } };
 }
-const homeSky = makeSky($('sky'), () => !$('home').hidden, { rockets: true });
-new MutationObserver(() => { if (!$('home').hidden) homeSky.reset(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
 /* Le ciel de la partie suit le globe : les étoiles proches glissent un peu plus que les lointaines. */
 const gameSky = makeSky($('gsky'), () => GG.on && $('final').hidden, { density: 1700, offset: () => GG.offset() });
 /* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
