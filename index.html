@@ -490,7 +490,8 @@ const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* Si Leaflet n'a pas pu charger (CDN injoignable), un objet vide prend sa place : la partie se joue alors sur le globe, à tous les niveaux. */
 const HAS_LEAFLET = !!window.L;
 if (!HAS_LEAFLET) { const nop = new Proxy(function () {}, { get: (t, k) => k === 'style' ? {} : nop, apply: () => nop }); window.L = nop; }
-const map = L.map('map', { minZoom: 2, maxZoom: 14, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
+const map = L.map('map', { minZoom: 2, maxZoom: 14, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -1e9], [85, 1e9]], maxBoundsViscosity: 1 });
+/* Planisphère sans fin : seule la latitude est bornée (±85°) ; la longitude défile indéfiniment, les tuiles se répètent d'un bord à l'autre. */
 /* Fond principal : imagerie satellite Esri, sans noms de lieux ni clé d'accès. Si aucune tuile ne se charge, bascule sur le relief Esri (aussi sans noms). */
 let fell = false, loadedTiles = 0, failedTiles = 0, noTiles = false;
 /* Si aucune imagerie ne charge (réseau filtré, bloqueur), la carte resterait grise : la partie passe sur le globe, sans noms ni frontières. */
@@ -499,7 +500,7 @@ function tilesDead() {
   if (level === 3 && $('home').hidden && !GG.on) { GG.use(true); if (GG.on) { resetView(); drawOverlay(); if (revealed && rounds[idx]) fitAll(rounds[idx]); } }
 }
 const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  { noWrap: true, maxNativeZoom: 17, maxZoom: 14, attribution: 'Fond : Esri, Maxar, Earthstar Geographics' }).addTo(map);
+  { noWrap: false, maxNativeZoom: 17, maxZoom: 14, attribution: 'Fond : Esri, Maxar, Earthstar Geographics' }).addTo(map);
 base.on('tileload', () => { loadedTiles++; });
 base.on('tileerror', () => {
   failedTiles++;
@@ -507,7 +508,7 @@ base.on('tileerror', () => {
   fell = true; map.removeLayer(base);
   let ok = 0, ko = 0;
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
-    { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' })
+    { noWrap: false, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' })
     .on('tileload', () => { ok++; }).on('tileerror', () => { if (!ok && ++ko >= 4) tilesDead(); }).addTo(map);
 });
 /* Pas de frontières sur la carte satellite (niveau difficile) : on ne voit que la photo.
@@ -515,35 +516,53 @@ base.on('tileerror', () => {
 const ATLAS50 = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json').then(x => x.ok ? x.json() : null).catch(() => null);
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
+/* Longitudes : la carte défile sans fin, une longitude peut donc sortir de [-180, 180]. Le score utilise la longitude ramenée,
+   et chaque repère / trait est dessiné en autant de copies du monde qu'il en faut pour rester visible. */
+const wrapLng = x => ((x + 180) % 360 + 360) % 360 - 180;
+const near = (x, ref) => x + 360 * Math.round((ref - x) / 360); /* la copie de x la plus proche de ref */
+const seen = x => near(x, map.getCenter().lng);                  /* la copie de x la plus proche du centre de l'écran */
 function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
-function fitTo(a, b) { if (GG.on) return GG.fit([a, b]); map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
-const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
+function fitTo(a, b) {
+  if (GG.on) return GG.fit([a, b]);
+  const o2 = near(b.o, a.o), m = (a.o + o2) / 2, k = seen(m) - m; /* chemin le plus court, sans faire le tour du monde */
+  map.fitBounds([[a.a, a.o + k], [b.a, o2 + k]], { padding: [50, 50], maxZoom: 8 });
+}
+const dot = (c, p, o) => L.circleMarker([p.a, o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
 /* La bonne réponse : point corail avec le nom du lieu au-dessus (même rendu que sur le globe). */
 const placeName = p => (p.p || '').split(',')[0].trim();
-const truthDot = p => { const m = dot(cssv('--truth'), p), n = placeName(p); if (n) m.bindTooltip(n, { permanent: true, direction: 'top', offset: [0, -8], className: 'truthtip' }); return m; };
+const truthDot = (p, o) => { const m = dot(cssv('--truth'), p, o), n = placeName(p); if (n) m.bindTooltip(n, { permanent: true, direction: 'top', offset: [0, -8], className: 'truthtip' }); return m; };
 function fitAll(r) {
   if (GG.on) return GG.fit([r].concat(dg.filter(Boolean)));
-  const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, g.o]));
-  if (pts.length === 1) map.setView(pts[0], 4); else map.fitBounds(pts, { padding: [50, 50], maxZoom: 8 });
+  const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, near(g.o, r.o)]));
+  const xs = pts.map(q => q[1]), mid = (Math.min(...xs) + Math.max(...xs)) / 2, k = seen(mid) - mid;
+  const sh = pts.map(q => [q[0], q[1] + k]);
+  if (sh.length === 1) map.setView(sh[0], 4); else map.fitBounds(sh, { padding: [50, 50], maxZoom: 8 });
 }
 function drawOverlay() {
   if (GG.on) return GG.kick();
   layer.clearLayers();
-  const cur = rounds[idx];
-  if (players > 1) {
-    if (revealed && cur) {
-      dg.forEach(g => { if (g) L.polyline([[g.a, g.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer); });
-      truthDot(cur).addTo(layer);
-      dg.forEach((g, i) => { if (g) dot(cssv(PCOL[i]), g).addTo(layer); });
-    } else if (guess) dot(cssv(PCOL[turn]), guess).addTo(layer);
-    return;
+  const cur = rounds[idx], bd = map.getBounds(), W = bd.getWest() - 10, E = bd.getEast() + 10;
+  /* Éléments exprimés sur la copie du monde la plus proche de la réponse (ou du repère), puis recopiés sur chaque monde visible. */
+  const items = [], show = revealed && cur, ref = show ? cur.o : guess ? guess.o : 0, at = q => near(q.o, ref);
+  if (show) {
+    const gs = players > 1 ? dg.map((g, i) => g && { g, c: PCOL[i] }).filter(Boolean) : guess ? [{ g: guess, c: '--guess' }] : [];
+    gs.forEach(x => items.push({ line: [[x.g.a, at(x.g)], [cur.a, cur.o]] }));
+    items.push({ p: cur, c: '--truth', o: cur.o, truth: true });
+    gs.forEach(x => items.push({ p: x.g, c: x.c, o: at(x.g) }));
+  } else if (guess) items.push({ p: guess, c: players > 1 ? PCOL[turn] : '--guess', o: guess.o });
+  if (!items.length) return;
+  const xs = items.flatMap(i => i.line ? i.line.map(q => q[1]) : [i.o]), lo = Math.min(...xs), hi = Math.max(...xs);
+  for (let n = Math.ceil((W - hi) / 360); n <= Math.floor((E - lo) / 360); n++) {
+    const sh = 360 * n;
+    items.forEach(i => {
+      if (i.line) L.polyline(i.line.map(q => [q[0], q[1] + sh]), { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
+      else (i.truth ? truthDot(i.p, i.o + sh) : dot(cssv(i.c), i.p, i.o + sh)).addTo(layer);
+    });
   }
-  if (revealed && cur) {
-    if (guess) L.polyline([[guess.a, guess.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
-    truthDot(cur).addTo(layer);
-  }
-  if (guess) dot(cssv('--guess'), guess).addTo(layer);
 }
+/* Pendant le défilement, les repères se recopient sur le monde qui arrive (une fois par image au plus). */
+let ovq = 0;
+map.on('move', () => { if (GG.on || ovq) return; ovq = requestAnimationFrame(() => { ovq = 0; drawOverlay(); }); });
 
 /* ---- score ---- */
 function km(a1, o1, a2, o2) {
@@ -802,7 +821,7 @@ function timeUp() {
   results.push({ t: rounds[idx].t, r: rounds[idx], g: null, d: null, pts: 0 });
   showTitle(rounds[idx]);
   showResult(rounds[idx], null, 0);
-  if (GG.on) GG.fit([rounds[idx]]); else map.setView([rounds[idx].a, rounds[idx].o], 4);
+  if (GG.on) GG.fit([rounds[idx]]); else map.setView([rounds[idx].a, seen(rounds[idx].o)], 4);
 }
 function reveal() {
   if (!guess || revealed) return;
@@ -1623,7 +1642,13 @@ document.addEventListener('keydown', e => {
   if (waiting || counting) return;
   if (!revealed) { if (players > 1) duelSubmit(); else reveal(); } else advance();
 });
-new ResizeObserver(() => map.invalidateSize()).observe(wrap);
+/* Dézoom limité : le monde doit remplir la carte (largeur et hauteur) avec une marge d'un niveau de zoom, pour ne jamais le voir en plusieurs exemplaires. */
+function fitMinZoom() {
+  const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h) return;
+  const z = 1 + Math.ceil(Math.max(2, Math.log2(w / 256), Math.log2(h / 256)) * 2) / 2; /* zoomSnap 0.5 ; +1 : on ne voit jamais le monde plus petit que la carte */
+  map.setMinZoom(z); if (map.getZoom() < z) map.setZoom(z, { animate: false });
+}
+new ResizeObserver(() => { map.invalidateSize(); fitMinZoom(); }).observe(wrap);
 map.setView([25, 10], 2); /* la partie démarre depuis l'écran d'accueil */
 </script>
 
