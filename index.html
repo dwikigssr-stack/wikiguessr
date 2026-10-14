@@ -30,7 +30,10 @@
   --guess: #ffb547;
   --p2: #6cb4ff;
   --p3: #c4a2ff;
-  --truth: #4ad6a0;
+  --truth: #FF5A6E;
+  --truth-ink: #2a0a10;
+  --win: #4ad6a0;
+  --surf: #0f2236;
   --btn-ink: #1a1206;
   --btn: #ffb547;
   color-scheme: dark;
@@ -193,7 +196,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 .ds span { font-family: var(--font-mono); font-size: 12.5px; }
 .ds b { font: 700 36px/1.1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
 .ds i { font: normal 12px var(--font-mono); color: var(--muted); }
-.ds.win { border-width: 2px; border-color: var(--truth); }
+.ds.win { border-width: 2px; border-color: var(--win); }
 #clock.low b { color: var(--guess); }
 #timebar { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 1000; background: var(--line); pointer-events: none; }
 #timebar i { display: block; height: 100%; width: 100%; background: var(--ink); }
@@ -239,8 +242,8 @@ td.t { min-width: 0; }
 .tablewrap { overflow-x: auto; }
 @media (max-height: 640px) { #extract { font-size: 14px; } #title { font-size: 22px; } }
 @media (max-width: 440px) { #photo { width: 64px; height: 64px; } #mono { font-size: 22px; } #title { font-size: 21px; } #extract { font-size: 14.5px; } }
-@media (prefers-reduced-motion: no-preference) { .pin { animation: pop 0.18s ease-out; transform-box: fill-box; transform-origin: center; } }
-@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) { .pin { animation: pop 0.18s cubic-bezier(0.23, 1, 0.32, 1); transform-box: fill-box; transform-origin: center; } }
+@keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pts { font-weight: 700; }
 /* Écrans de jeu : mêmes polices que le menu d'accueil. */
 button.main { font-family: var(--font-logo); font-weight: 600; letter-spacing: 0; }
@@ -290,6 +293,37 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 #mono { font-size: 40px; letter-spacing: 0; line-height: 1; }
 @media (max-width: 440px) { #mono { font-size: 30px; } }
 #title.mystery { color: var(--muted); font-style: italic; }
+/* Refonte de l'écran de jeu et du résultat : ambre = action et repère du joueur, corail = bonne réponse, angles plus francs comme l'accueil. */
+.meta { font-variant-numeric: tabular-nums; }
+#clock { background: var(--guess); color: var(--btn-ink); padding: 3px 9px; border-radius: 4px; }
+#clock b, #clock.low b { color: inherit; }
+#clock.low { background: var(--truth); color: var(--truth-ink); }
+#timebar.low i { background: var(--truth); }
+#segs { display: flex; gap: 4px; flex: none; }
+#segs i { flex: 1; height: 5px; border-radius: 2px; background: var(--line); transition: background-color 200ms var(--ease-out); }
+#segs i.done { background: var(--guess); opacity: .5; }
+#segs i.on { background: var(--guess); }
+#card { background: var(--surf); border: 0; border-left: 4px solid var(--guess); border-radius: 4px 12px 12px 4px; gap: 14px; }
+#photo { width: 96px; height: 96px; }
+.chip { align-self: flex-start; max-width: 100%; background: rgba(255,181,71,.14); color: var(--guess); padding: 3px 8px; border-radius: 4px; letter-spacing: .06em; line-height: 1.35; }
+#mapwrap { border: 0; border-radius: 8px; }
+.menubtn, .zoom button, .hint { border-radius: 4px; }
+button.main { border-radius: 8px; }
+button.main:disabled { background: rgba(255,255,255,.08); color: #c5d2da; box-shadow: none; }
+#result { background: var(--surf); border-radius: 8px; padding: 12px 14px; gap: 8px; }
+.dist { font-size: 26px; font-variant-numeric: tabular-nums; }
+.pts { font-family: var(--font-logo); font-size: 28px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bonus { margin: 0; font-size: 12.5px; color: var(--muted); }
+#gauge { height: 6px; border-radius: 2px; background: var(--line); overflow: hidden; }
+#gauge i { display: block; height: 100%; background: var(--truth); transform-origin: left center; transform: scaleX(0); transition: transform 500ms var(--ease-out); }
+#actions { display: flex; gap: 8px; }
+#actions #next { flex: 1; }
+a.sec { display: flex; align-items: center; padding: 0 16px; border-radius: 8px; background: rgba(255,255,255,.1); color: var(--ink); font: 600 14px var(--font-logo); text-decoration: none; transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+a.sec:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) { a.sec:hover { background: rgba(255,255,255,.16); } }
+.truthtip { background: var(--truth); color: var(--truth-ink); border: 0; border-radius: 4px; box-shadow: none; font: 700 14px var(--font-logo); padding: 4px 10px; }
+.leaflet-tooltip-top.truthtip::before { border-top-color: var(--truth); }
+@media (prefers-reduced-motion: reduce) { #gauge i { transition: none; } #segs i { transition: none; } }
 </style>
 
 <div id="app">
@@ -298,6 +332,7 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
     <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/<span id="rtot">5</span></span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
   </header>
+  <div id="segs" aria-hidden="true"></div>
   <section id="card" aria-live="polite">
     <div id="photo"><span id="mono"></span><img id="img" alt="" hidden></div>
     <div class="txt">
@@ -324,9 +359,14 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
     <button class="main" id="go" disabled>Valider</button>
     <div id="result" hidden>
       <div class="score-line"><span class="dist" id="dist"></span><span class="pts" id="pts"></span></div>
+      <div id="gauge" hidden aria-hidden="true"><i id="gaugefill"></i></div>
+      <p class="bonus" id="bonus" hidden></p>
       <p class="where" id="where"></p>
       <p class="learn" id="learn" hidden></p>
-      <button class="main" id="next">Manche suivante</button>
+      <div id="actions">
+        <button class="main" id="next">Manche suivante</button>
+        <a class="sec" id="wiki" target="_blank" rel="noopener" hidden>Wikipédia</a>
+      </div>
     </div>
   </div>
   <div id="final" hidden>
@@ -421,11 +461,25 @@ const fmt = n => Math.round(n).toLocaleString('fr-FR');
 function countUp(el, from, to) {
   if (RM || from === to) { el.textContent = fmt(to); return; }
   const t0 = performance.now(), go = t => {
-    const k = Math.min(1, (t - t0) / 600), e = 1 - Math.pow(1 - k, 3);
+    const k = Math.min(1, (t - t0) / 500), e = 1 - Math.pow(1 - k, 3);
     el.textContent = fmt(from + (to - from) * e);
     if (k < 1) el._cu = requestAnimationFrame(go);
   };
   cancelAnimationFrame(el._cu); el._cu = requestAnimationFrame(go);
+}
+
+/* Points de la manche : « +832 pts » qui monte en 0,5 s, un peu après l'arrivée de la ligne. */
+function countPts(el, to) {
+  const set = v => { el.textContent = '+' + fmt(v) + ' pts'; };
+  cancelAnimationFrame(el._cu);
+  if (RM || !to) { set(to); return; }
+  set(0);
+  const start = performance.now() + 350, go = t => {
+    const k = Math.max(0, Math.min(1, (t - start) / 500)), e = 1 - Math.pow(1 - k, 3);
+    set(to * e);
+    if (k < 1) el._cu = requestAnimationFrame(go);
+  };
+  el._cu = requestAnimationFrame(go);
 }
 
 let rounds = [], idx = 0, total = 0, guess = null, revealed = false, results = [];
@@ -464,6 +518,9 @@ const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n)
 function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
 function fitTo(a, b) { if (GG.on) return GG.fit([a, b]); map.fitBounds([[a.a, a.o], [b.a, b.o]], { padding: [50, 50], maxZoom: 8 }); }
 const dot = (c, p) => L.circleMarker([p.a, p.o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
+/* La bonne réponse : point corail avec le nom du lieu au-dessus (même rendu que sur le globe). */
+const placeName = p => (p.p || '').split(',')[0].trim();
+const truthDot = p => { const m = dot(cssv('--truth'), p), n = placeName(p); if (n) m.bindTooltip(n, { permanent: true, direction: 'top', offset: [0, -8], className: 'truthtip' }); return m; };
 function fitAll(r) {
   if (GG.on) return GG.fit([r].concat(dg.filter(Boolean)));
   const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, g.o]));
@@ -476,14 +533,14 @@ function drawOverlay() {
   if (players > 1) {
     if (revealed && cur) {
       dg.forEach(g => { if (g) L.polyline([[g.a, g.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer); });
-      dot(cssv('--truth'), cur).addTo(layer);
+      truthDot(cur).addTo(layer);
       dg.forEach((g, i) => { if (g) dot(cssv(PCOL[i]), g).addTo(layer); });
     } else if (guess) dot(cssv(PCOL[turn]), guess).addTo(layer);
     return;
   }
   if (revealed && cur) {
     if (guess) L.polyline([[guess.a, guess.o], [cur.a, cur.o]], { color: cssv('--ink'), weight: 2, dashArray: '6 5' }).addTo(layer);
-    dot(cssv('--truth'), cur).addTo(layer);
+    truthDot(cur).addTo(layer);
   }
   if (guess) dot(cssv('--guess'), guess).addTo(layer);
 }
@@ -571,6 +628,9 @@ function load() {
   guess = null; revealed = false; turn = 0; dg = Array(players).fill(null); waiting = false;
   $('handoff').hidden = true; document.body.classList.remove('ho'); updateWho();
   $('rnd').textContent = idx + 1;
+  const sg = $('segs');
+  if (sg.children.length !== TOTAL) { sg.textContent = ''; for (let i = 0; i < TOTAL; i++) sg.appendChild(document.createElement('i')); }
+  [...sg.children].forEach((e, i) => { e.className = i < idx ? 'done' : i === idx ? 'on' : ''; });
   /* Pastille : thème · sous-catégorie · ce qu'il faut placer */
   $('chip').textContent = [THEMES[r.h].long, r.c === THEMES[r.h].long ? '' : r.c, r.q || TYPES[r.k].quoi].filter(Boolean).join(' · ');
   /* En difficile, le titre est caché jusqu'à la réponse : il faut d'abord reconnaître le sujet à partir de l'indice. */
@@ -654,6 +714,7 @@ function duelSubmit(force) {
   a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
   a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
   $('where').append(s, a);
+  $('wiki').hidden = true; $('gauge').hidden = true; $('bonus').hidden = true;
   learn(r);
   $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir le résultat';
   $('go').hidden = true; $('result').hidden = false;
@@ -760,13 +821,16 @@ function learn(r) { $('learn').textContent = r.e || ''; $('learn').hidden = !r.e
 function showResult(r, d, pts, bonus) {
   countUp($('tot'), total - (pts || 0), total);
   $('dist').textContent = d === null ? 'Temps écoulé' : d < 1 ? 'Pile dessus' : 'À ' + fmt(d) + ' km';
-  $('pts').textContent = '+' + fmt(pts) + ' pts' + (bonus ? ' (dont ' + fmt(bonus) + ' de vitesse)' : '');
-  $('where').textContent = '';
-  const s = document.createElement('span'); s.textContent = TYPES[r.k].rep + r.p + ' · ';
-  const a = document.createElement('a');
-  a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
-  a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
-  $('where').append(s, a);
+  countPts($('pts'), pts || 0);
+  $('bonus').hidden = !bonus; $('bonus').textContent = bonus ? 'dont ' + fmt(bonus) + ' points de vitesse' : '';
+  $('where').textContent = TYPES[r.k].rep + r.p;
+  const wk = $('wiki');
+  wk.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
+  wk.hidden = false;
+  const gf = $('gaugefill'), gauge = $('gauge');
+  gauge.hidden = d === null;
+  gf.style.transition = 'none'; gf.style.transform = 'scaleX(0)'; void gf.offsetWidth; gf.style.transition = '';
+  if (d !== null) requestAnimationFrame(() => { gf.style.transform = 'scaleX(' + Math.min(1, points(d) / 5000) + ')'; });
   learn(r);
   $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir mon score';
   $('go').hidden = true; $('result').hidden = false;
@@ -1354,10 +1418,31 @@ const GG = (function () {
     ctx.globalAlpha = 1;
     return k < 1;
   }
+  /* Nom du lieu : une étiquette corail au-dessus du point de la réponse, qui monte de 6 px juste après l'arrivée de la ligne. */
+  function truthLabel(p, now) {
+    const name = placeName(p);
+    if (!name || !visible(p)) return false;
+    const key = 'N' + p.a + ',' + p.o; if (!born.has(key)) born.set(key, now);
+    const t = now - born.get(key) - (RM ? 0 : 380);
+    if (t < 0) return true;
+    const k = RM ? 1 : Math.min(1, t / 240), e = EASE_OUT(k);
+    const [x, y] = proj([p.o, p.a]);
+    ctx.font = '700 14px "Bricolage Grotesque", system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = Math.ceil(ctx.measureText(name).width) + 20, th = 28;
+    const bx = Math.max(tw / 2 + 4, Math.min(w - tw / 2 - 4, x)), by = y - 16 - 7 - th + (1 - e) * 6;
+    ctx.globalAlpha = e;
+    ctx.fillStyle = cssv('--truth');
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx - tw / 2, by, tw, th, 4); else ctx.rect(bx - tw / 2, by, tw, th); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x - 7, by + th); ctx.lineTo(x + 7, by + th); ctx.lineTo(x, by + th + 7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = cssv('--truth-ink'); ctx.fillText(name, bx, by + th / 2 + 1);
+    ctx.globalAlpha = 1;
+    return k < 1;
+  }
   /* La ligne entre le repère et la réponse se trace du repère vers la réponse. */
   function link(p, q, now) {
     const key = 'L' + p.a + ',' + p.o; if (!born.has(key)) born.set(key, now);
-    const k = RM ? 1 : Math.min(1, (now - born.get(key)) / 600), e = EASE_IO(k), f = d3.geoInterpolate([p.o, p.a], [q.o, q.a]);
+    const k = RM ? 1 : Math.min(1, (now - born.get(key)) / 450), e = EASE_IO(k), f = d3.geoInterpolate([p.o, p.a], [q.o, q.a]);
     const m = Math.max(2, Math.round(48 * e) + 1), pts = Array.from({ length: m }, (_, i) => f(e * i / (m - 1)));
     ctx.beginPath(); path({ type: 'LineString', coordinates: pts });
     ctx.setLineDash([6, 5]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
@@ -1371,11 +1456,13 @@ const GG = (function () {
         dg.forEach(g => { if (g) busy = link(g, cur, now) || busy; });
         busy = marker(cur, '--truth', now) || busy;
         dg.forEach((g, i) => { if (g) busy = marker(g, PCOL[i], now) || busy; });
+        busy = truthLabel(cur, now) || busy;
       } else if (guess) busy = marker(guess, PCOL[turn], now) || busy;
       return busy;
     }
     if (revealed && cur) { if (guess) busy = link(guess, cur, now) || busy; busy = marker(cur, '--truth', now) || busy; }
     if (guess) busy = marker(guess, '--guess', now) || busy;
+    if (revealed && cur) busy = truthLabel(cur, now) || busy;
     return busy;
   }
   function frame(t) {
