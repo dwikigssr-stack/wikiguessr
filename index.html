@@ -358,24 +358,9 @@ base.on('tileerror', () => {
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
     { noWrap: true, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' }).addTo(map);
 });
-/* Frontières des pays (sans noms). Elles sont dessinées juste au-dessus des tuiles et fondues dans l'image (mode de fusion « overlay ») :
-   un liseré sombre et un trait clair fin, comme sur une carte satellite imprimée, plutôt qu'un calque posé par-dessus.
-   Si le fichier ne charge pas, la carte reste sans frontières. */
-const bp = map.createPane('borders');
-bp.style.zIndex = 250; bp.style.pointerEvents = 'none'; bp.style.mixBlendMode = 'overlay';
-/* Contours détaillés (1/50 millions), chargés une fois : frontières de la carte satellite et globe de jeu quand on zoome. */
+/* Pas de frontières sur la carte satellite (niveau difficile) : on ne voit que la photo.
+   Contours détaillés (1/50 millions), chargés une fois : le globe de jeu les utilise quand on zoome. */
 const ATLAS50 = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json').then(x => x.ok ? x.json() : null).catch(() => null);
-try {
-  ATLAS50
-    .then(t => {
-      if (!t || !window.topojson || !HAS_LEAFLET) return;
-      const m = topojson.mesh(t, t.objects.countries, (a, b) => a !== b);
-      const o = { pane: 'borders', interactive: false, lineJoin: 'round' };
-      L.geoJSON(m, Object.assign({ style: { color: '#000', weight: 3, opacity: 0.35 } }, o)).addTo(map);
-      L.geoJSON(m, Object.assign({ style: { color: '#fff6dc', weight: 1, opacity: 0.95 } }, o)).addTo(map);
-    })
-    .catch(() => {});
-} catch (e) {}
 const layer = L.layerGroup().addTo(map);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#f00';
 function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
@@ -988,6 +973,7 @@ const GG = (function () {
   let rot = [-10, -25], zoom = 1, zTarget = 1, vel = [0, 0], w = 0, h = 0, R = 0, proj = null, path = null, labels = null;
   let raf = 0, anim = null, pinch = 0, moved = 0, lastMove = 0;
   let low = null, high = null; /* contours 1/110 M (globe entier) et 1/50 M (quand on zoome) */
+  let relief = null, reliefAsked = false; /* fleuves, lacs, montagnes et déserts du niveau moyen (relief.json, Natural Earth 1/50 M) */
   const born = new Map(); /* instant d'apparition de chaque repère, pour l'animer */
   const ptrs = new Map();
   const api = { on: false };
@@ -1009,6 +995,20 @@ const GG = (function () {
       ice: topojson.feature(t, o).features.filter(f => f.id === '010' || f.id === '304').map(f => bound(f.geometry)),
       borders: lines(topojson.mesh(t, o, (a, b) => a !== b))
     };
+  }
+  /* Niveau moyen : plus de détails sur la carte, sans aucun nom. Fichier chargé à la première partie en moyen ; s'il manque, le globe reste comme avant. */
+  function loadRelief() {
+    if (reliefAsked) return; reliefAsked = true;
+    fetch('relief.json').then(x => x.ok ? x.json() : null).then(d => {
+      if (!d) return;
+      const g = f => bound({ type: f.t, coordinates: f.c });
+      relief = {
+        rivers: d.rivers.map(f => Object.assign(g(f), { rank: f.r })),
+        lakes: d.lakes.map(f => Object.assign(g(f), { rank: f.r })),
+        mountains: d.mountains.map(g), deserts: d.deserts.map(g)
+      };
+      kick();
+    }).catch(() => {});
   }
   /* Noms : un par pays, posé au centre de sa plus grande terre, et classés du plus grand au plus petit pays. */
   function buildLabels() {
@@ -1049,8 +1049,28 @@ const GG = (function () {
       if (!set) return false;
       /* Terres, puis leur côte avec le même tracé (on ne reprojette pas deux fois), puis la glace. */
       ctx.beginPath(); seen(set.land).forEach(x => path(x.g)); ctx.fillStyle = '#3ecf5c'; ctx.fill();
+      const rel = level === 2 && relief;
+      if (rel) {
+        /* Déserts en sable, massifs montagneux en brun, coupés à la côte et fondus dans le vert : on ne peint que l'ombre floue
+           des formes, décalée depuis hors de l'écran (shadowBlur marche partout, contrairement à ctx.filter). */
+        ctx.save(); ctx.clip();
+        const dpr = ctx.getTransform().a, off = 4 * (w + h);
+        ctx.translate(-off, 0); ctx.shadowOffsetX = off * dpr; ctx.shadowBlur = Math.min(40, 6 + 4 * zoom) * dpr;
+        ctx.beginPath(); seen(rel.deserts).forEach(x => path(x.g)); ctx.shadowColor = ctx.fillStyle = 'rgba(244,212,120,.8)'; ctx.fill();
+        ctx.beginPath(); seen(rel.mountains).forEach(x => path(x.g)); ctx.shadowColor = ctx.fillStyle = 'rgba(150,108,52,.6)'; ctx.fill();
+        ctx.restore();
+        ctx.beginPath(); seen(set.land).forEach(x => path(x.g));
+      }
       ctx.strokeStyle = 'rgba(4,40,90,.55)'; ctx.lineWidth = zoom > 4 ? 1.4 : 1; ctx.stroke();
       ctx.beginPath(); seen(set.ice).forEach(x => path(x.g)); ctx.fillStyle = '#e6f0f3'; ctx.fill();
+      if (rel) {
+        /* Fleuves et lacs : les plus grands sur le globe entier, les autres apparaissent quand on zoome. */
+        const rank = zoom >= 4 ? 9 : zoom >= 2 ? 5 : 3;
+        ctx.beginPath(); seen(rel.lakes.filter(x => x.rank <= rank + 1)).forEach(x => path(x.g));
+        ctx.fillStyle = '#1b7fd6'; ctx.fill(); ctx.strokeStyle = 'rgba(4,40,90,.5)'; ctx.lineWidth = 0.6; ctx.stroke();
+        ctx.beginPath(); seen(rel.rivers.filter(x => x.rank <= rank)).forEach(x => path(x.g));
+        ctx.strokeStyle = '#1673d6'; ctx.lineWidth = zoom >= 4 ? 2 : zoom >= 2 ? 1.5 : 1.2; ctx.lineJoin = 'round'; ctx.stroke();
+      }
       ctx.beginPath(); seen(set.borders).forEach(x => path(x.g));
       ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = zoom > 4 ? 1.3 : 0.9; ctx.stroke();
       return true;
@@ -1178,7 +1198,7 @@ const GG = (function () {
     if (api.on && !proj) { proj = d3.geoOrthographic().clipAngle(90).precision(0.3); path = d3.geoPath(proj, ctx); buildLabels(); low = build(GEO.topo); }
     cv.hidden = !api.on; $('gsky').hidden = gameSky.layer.hidden = !api.on; $('map').hidden = api.on;
     wrap.classList.toggle('globe', api.on);
-    if (api.on) { size(); gameSky.reset(); }
+    if (api.on) { if (level === 2) loadRelief(); size(); gameSky.reset(); }
   };
   api.reset = () => { anim = null; vel = [0, 0]; rot = [-10, -25]; zoom = zTarget = 1; born.clear(); kick(); };
   api.kick = kick;
