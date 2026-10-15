@@ -36,7 +36,7 @@ const MENU_MODES = [
 ];
 
 const MENU_SUJETS = [
-  { id: 'sport', nom: 'Sport', sous: 'Grands moments, football, tennis, Jeux olympiques', f: '#2F6BFF', ink: '#FFFFFF',
+  { id: 'sport', nom: 'Sport', sous: 'Sportifs, stades et grands moments', f: '#2F6BFF', ink: '#FFFFFF',
     themes: ['sport'],
     dessin: '<path d="M4 40h16M0 60h14M6 80h16" stroke="#0B1F66" stroke-width="5" stroke-linecap="round"/><circle cx="70" cy="60" r="42" fill="#fff"/><polygon points="70,46 83.3,55.7 78.2,71.3 61.8,71.3 56.7,55.7" fill="#0B1F66"/><path d="M70 46V30M83.3 55.7l15-5M78.2 71.3l9 13M61.8 71.3l-9 13M56.7 55.7l-15-5" stroke="#0B1F66" stroke-width="4" stroke-linecap="round"/><circle cx="70" cy="60" r="42" fill="none" stroke="#0B1F66" stroke-width="5"/>' },
   { id: 'histoire', nom: 'Histoire', sous: 'Personnages, événements', f: '#19D48B', ink: '#00291B',
