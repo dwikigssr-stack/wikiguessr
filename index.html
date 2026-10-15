@@ -287,6 +287,13 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 #recap[hidden] { display: none; }
 #rglobe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #rglobe:active { cursor: grabbing; }
+/* En savoir plus : chaque manche du récapitulatif se déplie sur son explication et l'article Wikipédia. */
+#final td.t button { all: unset; cursor: pointer; display: inline; }
+#final td.t button::after { content: ' ▾'; color: var(--muted); font-size: 12px; }
+#final td.t button[aria-expanded="true"]::after { content: ' ▴'; }
+#final td.t button:focus-visible { outline: 2px solid var(--truth); outline-offset: 2px; border-radius: 3px; }
+#final tr.more td { padding-top: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
+#final tr.more a { display: inline-block; margin-top: 4px; color: var(--ink); text-underline-offset: 3px; }
 #final td.t i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
 #share { position: relative; }
 /* Sans photo : l'icône du thème sur sa couleur, plutôt que des initiales grises. */
@@ -795,6 +802,7 @@ function finishDuel() {
       return c;
     };
     tr.append(c1, ...r.p.map((_, i) => cell(i))); tb.appendChild(tr);
+    moreRow(tb, tr, c1, r.r, 1 + r.p.length);
   }
   $('fbest').textContent = '';
   $('final').hidden = false;
@@ -885,6 +893,21 @@ function showRank(t) {
 /* Une pastille par manche, pour le tableau et le partage : vert très proche, jaune, orange, rouge loin, noir si le temps est écoulé. */
 const tile = (pts, d) => d === null ? '⬛' : pts >= 4000 ? '🟩' : pts >= 2500 ? '🟨' : pts >= 1000 ? '🟧' : '🟥';
 const TILECOL = { '🟩': '#4ad6a0', '🟨': '#ffd166', '🟧': '#ff8f5a', '🟥': '#ff5c6c', '⬛': '#5b6b75' };
+/* Le titre devient un bouton qui déplie une ligne « En savoir plus » sous la manche. */
+function moreRow(tb, tr, td, q, cols) {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = td.textContent;
+  b.setAttribute('aria-expanded', 'false'); b.title = 'En savoir plus';
+  td.textContent = ''; td.appendChild(b);
+  const more = document.createElement('tr'); more.className = 'more'; more.hidden = true;
+  const c = document.createElement('td'); c.colSpan = cols;
+  if (q.e) c.append(q.e + ' ');
+  const a = document.createElement('a');
+  a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((q.w || q.t).replace(/ /g, '_'));
+  a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
+  c.appendChild(a); more.appendChild(c);
+  b.onclick = () => { more.hidden = !more.hidden; b.setAttribute('aria-expanded', String(!more.hidden)); };
+  tr.after(more);
+}
 function rowDot(td, pts, d) { const i = document.createElement('i'); i.style.background = TILECOL[tile(pts, d)]; td.prepend(i); }
 function finish() {
   stopTimer();
@@ -899,10 +922,11 @@ function finish() {
   const tb = $('frows'); tb.textContent = '';
   for (const r of results) {
     const tr = document.createElement('tr');
-    const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t; rowDot(c1, r.pts, r.d);
+    const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t;
     const c2 = document.createElement('td'); c2.className = 'n'; c2.textContent = r.d === null ? 'temps écoulé' : fmt(r.d) + ' km';
     const c3 = document.createElement('td'); c3.className = 'n'; c3.textContent = fmt(r.pts);
     tr.append(c1, c2, c3); tb.appendChild(tr);
+    moreRow(tb, tr, c1, r.r, 3); rowDot(c1, r.pts, r.d);
   }
   if (daily) {
     /* Défi du jour : seul le premier essai compte, on le garde pour l'afficher sur l'accueil. */
