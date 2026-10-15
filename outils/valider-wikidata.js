@@ -71,12 +71,16 @@ for (const d of auto) {
 
   if (titresMain.has(norm(d.t))) raisons.push('déjà dans les questions écrites à la main');
   else if (vusTitre.has(norm(d.t))) raisons.push('doublon de titre');
-  const proche = mains.find(m => km(m.a, m.o, d.a, d.o) < 1);
-  if (proche) raisons.push('à moins d’un km de « ' + proche.t + ' » (questions écrites à la main)');
+  /* Même endroit qu'une question écrite à la main : refusé si celle-ci demande déjà de placer le lieu lui-même
+     (« Estadio Centenario » et « Stade Centenario »), ou si les titres partagent un nom. Une question sur un
+     événement ou une personne au même endroit reste une question différente. */
+  const motsTitre = new Set(d.t.split(/[\s'’\-,()]+/).filter(w => w.length >= 4 && !GENERIQUES.test(norm(w))).map(norm));
+  const proche = mains.find(m => km(m.a, m.o, d.a, d.o) < 1 && (m.k === 'lieu' || m.t.split(/[\s'’\-,()]+/).some(w => motsTitre.has(norm(w)))));
+  if (proche) raisons.push('même lieu que « ' + proche.t + ' » (questions écrites à la main)');
 
   if (dansPays && d.iso) {
     const r = dansPays(d);
-    if (r === false) raisons.push('position hors du pays annoncé (' + d.p + ')');
+    if (r === false) raisons.push('position hors du pays annoncé (' + d.p + ', code ' + d.iso + ')');
     if (r === null) avertissements.push('« ' + d.t + ' » : pays ' + d.iso + ' absent de la carte, position non contrôlée');
   }
   if (raisons.length) refus.push({ d, raisons });

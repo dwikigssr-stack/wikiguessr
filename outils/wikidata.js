@@ -18,7 +18,7 @@ const CATEGORIES = [
     Q23413: 'Château', Q751876: 'Château', Q16560: 'Palais', Q2977: 'Cathédrale', Q32815: 'Mosquée', Q44539: 'Temple',
     Q160742: 'Abbaye', Q12280: 'Pont', Q11303: 'Gratte-ciel', Q4989906: 'Monument', Q839954: 'Site archéologique',
     Q57821: 'Fortification', Q1785071: 'Fort', Q12518: 'Tour', Q5003624: 'Mémorial' } },
-  { h: 'lieux', k: 'lieu', min: 30, faits: ['altitude', 'superficie', 'unesco'], classes: {
+  { h: 'lieux', k: 'lieu', min: 50, faits: ['altitude', 'superficie', 'unesco'], classes: {
     Q8502: 'Montagne', Q8072: 'Volcan', Q169358: 'Volcan', Q34038: 'Chute d’eau', Q23397: 'Lac', Q23442: 'Île', Q150784: 'Canyon',
     Q35666: 'Glacier', Q46169: 'Parc national' } },
   { h: 'culture', k: 'lieu', min: 30, faits: ['debut', 'architecte', 'unesco'], classes: {
@@ -227,11 +227,13 @@ async function main() {
     const tete = desc && !parlant(desc, mots) && desc.length <= 120 ? maj(desc) : sousCat;
     const f = (await faits(e, c.cat.faits)).filter(x => !parlant(x, mots) && !norm(tete).includes(norm(x.split(' : ').pop())));
     if (!f.length) { rejet('pas assez de faits pour un indice'); continue; }
-    const x = tete + '. ' + f.join('. ') + '.';
+    const x = (tete + '. ' + f.join('. ') + '.').replace(/\.\.+$/, '.');
 
-    const lieu = chaine.find(z => etiquette(z)) || null;
-    const p = [lieu ? etiquette(lieu) : '', etiquette(pays[0])].filter(Boolean).join(', ');
-    const localisation = chaine.map(etiquette).filter(Boolean).slice(0, 2).concat(etiquette(pays[0])).join(', ');
+    /* Lieu affiché après la réponse : la commune (ou la première entité administrative) et le nom court du pays. */
+    const nomPays = maj((valeurs(pays[0], 'P1813').find(v => v.language === 'fr') || {}).text || etiquette(pays[0]));
+    const admins = chaine.map(etiquette).filter(n => n && norm(n) !== norm(nomPays) && norm(n) !== norm(etiquette(pays[0])) && !/^(hôtel de ville|mairie)$/i.test(n)).map(maj);
+    const p = [admins[0] || '', nomPays].filter(Boolean).join(', ');
+    const localisation = admins.slice(0, 2).concat(nomPays).join(', ');
     const e2 = (desc ? maj(desc) + '. ' : '') + 'Localisation : ' + localisation + '.';
     const n = c.sl >= 90 ? 1 : c.sl >= 50 ? 2 : 3;
     const iso = valeurs(pays[0], 'P299')[0];

@@ -26,7 +26,7 @@ for (const d of QUESTIONS) {
   const place = (d.p || '').split(',')[0].replace(/\(.*?\)/g, ' ');
   for (const w of place.split(/[\s'’-]+/)) {
     if (w.length < 4 || GENERIC.test(norm(w))) continue;
-    if (new RegExp('(^|[^\\p{L}])' + w + '($|[^\\p{L}])', 'iu').test(d.x)) warnings.push(who + ' : l’indice contient « ' + w + ' »');
+    if (new RegExp('(^|[^\\p{L}])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^\\p{L}])', 'iu').test(d.x)) warnings.push(who + ' : l’indice contient « ' + w + ' »');
   }
 }
 
