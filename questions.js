@@ -28,6 +28,10 @@
    Ajouter une ligne dans THEMES (nom, couleur), puis un bloc ajouter().
    Le thème apparaît alors tout seul dans le menu de l'accueil.
 
+   QUESTIONS AUTOMATIQUES
+   questions-wikidata.js est rempli par outils/wikidata.js (voir ce fichier)
+   et contrôlé par outils/valider-wikidata.js : ne pas le modifier à la main.
+
    VÉRIFIER
    node outils/verifier-questions.js  (doublons, champs manquants,
    indice qui contient la réponse, répartition par thème et niveau)

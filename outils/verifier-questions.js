@@ -1,8 +1,9 @@
-// Vérifie la base de questions : node outils/verifier-questions.js
+// Vérifie la base de questions (questions.js et questions-wikidata.js) : node outils/verifier-questions.js
 // Erreurs (le script échoue) : champ manquant, thème ou type inconnu, niveau invalide, coordonnées hors limites, doublon.
 // Avertissements : indice qui semble contenir le nom du lieu à trouver.
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const src = fs.readFileSync(path.join(__dirname, '..', 'questions.js'), 'utf8');
+const auto = path.join(__dirname, '..', 'questions-wikidata.js');
+const src = fs.readFileSync(path.join(__dirname, '..', 'questions.js'), 'utf8') + (fs.existsSync(auto) ? ';' + fs.readFileSync(auto, 'utf8') : '');
 const ctx = {};
 vm.runInNewContext(src + ';this.THEMES = THEMES; this.TYPES = TYPES; this.QUESTIONS = QUESTIONS;', ctx);
 const { THEMES, TYPES, QUESTIONS } = ctx;
