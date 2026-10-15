@@ -10,7 +10,7 @@ on:
     inputs:
       max:
         description: Nombre maximum de nouvelles questions
-        default: '1500'
+        default: '3000'
 permissions:
   contents: write
   pull-requests: write
@@ -29,7 +29,7 @@ jobs:
       - name: Tirer les questions de Wikidata
         run: node outils/wikidata.js
         env:
-          MAX_NOUVELLES: ${{ github.event.inputs.max || '1500' }}
+          MAX_NOUVELLES: ${{ github.event.inputs.max || '3000' }}
       - name: Contrôler le lot et retirer les questions refusées
         run: node outils/valider-wikidata.js --corriger --rapport "$RUNNER_TEMP/rapport.md"
       - name: Contrôle général des questions

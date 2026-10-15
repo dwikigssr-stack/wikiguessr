@@ -33,13 +33,16 @@ const estNouvelle = d => !anciens.has('id:"' + d.id + '"');
 let dansPays = null;
 try {
   const d3 = require('d3-geo'), topo = require('topojson-client'), atlas = require('world-atlas/countries-50m.json');
-  const pays = new Map(topo.feature(atlas, atlas.objects.countries).features.map(f => [String(+f.id), f]));
+  /* Plusieurs formes peuvent partager un code (l'Australie et les îles Ashmore-et-Cartier) : on les garde toutes. */
+  const pays = new Map();
+  for (const f of topo.feature(atlas, atlas.objects.countries).features) { const k = String(+f.id); pays.set(k, (pays.get(k) || []).concat(f)); }
   dansPays = (d) => {
-    const f = pays.get(String(+d.iso)); if (!f) return null;
-    if (d3.geoContains(f, [d.o, d.a])) return true;
+    const fs = pays.get(String(+d.iso)); if (!fs) return null;
+    const dedans = pt => fs.some(f => d3.geoContains(f, pt));
+    if (dedans([d.o, d.a])) return true;
     for (let i = 0; i < 16; i++) {
       const ang = i * Math.PI / 8, dl = 30 / 111;
-      if (d3.geoContains(f, [d.o + dl * Math.sin(ang) / Math.max(0.2, Math.cos(d.a * Math.PI / 180)), d.a + dl * Math.cos(ang)])) return true;
+      if (dedans([d.o + dl * Math.sin(ang) / Math.max(0.2, Math.cos(d.a * Math.PI / 180)), d.a + dl * Math.cos(ang)])) return true;
     }
     return false;
   };

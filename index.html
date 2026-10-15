@@ -629,6 +629,9 @@ function fill(sorted, ok) {
   return out;
 }
 function pick(pool) {
+  /* En Difficile, le titre est caché : on garde les questions écrites à la main, dont l'indice suffit à trouver.
+     Les questions tirées de Wikidata (questions-wikidata.js, champ id) ont des indices plus maigres. */
+  if (level === 3) { const main = pool.filter(d => !d.id); if (main.length >= TOTAL) pool = main; }
   const log = seenLog();
   const sorted = shuffle(pool).sort((a, b) => Math.abs(a.lv - level) - Math.abs(b.lv - level) || (log[a.t] || 0) - (log[b.t] || 0));
   const best = sorted[0];

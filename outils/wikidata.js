@@ -2,32 +2,32 @@
 // Le script interroge Wikidata (il faut un accès à Internet), garde les sujets connus (beaucoup d'articles
 // Wikipédia dans le monde, un article en français, des coordonnées), écrit un indice qui ne nomme ni le lieu,
 // ni sa région, ni son pays, puis complète questions-wikidata.js sans toucher aux questions écrites à la main.
-// Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 1500 par défaut).
+// Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 3000 par défaut).
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 const RACINE = path.join(__dirname, '..');
 const SORTIE = path.join(RACINE, 'questions-wikidata.js');
-const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 1500);
+const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 3000);
 const EXCLUS = path.join(__dirname, 'wikidata-exclus.txt');
 const UA = 'Wikiguessr/1.0 (https://github.com/dwikigssr-stack/wikiguessr; jeu de géographie)';
 
 /* Catégories : classes Wikidata (instance de), thème et type de manche du jeu, sous-catégorie affichée,
    nombre minimum d'articles Wikipédia (toutes langues) pour garder un sujet, et les faits à citer dans l'indice. */
 const CATEGORIES = [
-  { h: 'lieux', k: 'lieu', min: 30, faits: ['debut', 'hauteur', 'architecte', 'unesco'], classes: {
+  { h: 'lieux', k: 'lieu', min: 30, faits: ['debut', 'style', 'hauteur', 'architecte', 'dedie', 'visiteurs', 'unesco'], classes: {
     Q23413: 'Château', Q751876: 'Château', Q16560: 'Palais', Q2977: 'Cathédrale', Q32815: 'Mosquée', Q44539: 'Temple',
     Q160742: 'Abbaye', Q12280: 'Pont', Q11303: 'Gratte-ciel', Q4989906: 'Monument', Q839954: 'Site archéologique',
     Q57821: 'Fortification', Q1785071: 'Fort', Q12518: 'Tour', Q5003624: 'Mémorial' } },
-  { h: 'lieux', k: 'lieu', min: 50, faits: ['altitude', 'superficie', 'unesco'], classes: {
+  { h: 'lieux', k: 'lieu', min: 50, faits: ['altitude', 'superficie', 'profondeur', 'population', 'unesco'], classes: {
     Q8502: 'Montagne', Q8072: 'Volcan', Q169358: 'Volcan', Q34038: 'Chute d’eau', Q23397: 'Lac', Q23442: 'Île', Q150784: 'Canyon',
     Q35666: 'Glacier', Q46169: 'Parc national' } },
-  { h: 'culture', k: 'lieu', min: 30, faits: ['debut', 'architecte', 'unesco'], classes: {
+  { h: 'culture', k: 'lieu', min: 30, faits: ['debut', 'style', 'architecte', 'visiteurs', 'unesco'], classes: {
     Q33506: 'Musée', Q207694: 'Musée d’art', Q153562: 'Opéra', Q24354: 'Théâtre', Q7075: 'Bibliothèque' } },
-  { h: 'sport', k: 'lieu', min: 25, faits: ['ouverture', 'capacite', 'architecte'], classes: {
+  { h: 'sport', k: 'lieu', min: 25, faits: ['ouverture', 'capacite', 'club', 'architecte'], classes: {
     Q483110: 'Stade', Q2338524: 'Circuit automobile', Q641226: 'Salle omnisports' } },
-  { h: 'science', k: 'lieu', min: 20, faits: ['debut', 'altitude'], classes: {
+  { h: 'science', k: 'lieu', min: 20, faits: ['debut', 'altitude', 'exploitant'], classes: {
     Q1254933: 'Observatoire', Q194188: 'Base de lancement', Q134447: 'Centrale nucléaire', Q12323: 'Barrage' } },
-  { h: 'evt', k: 'evt', min: 25, faits: ['date', 'partie'], classes: {
+  { h: 'evt', k: 'evt', min: 25, faits: ['date', 'partie', 'belligerants', 'victimes', 'magnitude'], classes: {
     Q178561: 'Bataille', Q188055: 'Siège', Q7944: 'Séisme' } }
 ];
 
@@ -116,6 +116,16 @@ async function faits(e, liste) {
     if (nom === 'architecte') { const [a] = await entites(ref(e, 'P84').slice(0, 1)); if (etiquette(a)) f.push('Architecte : ' + etiquette(a)); }
     if (nom === 'partie') { const [p] = await entites(ref(e, 'P361').slice(0, 1)); if (etiquette(p)) f.push('Contexte : ' + etiquette(p)); }
     if (nom === 'unesco' && ref(e, 'P1435').includes('Q9259')) f.push('Inscrit au patrimoine mondial de l’UNESCO');
+    if (nom === 'style') { const [a] = await entites(ref(e, 'P149').slice(0, 1)); if (etiquette(a)) f.push('Style : ' + etiquette(a)); }
+    if (nom === 'dedie') { const [a] = await entites(ref(e, 'P825').slice(0, 1)); if (etiquette(a)) f.push('Dédié à : ' + etiquette(a)); }
+    if (nom === 'visiteurs') { const v = valeurs(e, 'P1174').map(x => +x.amount).filter(x => x > 0)[0]; if (v >= 100000) f.push('Visiteurs : ' + (v >= 1e6 ? (Math.round(v / 1e5) / 10).toString().replace('.', ',') + ' million' + (v >= 2e6 ? 's' : '') : nb(v)) + ' par an'); }
+    if (nom === 'profondeur') { const h = quantite(e, 'P4511', METRE); if (h >= 10) f.push('Profondeur : ' + nb(h) + ' m'); }
+    if (nom === 'population') { const v = valeurs(e, 'P1082').map(x => +x.amount).filter(x => x > 0)[0]; if (v >= 1000) f.push('Population : ' + nb(v) + ' habitants'); }
+    if (nom === 'club') { const [a] = await entites(ref(e, 'P466').slice(0, 1)); if (etiquette(a)) f.push('Club résident : ' + etiquette(a)); }
+    if (nom === 'exploitant') { const [a] = await entites(ref(e, 'P137').slice(0, 1)); if (etiquette(a)) f.push('Exploitant : ' + etiquette(a)); }
+    if (nom === 'belligerants') { const l = (await entites(ref(e, 'P710').slice(0, 4))).map(etiquette).filter(Boolean); if (l.length >= 2) f.push({ liste: 'Belligérants : ', l }); }
+    if (nom === 'victimes') { const v = valeurs(e, 'P1120').map(x => +x.amount).filter(x => x > 0)[0]; if (v >= 10) f.push('Victimes : ' + nb(v) + ' morts'); }
+    if (nom === 'magnitude') { const v = valeurs(e, 'P2528').map(x => +x.amount).filter(x => x > 0)[0]; if (v) f.push('Magnitude : ' + String(v).replace('.', ',')); }
   }
   return f;
 }
@@ -134,7 +144,7 @@ async function interdits(e) {
   const pays = (await entites(ref(e, 'P17').slice(0, 2))).filter(Boolean);
   const autres = (await entites([...ref(e, 'P706'), ...ref(e, 'P276'), ...ref(e, 'P4552')].slice(0, 4))).filter(Boolean);
   const noms = [...chaine, ...pays, ...autres].map(etiquette).filter(Boolean);
-  for (const p of pays) for (const v of valeurs(p, 'P1549')) if (v.language === 'fr') noms.push(v.text);
+  for (const p of [...pays, ...chaine]) for (const v of valeurs(p, 'P1549')) if (v.language === 'fr') noms.push(v.text);
   const mots = new Set();
   for (const n of noms) for (const w of n.split(/[\s'’\-,]+/)) if (w.length >= 4 && !GENERIQUES.test(norm(w))) mots.add(norm(w));
   return { chaine, pays, mots };
@@ -153,7 +163,7 @@ async function prechargement(ids) {
   let niveau = ids;
   for (let i = 0; i < 5 && niveau.length; i++) {
     const ents = (await entites(niveau)).filter(Boolean);
-    niveau = ents.flatMap(e => i === 0 ? ['P131', 'P17', 'P706', 'P276', 'P4552', 'P84', 'P361'].flatMap(p => ref(e, p).slice(0, 2)) : [...ref(e, 'P131').slice(0, 1), ...ref(e, 'P17').slice(0, 1)])
+    niveau = ents.flatMap(e => i === 0 ? ['P131', 'P17', 'P706', 'P276', 'P4552', 'P84', 'P361', 'P149', 'P825', 'P466', 'P137', 'P710'].flatMap(p => ref(e, p).slice(0, p === 'P710' ? 4 : 2)) : [...ref(e, 'P131').slice(0, 1), ...ref(e, 'P17').slice(0, 1)])
       .filter(id => !CACHE.has(id));
   }
 }
@@ -224,8 +234,12 @@ async function main() {
 
     const desc = e.descriptions && e.descriptions.fr ? e.descriptions.fr.value : '';
     const sousCat = c.cat.classes[c.cls];
-    const tete = desc && !parlant(desc, mots) && desc.length <= 120 ? maj(desc) : sousCat;
-    const f = (await faits(e, c.cat.faits)).filter(x => !parlant(x, mots) && !norm(tete).includes(norm(x.split(' : ').pop())));
+    /* La description Wikidata sert de début d'indice si elle ne donne pas la réponse et dit vraiment quelque chose. */
+    const tete = desc && !parlant(desc, mots) && desc.length <= 120 && /\p{L}{4}/u.test(desc) ? maj(desc.replace(/\.+$/, '')) : sousCat;
+    const f = (await faits(e, c.cat.faits))
+      .map(x => typeof x === 'string' ? x : (y => y.length >= 2 ? x.liste + y.join(', ') : '')(x.l.filter(z => !parlant(z, mots))))
+      .map(x => x.replace(/\.+$/, ''))
+      .filter(x => x && !parlant(x, mots) && !norm(tete).includes(norm(x.split(' : ').pop())));
     if (!f.length) { rejet('pas assez de faits pour un indice'); continue; }
     const x = (tete + '. ' + f.join('. ') + '.').replace(/\.\.+$/, '.');
 
@@ -235,7 +249,9 @@ async function main() {
     const p = [admins[0] || '', nomPays].filter(Boolean).join(', ');
     const localisation = admins.slice(0, 2).concat(nomPays).join(', ');
     const e2 = (desc ? maj(desc) + '. ' : '') + 'Localisation : ' + localisation + '.';
-    const n = c.sl >= 90 ? 1 : c.sl >= 50 ? 2 : 3;
+    /* Niveau : les questions Wikidata servent en Facile et en Moyen ; le Difficile, où le titre est caché, garde les
+       questions écrites à la main (voir pick dans index.html). Les sujets les plus connus vont en Facile. */
+    const n = c.sl >= 90 ? 1 : 2;
     const iso = valeurs(pays[0], 'P299')[0];
     const d = { n, t, c: sousCat, x, e: e2, p, a, o, id: c.id };
     if (iso) d.iso = iso;
