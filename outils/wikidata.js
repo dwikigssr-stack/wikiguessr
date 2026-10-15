@@ -234,6 +234,17 @@ async function main() {
 
     const desc = e.descriptions && e.descriptions.fr ? e.descriptions.fr.value : '';
     const sousCat = c.cat.classes[c.cls];
+    /* Pays de la réponse : le pays actuel. Pour un événement ancien, Wikidata donne souvent un État disparu
+       (Rome antique, Union soviétique, Empire britannique), qui n'a pas de code ISO : on prend alors le pays
+       actuel du lieu de l'événement, ou celui de la commune où il s'est déroulé. */
+    let paysR = pays[0], lieuEvt = null;
+    if (!valeurs(paysR, 'P299').length) {
+      [lieuEvt] = await entites(ref(e, 'P276').slice(0, 1));
+      const sources = [lieuEvt, ...chaine].filter(Boolean);
+      for (const z of sources) { const [act] = await entites(ref(z, 'P17').slice(0, 1)); if (act && valeurs(act, 'P299').length) { paysR = act; break; } }
+      for (const z of [paysR, lieuEvt].filter(Boolean)) for (const nom of [etiquette(z), ...valeurs(z, 'P1549').filter(v => v.language === 'fr').map(v => v.text)])
+        for (const w of nom.split(/[\s'’\-,]+/)) if (w.length >= 4 && !GENERIQUES.test(norm(w))) mots.add(norm(w));
+    }
     /* La description Wikidata sert de début d'indice si elle ne donne pas la réponse et dit vraiment quelque chose. */
     const tete = desc && !parlant(desc, mots) && desc.length <= 120 && /\p{L}{4}/u.test(desc) ? maj(desc.replace(/\.+$/, '')) : sousCat;
     const f = (await faits(e, c.cat.faits))
@@ -244,15 +255,15 @@ async function main() {
     const x = (tete + '. ' + f.join('. ') + '.').replace(/\.\.+$/, '.');
 
     /* Lieu affiché après la réponse : la commune (ou la première entité administrative) et le nom court du pays. */
-    const nomPays = maj((valeurs(pays[0], 'P1813').find(v => v.language === 'fr') || {}).text || etiquette(pays[0]));
-    const admins = chaine.map(etiquette).filter(n => n && norm(n) !== norm(nomPays) && norm(n) !== norm(etiquette(pays[0])) && !/^(hôtel de ville|mairie)$/i.test(n)).map(maj);
+    const nomPays = maj((valeurs(paysR, 'P1813').find(v => v.language === 'fr') || {}).text || etiquette(paysR));
+    const admins = [lieuEvt, ...chaine].filter(Boolean).map(etiquette).filter(n => n && norm(n) !== norm(nomPays) && norm(n) !== norm(etiquette(paysR)) && !/^(hôtel de ville|mairie)$/i.test(n)).map(maj);
     const p = [admins[0] || '', nomPays].filter(Boolean).join(', ');
     const localisation = admins.slice(0, 2).concat(nomPays).join(', ');
     const e2 = (desc ? maj(desc) + '. ' : '') + 'Localisation : ' + localisation + '.';
     /* Niveau : les questions Wikidata servent en Facile et en Moyen ; le Difficile, où le titre est caché, garde les
        questions écrites à la main (voir pick dans index.html). Les sujets les plus connus vont en Facile. */
     const n = c.sl >= 90 ? 1 : 2;
-    const iso = valeurs(pays[0], 'P299')[0];
+    const iso = valeurs(paysR, 'P299')[0];
     const d = { n, t, c: sousCat, x, e: e2, p, a, o, id: c.id };
     if (iso) d.iso = iso;
     if (t !== c.titre) d.w = c.titre;

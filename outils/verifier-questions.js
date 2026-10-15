@@ -10,7 +10,7 @@ const { THEMES, TYPES, QUESTIONS } = ctx;
 
 const errors = [], warnings = [], seen = new Map();
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '');
-const GENERIC = /^(pres|large|nord|sud|est|ouest|baie|musee|palais|chateau|stade|plage|pont|foret|desert|region|centre|prison|institut|galerie|viaduc)$/;
+const GENERIC = /^(pres|large|nord|sud|est|ouest|baie|musee|palais|chateau|stade|plage|pont|foret|desert|region|centre|prison|institut|galerie|viaduc|royaume|empire|etats|republique)$/;
 
 for (const d of QUESTIONS) {
   const who = '« ' + (d.t || '?') + ' »';
