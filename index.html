@@ -521,11 +521,22 @@ const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n)
 const wrapLng = x => ((x + 180) % 360 + 360) % 360 - 180;
 const near = (x, ref) => x + 360 * Math.round((ref - x) / 360); /* la copie de x la plus proche de ref */
 const seen = x => near(x, map.getCenter().lng);                  /* la copie de x la plus proche du centre de l'écran */
-function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); map.setView([25, 10], 2); }
+function resetView() { if (GG.on) return GG.reset(); layer.clearLayers(); map.invalidateSize(); fitMinZoom(); map.setView([25, 10], 2); }
+/* Cadrage de la réponse : le dézoom limité s'assouplit le temps de la manche, sinon le repère et la réponse peuvent sortir tous deux de l'écran
+   quand ils sont loin l'un de l'autre. Marge plus grande en haut pour l'étiquette du lieu. */
+const FIT = { paddingTopLeft: [50, 80], paddingBottomRight: [50, 40], maxZoom: 8 };
+function fitPts(pts) {
+  /* (getBoundsZoom ne descend jamais sous le zoom minimal : on calcule le zoom nécessaire à partir des pixels au zoom actuel) */
+  const z = map.getZoom(), room = map.getSize().subtract(L.point(100, 120)), p = pts.map(q => map.project(q, z));
+  const xs = p.map(q => q.x), ys = p.map(q => q.y), bw = Math.max(1, Math.max(...xs) - Math.min(...xs)), bh = Math.max(1, Math.max(...ys) - Math.min(...ys));
+  const need = z + Math.log2(Math.min(room.x / bw, room.y / bh));
+  if (need < map.getMinZoom()) map.setMinZoom(Math.max(1, Math.floor(need * 2) / 2));
+  map.fitBounds(pts, FIT);
+}
 function fitTo(a, b) {
   if (GG.on) return GG.fit([a, b]);
   const o2 = near(b.o, a.o), m = (a.o + o2) / 2, k = seen(m) - m; /* chemin le plus court, sans faire le tour du monde */
-  map.fitBounds([[a.a, a.o + k], [b.a, o2 + k]], { padding: [50, 50], maxZoom: 8 });
+  fitPts([[a.a, a.o + k], [b.a, o2 + k]]);
 }
 const dot = (c, p, o) => L.circleMarker([p.a, o], { radius: 9, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 });
 /* La bonne réponse : point corail avec le nom du lieu au-dessus (même rendu que sur le globe). */
@@ -536,7 +547,7 @@ function fitAll(r) {
   const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, near(g.o, r.o)]));
   const xs = pts.map(q => q[1]), mid = (Math.min(...xs) + Math.max(...xs)) / 2, k = seen(mid) - mid;
   const sh = pts.map(q => [q[0], q[1] + k]);
-  if (sh.length === 1) map.setView(sh[0], 4); else map.fitBounds(sh, { padding: [50, 50], maxZoom: 8 });
+  if (sh.length === 1) map.setView(sh[0], 4); else fitPts(sh);
 }
 function drawOverlay() {
   if (GG.on) return GG.kick();
@@ -786,7 +797,7 @@ function finishDuel() {
 }
 function place(lat, lon) {
   if (revealed || waiting || counting) return;
-  lon = ((lon + 540) % 360) - 180;
+  lon = wrapLng(lon); /* la carte difficile défile sans fin : la longitude peut dépasser ±540° */
   guess = { a: lat, o: lon };
   $('go').disabled = false; $('hint').hidden = true;
   drawOverlay();
@@ -1449,11 +1460,13 @@ const GG = (function () {
     ctx.font = '700 14px "Bricolage Grotesque", system-ui, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const tw = Math.ceil(ctx.measureText(name).width) + 20, th = 28;
-    const bx = Math.max(tw / 2 + 4, Math.min(w - tw / 2 - 4, x)), by = y - 16 - 7 - th + (1 - e) * 6;
+    const bx = Math.max(tw / 2 + 4, Math.min(w - tw / 2 - 4, x)), up = y - 16 - 7 - th >= 4; /* trop près du haut : l'étiquette passe sous le point */
+    const by = up ? y - 16 - 7 - th + (1 - e) * 6 : y + 16 + 7 - (1 - e) * 6;
     ctx.globalAlpha = e;
     ctx.fillStyle = cssv('--truth');
     ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx - tw / 2, by, tw, th, 4); else ctx.rect(bx - tw / 2, by, tw, th); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x - 7, by + th); ctx.lineTo(x + 7, by + th); ctx.lineTo(x, by + th + 7); ctx.closePath(); ctx.fill();
+    const ay = up ? by + th : by, tip = up ? ay + 7 : ay - 7;
+    ctx.beginPath(); ctx.moveTo(x - 7, ay); ctx.lineTo(x + 7, ay); ctx.lineTo(x, tip); ctx.closePath(); ctx.fill();
     ctx.fillStyle = cssv('--truth-ink'); ctx.fillText(name, bx, by + th / 2 + 1);
     ctx.globalAlpha = 1;
     return k < 1;
@@ -1644,7 +1657,7 @@ document.addEventListener('keydown', e => {
 });
 /* Dézoom limité : le monde doit remplir la carte (largeur et hauteur) avec une marge d'un niveau de zoom, pour ne jamais le voir en plusieurs exemplaires. */
 function fitMinZoom() {
-  const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h) return;
+  const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h || revealed) return; /* après la réponse, on garde le cadrage de fitPts */
   const z = 1 + Math.ceil(Math.max(2, Math.log2(w / 256), Math.log2(h / 256)) * 2) / 2; /* zoomSnap 0.5 ; +1 : on ne voit jamais le monde plus petit que la carte */
   map.setMinZoom(z); if (map.getZoom() < z) map.setZoom(z, { animate: false });
 }
