@@ -19,7 +19,7 @@ const CATEGORIES = [
     Q160742: 'Abbaye', Q12280: 'Pont', Q11303: 'Gratte-ciel', Q4989906: 'Monument', Q839954: 'Site archéologique',
     Q57821: 'Fortification', Q1785071: 'Fort', Q12518: 'Tour', Q5003624: 'Mémorial' } },
   { h: 'lieux', k: 'lieu', min: 30, faits: ['altitude', 'superficie', 'unesco'], classes: {
-    Q8502: 'Montagne', Q8072: 'Volcan', Q34038: 'Chute d’eau', Q23397: 'Lac', Q23442: 'Île', Q150784: 'Canyon',
+    Q8502: 'Montagne', Q8072: 'Volcan', Q169358: 'Volcan', Q34038: 'Chute d’eau', Q23397: 'Lac', Q23442: 'Île', Q150784: 'Canyon',
     Q35666: 'Glacier', Q46169: 'Parc national' } },
   { h: 'culture', k: 'lieu', min: 30, faits: ['debut', 'architecte', 'unesco'], classes: {
     Q33506: 'Musée', Q207694: 'Musée d’art', Q153562: 'Opéra', Q24354: 'Théâtre', Q7075: 'Bibliothèque' } },
@@ -38,7 +38,7 @@ const pause = ms => new Promise(r => setTimeout(r, ms));
 const nb = x => Math.round(x).toLocaleString('fr-FR').replace(/[  ]/g, ' ');
 const maj = s => s ? s[0].toUpperCase() + s.slice(1) : s;
 
-async function demander(url, opts = {}, essais = 4) {
+async function demander(url, opts = {}, essais = 2) {
   for (let i = 0; ; i++) {
     try {
       const r = await fetch(url, { ...opts, headers: { 'User-Agent': UA, Accept: 'application/json', ...(opts.headers || {}) } });
@@ -177,29 +177,33 @@ async function main() {
   console.log('Questions écrites à la main : ' + mains.length + ', déjà tirées de Wikidata : ' + anciennes.length);
 
   /* 1. Les candidats de chaque catégorie, du plus connu au moins connu. */
-  const parCat = [];
+  /* Une requête par classe : les grandes classes (montagnes, lacs, îles) dépassent le temps limite de Wikidata
+     si on les interroge ensemble. Une classe qui échoue quand même est sautée, sans arrêter le lot. */
+  const parClasse = [];
   for (const cat of CATEGORIES) {
-    const q = `SELECT ?item ?cls ?sl ?titre WHERE {
-      VALUES ?cls { ${Object.keys(cat.classes).map(c => 'wd:' + c).join(' ')} }
-      ?item wdt:P31 ?cls ; wikibase:sitelinks ?sl ; wdt:P625 ?coord .
-      FILTER(?sl >= ${cat.min})
-      ?art schema:about ?item ; schema:isPartOf <https://fr.wikipedia.org/> ; schema:name ?titre .
-    } ORDER BY DESC(?sl)`;
-    const lignes = await sparql(q);
-    const vus = new Set(), liste = [];
-    for (const l of lignes) {
-      const id = l.item.value.split('/').pop(); if (vus.has(id) || ids.has(id)) continue; vus.add(id);
-      liste.push({ id, cls: l.cls.value.split('/').pop(), sl: +l.sl.value, titre: l.titre.value });
+    for (const [cls, nom] of Object.entries(cat.classes)) {
+      const q = `SELECT ?item ?sl ?titre WHERE {
+        ?item wdt:P31 wd:${cls} ; wikibase:sitelinks ?sl .
+        FILTER(?sl >= ${cat.min})
+        ?item wdt:P625 ?coord .
+        ?art schema:about ?item ; schema:isPartOf <https://fr.wikipedia.org/> ; schema:name ?titre .
+      } ORDER BY DESC(?sl)`;
+      let lignes;
+      try { lignes = await sparql(q); } catch (e) { console.log(cat.h + ' / ' + nom + ' (' + cls + ') : sauté, Wikidata n’a pas répondu (' + e.message.slice(0, 60) + ')'); continue; }
+      const vus = new Set(), liste = [];
+      for (const l of lignes) {
+        const id = l.item.value.split('/').pop(); if (vus.has(id) || ids.has(id)) continue; vus.add(id);
+        liste.push({ id, cls, sl: +l.sl.value, titre: l.titre.value, cat });
+      }
+      console.log(cat.h + ' / ' + nom + ' (' + cls + ') : ' + liste.length + ' candidats');
+      parClasse.push(liste);
+      await pause(1000);
     }
-    const compte = {}; liste.forEach(x => compte[cat.classes[x.cls]] = (compte[cat.classes[x.cls]] || 0) + 1);
-    console.log(cat.h + ' : ' + liste.length + ' candidats ' + JSON.stringify(compte));
-    parCat.push({ cat, liste });
-    await pause(1000);
   }
 
-  /* 2. On prend les candidats à tour de rôle dans chaque catégorie, pour un lot varié. */
-  const ordre = [];
-  for (let i = 0; parCat.some(p => i < p.liste.length); i++) for (const p of parCat) if (i < p.liste.length) ordre.push({ ...p.liste[i], cat: p.cat });
+  /* 2. On prend les candidats à tour de rôle dans chaque classe (un château, un lac, un stade…), pour un lot varié. */
+  const ordre = [], dejaPris = new Set();
+  for (let i = 0; parClasse.some(l => i < l.length); i++) for (const l of parClasse) if (i < l.length && !dejaPris.has(l[i].id)) { dejaPris.add(l[i].id); ordre.push(l[i]); }
 
   const nouvelles = [], rejets = {};
   const rejet = (pourquoi) => { rejets[pourquoi] = (rejets[pourquoi] || 0) + 1; };
