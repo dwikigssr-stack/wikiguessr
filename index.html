@@ -421,7 +421,8 @@ a.sec:active { transform: scale(.97); }
 /* Les questions, les thèmes et les types de manche sont dans questions.js (mode d'emploi en tête du fichier).
    Un seul niveau : toutes les questions peuvent sortir dans toutes les parties. */
 const ALL = QUESTIONS;
-/* Le menu propose un sujet (menu.js), qui regroupe un ou plusieurs thèmes de questions.js, ou « Tout mélanger ». */
+/* Le menu propose un sujet (menu.js), qui regroupe un ou plusieurs thèmes de questions.js ; Culture générale les prend tous.
+   « mixte » (tous les thèmes) reste utilisé en interne par le défi du jour. */
 const SUJET = Object.fromEntries(MENU_SUJETS.map(s => [s.id, s])), MODE = Object.fromEntries(MENU_MODES.map(m => [m.id, m]));
 const inMode = (d, m) => m === 'mixte' || (SUJET[m] ? !SUJET[m].themes || SUJET[m].themes.includes(d.h) : d.h === m);
 /* Barème : 5 000 points à moins de 25 km, puis les points baissent avec la distance (environ la moitié à 1 000 km). */
@@ -567,7 +568,7 @@ function countdown() {
   cdTick = setInterval(() => { n--; if (n > 0) show(); else { endCountdown(); startTimer(); } }, 1000);
 }
 /* Choix des manches. Priorité : les questions pas encore vues (ou vues il y a le plus longtemps sur cet appareil),
-   puis, en « Tout », un thème différent à chaque manche. */
+   puis, quand le sujet en compte plusieurs, un thème différent à chaque manche. */
 const SEEN_KEY = 'wikiguessr-vus';
 function seenLog() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
 function remember(list) {
@@ -794,10 +795,12 @@ function finish() {
     $('fbest').textContent = first.total === total && first.tiles === results.map(r => tile(r.pts, r.d)).join('') ? 'Revenez demain pour un nouveau défi.' : 'Votre premier essai du jour, celui qui compte : ' + fmt(first.total) + ' points.';
   } else {
     let best = 0;
-    /* Un meilleur score par durée, thème et nombre de manches : les clés historiques restent celles de « Tout » en 5 manches. */
-    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (mode !== 'mixte' ? '-sujet-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
+    /* Un meilleur score par durée, sujet et nombre de manches. Un sujet qui prend tous les thèmes (Culture générale) garde
+       les clés historiques de « Tout mélanger », qui tirait dans les mêmes questions : les anciens records restent. */
+    const tous = !SUJET[mode] || !SUJET[mode].themes;
+    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (tous ? '' : '-sujet-' + mode) + (TOTAL !== 5 ? '-r' + TOTAL : '');
     try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
-    const what = [mode === 'mixte' ? 'tous les sujets' : SUJET[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
+    const what = [SUJET[mode] ? SUJET[mode].nom : 'tous les sujets', timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
     $('fbest').textContent = best ? 'Meilleur score sur cet appareil (' + what + ') : ' + fmt(best) : '';
   }
   $('final').hidden = false;

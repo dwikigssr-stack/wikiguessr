@@ -11,8 +11,8 @@
      sous   : sous-catégories, affichées en petit sous le nom
      f      : couleur de la tuile (aplat), identique en clair et en sombre
      ink    : couleur du texte et du dessin sur la tuile (contraste ≥ 4.5:1)
-     themes : thèmes de questions.js regroupés dans ce sujet (chaque thème
-              n'appartient qu'à un seul sujet) ; null = tous les thèmes
+     themes : thèmes de questions.js regroupés dans ce sujet ; null = tous
+              les thèmes (Culture générale : toutes les questions du jeu)
      large  : true pour une tuile en pleine largeur
      dessin : contenu SVG du dessin (viewBox 0 0 120 120), décoratif
 
@@ -41,12 +41,9 @@ const MENU_SUJETS = [
   { id: 'pop', nom: 'Pop culture', sous: 'Artistes, événements', f: '#FF4D94', ink: '#3A0020',
     themes: ['pop'],
     dessin: '<rect x="44" y="8" width="32" height="56" rx="16" fill="#fff"/><path d="M46 26h28M46 38h28M46 50h28" stroke="#3A0020" stroke-width="4"/><path d="M30 50a30 30 0 0 0 60 0" fill="none" stroke="#3A0020" stroke-width="7" stroke-linecap="round"/><rect x="56" y="80" width="8" height="18" fill="#3A0020"/><rect x="36" y="98" width="48" height="10" rx="5" fill="#3A0020"/><path d="M100 14l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#FFE14D"/><path d="M16 28l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#FFE14D"/>' },
-  { id: 'culture', nom: 'Culture générale', sous: 'Personnalités, politique, lieux', f: '#FFC400', ink: '#2B1A00',
-    themes: ['lieux', 'celeb', 'politique', 'culture', 'science'],
-    dessin: '<circle cx="56" cy="64" r="42" fill="#fff"/><ellipse cx="56" cy="64" rx="17" ry="42" fill="none" stroke="#5C3A00" stroke-width="5"/><path d="M14 64h84M22 40h68M22 88h68" stroke="#5C3A00" stroke-width="5" stroke-linecap="round"/><circle cx="56" cy="64" r="42" fill="none" stroke="#5C3A00" stroke-width="5"/><circle cx="96" cy="26" r="20" fill="#2B1A00"/><path d="M89 21a7 7 0 1 1 10 6c-2 1-3 2-3 5" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="96" cy="39" r="3" fill="#fff"/>' },
-  { id: 'mixte', nom: 'Tout mélanger', sous: 'Les quatre sujets dans une seule partie', f: '#2B2B2A', ink: '#FFFFFF',
-    themes: null, large: true,
-    dessin: '<rect x="14" y="14" width="92" height="92" rx="20" fill="#fff"/><circle cx="40" cy="40" r="8" fill="#2B2B2A"/><circle cx="80" cy="40" r="8" fill="#2B2B2A"/><circle cx="60" cy="60" r="8" fill="#2B2B2A"/><circle cx="40" cy="80" r="8" fill="#2B2B2A"/><circle cx="80" cy="80" r="8" fill="#2B2B2A"/>' }
+  { id: 'culture', nom: 'Culture générale', sous: 'Tous les sujets réunis', f: '#FFC400', ink: '#2B1A00',
+    themes: null,
+    dessin: '<circle cx="56" cy="64" r="42" fill="#fff"/><ellipse cx="56" cy="64" rx="17" ry="42" fill="none" stroke="#5C3A00" stroke-width="5"/><path d="M14 64h84M22 40h68M22 88h68" stroke="#5C3A00" stroke-width="5" stroke-linecap="round"/><circle cx="56" cy="64" r="42" fill="none" stroke="#5C3A00" stroke-width="5"/><circle cx="96" cy="26" r="20" fill="#2B1A00"/><path d="M89 21a7 7 0 1 1 10 6c-2 1-3 2-3 5" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="96" cy="39" r="3" fill="#fff"/>' }
 ];
 
 /* Sélection au premier lancement. */
