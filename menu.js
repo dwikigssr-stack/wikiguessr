@@ -20,19 +20,15 @@
    Copier un bloc de MENU_MODES :
      id, nom, aide (texte sous le nom), bouton (libellé du bouton d'action)
      jeu : réglages transmis au moteur de jeu
-       joueurs : 1 en solo, 'duel' pour le nombre de joueurs choisi dans
-                 les réglages (2 ou 3, sur le même appareil)
        chrono  : true = temps par manche choisi dans les réglages, 0 = sans
        manches : nombre de questions
    ===================================================================== */
 
 const MENU_MODES = [
   { id: 'chrono', nom: 'Contre-la-montre', aide: '10 questions, un chrono. En solo.', bouton: 'Lancer la partie',
-    jeu: { joueurs: 1, chrono: true, manches: 10 } },
-  { id: 'duel', nom: 'Duel', aide: 'Mêmes questions pour deux. Le plus rapide marque.', bouton: 'Trouver un adversaire',
-    jeu: { joueurs: 'duel', chrono: true, manches: 10 } },
+    jeu: { chrono: true, manches: 10 } },
   { id: 'training', nom: 'Training', aide: 'Sans chrono, sans limite. Pour s’entraîner.', bouton: 'Commencer l’entraînement',
-    jeu: { joueurs: 1, chrono: 0, manches: 10 } }
+    jeu: { chrono: 0, manches: 10 } }
 ];
 
 const MENU_SUJETS = [

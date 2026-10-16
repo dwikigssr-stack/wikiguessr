@@ -28,11 +28,8 @@
   --muted: #94a9b5;
   --line: rgba(255,255,255,.13);
   --guess: #ffb547;
-  --p2: #6cb4ff;
-  --p3: #c4a2ff;
   --truth: #FF5A6E;
   --truth-ink: #2a0a10;
-  --win: #4ad6a0;
   --surf: #0f2236;
   --btn-ink: #1a1206;
   --btn: #ffb547;
@@ -141,7 +138,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #home .globehint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: var(--step-small); color: #fff; background: rgba(11,21,48,.8); padding: 6px 12px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
 .spun .globehint, .noglobe .globehint { opacity: 0; }
 
-/* Réglages : ce que le menu ne montre pas (difficulté, temps par question, joueurs en duel). */
+/* Réglages : ce que le menu ne montre pas (temps par question). */
 #prefs { max-width: min(520px, calc(100vw - 32px)); width: 100%; box-sizing: border-box; padding: 28px; border: 0; border-radius: 0; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font); }
 #prefs::backdrop { background: rgba(11,21,48,.6); }
 #prefs h2 { margin: 0 0 20px; font-size: 1.75rem; font-weight: 600; letter-spacing: -.02em; }
@@ -178,25 +175,10 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
   .grid { grid-template-columns: 1fr; }
   .field { min-height: 120px; }
 }
-.p1 { color: var(--guess); }
-.p2 { color: var(--p2); }
-.p3 { color: var(--p3); }
-#who { font-weight: 700; }
-#handoff { position: absolute; inset: 0; z-index: 1500; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
-#handoff h2 { font-family: var(--font-display); font-size: 26px; margin: 0; }
-#handoff p { margin: 0; color: var(--muted); max-width: 36ch; }
-#handoff button { max-width: 320px; }
 #countdown { position: absolute; inset: 0; z-index: 1600; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; }
 #cdnum { font: 700 120px/1 var(--font-display); font-variant-numeric: tabular-nums; }
 #cdtxt { margin: 0; color: var(--muted); }
-.cd #photo, .cd .txt, .ho #photo, .ho .txt { visibility: hidden; }
-#fwinner { font: 700 34px/1.1 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
-.duelscores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-.ds { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
-.ds span { font-family: var(--font-mono); font-size: 12.5px; }
-.ds b { font: 700 36px/1.1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
-.ds i { font: normal 12px var(--font-mono); color: var(--muted); }
-.ds.win { border-width: 2px; border-color: var(--win); }
+.cd #photo, .cd .txt { visibility: hidden; }
 #clock.low b { color: var(--guess); }
 #timebar { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 1000; background: var(--line); pointer-events: none; }
 #timebar i { display: block; height: 100%; width: 100%; background: var(--ink); }
@@ -213,7 +195,7 @@ select { font: 500 12.5px var(--font-mono); color: var(--ink); background: var(-
 #mapwrap { position: relative; flex: 1; min-height: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--sea); }
 #map { position: absolute; inset: 0; background: var(--sea); }
 .leaflet-container { cursor: crosshair; font-family: var(--font-mono); }
-/* Globe de jeu (facile et moyen) : le même globe que l'accueil, posé à la place de la carte satellite. */
+/* Globe de jeu : le même globe que l'accueil, posé à la place de la carte Leaflet (qui ne sert que si le globe ne charge pas). */
 #gglobe { position: absolute; inset: 0; z-index: 500; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
 .zoom, .hint { z-index: 1000; }
 .leaflet-control-attribution { font-size: 10px; }
@@ -248,7 +230,7 @@ td.t { min-width: 0; }
 /* Écrans de jeu : mêmes polices que le menu d'accueil. */
 button.main { font-family: var(--font-logo); font-weight: 600; letter-spacing: 0; }
 #cdnum, #final .big, .ds b { font-family: var(--font-logo); font-weight: 700; letter-spacing: -0.02em; }
-#title, .dist, #fwinner, #handoff h2, #final h2 { font-weight: 800; letter-spacing: -0.01em; }
+#title, .dist, #final h2 { font-weight: 800; letter-spacing: -0.01em; }
 .meta { font-size: 14px; font-weight: 600; } .meta b { font-weight: 800; }
 .chip, .optname { font-weight: 800; }
 #extract { font-weight: 500; }
@@ -271,7 +253,7 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
   #final:not([hidden]) > * { animation: rise 320ms var(--ease-out) backwards; }
   #final > :nth-child(2) { animation-delay: 40ms; } #final > :nth-child(3) { animation-delay: 80ms; } #final > :nth-child(4) { animation-delay: 120ms; }
   #final > :nth-child(5) { animation-delay: 160ms; } #final > :nth-child(n+6) { animation-delay: 200ms; }
-  #final:not([hidden]), #handoff:not([hidden]), #countdown:not([hidden]) { animation: fadein 200ms ease-out; }
+  #final:not([hidden]), #countdown:not([hidden]) { animation: fadein 200ms ease-out; }
   .hint:not([hidden]) { animation: fadein 200ms ease-out; }
 }
 /* Écran final : le jeu derrière disparaît, on voit le ciel étoilé, le rang en badge et le globe des cinq réponses. */
@@ -299,7 +281,6 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
 /* Sans photo : l'icône du thème sur sa couleur, plutôt que des initiales grises. */
 #mono { font-size: 40px; letter-spacing: 0; line-height: 1; }
 @media (max-width: 440px) { #mono { font-size: 30px; } }
-#title.mystery { color: var(--muted); font-style: italic; }
 /* Refonte de l'écran de jeu et du résultat : ambre = action et repère du joueur, corail = bonne réponse, angles plus francs comme l'accueil. */
 .meta { font-variant-numeric: tabular-nums; }
 #clock { background: var(--guess); color: var(--btn-ink); padding: 3px 9px; border-radius: 4px; }
@@ -337,7 +318,7 @@ a.sec:active { transform: scale(.97); }
   <header>
     <wg-logo class="brand"></wg-logo>
     <button class="menubtn" id="menu" aria-label="Retour au menu">Menu</button>
-    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span id="who" hidden></span><span>Manche <b id="rnd">1</b>/<span id="rtot">5</span></span><span id="solo"><b id="tot">0</b> pts</span><span id="duo" hidden><span class="p1">J1 <b id="t1">0</b></span> · <span class="p2">J2 <b id="t2">0</b></span><span id="t3wrap" hidden> · <span class="p3">J3 <b id="t3">0</b></span></span></span></div>
+    <div class="meta"><span id="clock" hidden><b id="sec">0</b> s</span><span>Manche <b id="rnd">1</b>/<span id="rtot">5</span></span><span id="solo"><b id="tot">0</b> pts</span></div>
   </header>
   <div id="segs" aria-hidden="true"></div>
   <section id="card" aria-live="polite">
@@ -354,11 +335,6 @@ a.sec:active { transform: scale(.97); }
     <canvas id="gglobe" hidden aria-label="Globe terrestre. Faites-le tourner en le glissant, touchez pour placer votre repère."></canvas>
     <div id="timebar" hidden><i id="timefill"></i></div>
     <div id="countdown" hidden><div id="cdnum">3</div><p id="cdtxt"></p></div>
-    <div id="handoff" hidden>
-      <h2 id="hotitle">Au tour du Joueur 2</h2>
-      <p id="hotext">Le Joueur 1 a joué. Passez l'appareil au Joueur 2 sans montrer l'écran.</p>
-      <button class="main" id="ready">Joueur 2 est prêt</button>
-    </div>
     <div class="zoom"><button id="zin" aria-label="Zoom avant">+</button><button id="zout" aria-label="Zoom arrière">&minus;</button></div>
     <div class="hint" id="hint">Touchez la carte pour poser un repère</div>
   </div>
@@ -379,11 +355,6 @@ a.sec:active { transform: scale(.97); }
   <div id="final" hidden>
     <div class="of" id="fhead">Partie terminée</div>
     <div id="fsolo"><div class="big" id="ftot"></div><div class="of" id="fof">sur 25 000 points</div></div>
-    <div id="fduel" hidden>
-      <div id="fwinner"></div>
-      <div class="duelscores" id="fscores"></div>
-      <div class="of" id="fdiff"></div>
-    </div>
     <h2 id="frank"></h2>
     <div id="recap"><canvas id="rglobe" aria-label="Globe récapitulatif : vos repères et les bonnes réponses. Faites-le tourner en le glissant."></canvas></div>
     <div class="tablewrap"><table><tbody id="frows"></tbody></table></div>
@@ -433,15 +404,9 @@ a.sec:active { transform: scale(.97); }
     </main>
     <dialog id="prefs" aria-labelledby="prefstitle">
       <h2 id="prefstitle">Réglages</h2>
-      <fieldset><legend>Difficulté</legend><div class="row">
-        <label><input type="radio" name="diff" value="1">Facile</label><label><input type="radio" name="diff" value="2">Moyen</label><label><input type="radio" name="diff" value="3">Difficile</label>
-      </div><p id="diffnote"></p></fieldset>
-      <fieldset><legend>Temps par question (Contre-la-montre et Duel)</legend><div class="row">
+      <fieldset><legend>Temps par question (Contre-la-montre)</legend><div class="row">
         <label><input type="radio" name="time" value="60">60 s</label><label><input type="radio" name="time" value="30">30 s</label><label><input type="radio" name="time" value="15">15 s</label>
       </div><p>Répondre vite rapporte jusqu’à 25 % de points en plus.</p></fieldset>
-      <fieldset><legend>Joueurs en duel</legend><div class="row">
-        <label><input type="radio" name="duo" value="2">2 joueurs</label><label><input type="radio" name="duo" value="3">3 joueurs</label>
-      </div><p>Chacun son tour sur le même appareil.</p></fieldset>
       <form method="dialog"><button class="close">C’est bon</button></form>
     </dialog>
   </div>
@@ -453,15 +418,14 @@ a.sec:active { transform: scale(.97); }
 <script src="logo.js"></script>
 <script>
 /* Les questions, les thèmes et les types de manche sont dans questions.js (mode d'emploi en tête du fichier).
-   lv : niveau de difficulté (1 = très connu, 2 = moyen, 3 = peu connu ou lieu surprenant). */
-const ALL = QUESTIONS.map(d => Object.assign(d, { lv: d.n || 2 }));
+   Un seul niveau : toutes les questions peuvent sortir dans toutes les parties. */
+const ALL = QUESTIONS;
 /* Le menu propose un sujet (menu.js), qui regroupe un ou plusieurs thèmes de questions.js, ou « Tout mélanger ». */
 const SUJET = Object.fromEntries(MENU_SUJETS.map(s => [s.id, s])), MODE = Object.fromEntries(MENU_MODES.map(m => [m.id, m]));
 const inMode = (d, m) => m === 'mixte' || (SUJET[m] ? !SUJET[m].themes || SUJET[m].themes.includes(d.h) : d.h === m);
-/* Barème : plus la difficulté monte, plus les points baissent vite avec la distance. */
-const DECAYS = { 1: 2000, 2: 1500, 3: 1000 }, LEVELS = { 1: 'Facile', 2: 'Moyen', 3: 'Difficile' };
+/* Barème : 5 000 points à moins de 25 km, puis les points baissent avec la distance (environ la moitié à 1 000 km). */
+const DECAY = 1500;
 let TOTAL = 5; /* manches par partie : 5 ou 10 */
-let DECAY = 1500, level = 2;
 let mode = 'mixte', daily = null; /* daily : date du défi du jour en cours (AAAA-MM-JJ), sinon null */
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('fr-FR');
@@ -495,17 +459,17 @@ let rounds = [], idx = 0, total = 0, guess = null, revealed = false, results = [
 /* ---- carte Leaflet (fond coloré sans noms de lieux) ---- */
 const wrap = $('mapwrap');
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-/* Si Leaflet n'a pas pu charger (CDN injoignable), un objet vide prend sa place : la partie se joue alors sur le globe, à tous les niveaux. */
+/* Si Leaflet n'a pas pu charger (CDN injoignable), un objet vide prend sa place : la partie se joue alors sur le globe. */
 const HAS_LEAFLET = !!window.L;
 if (!HAS_LEAFLET) { const nop = new Proxy(function () {}, { get: (t, k) => k === 'style' ? {} : nop, apply: () => nop }); window.L = nop; }
 const map = L.map('map', { minZoom: 2, maxZoom: 14, zoomControl: false, zoomSnap: 0.5, maxBounds: [[-85, -1e9], [85, 1e9]], maxBoundsViscosity: 1 });
 /* Planisphère sans fin : seule la latitude est bornée (±85°) ; la longitude défile indéfiniment, les tuiles se répètent d'un bord à l'autre. */
 /* Fond principal : imagerie satellite Esri, sans noms de lieux ni clé d'accès. Si aucune tuile ne se charge, bascule sur le relief Esri (aussi sans noms). */
 let fell = false, loadedTiles = 0, failedTiles = 0, noTiles = false;
-/* Si aucune imagerie ne charge (réseau filtré, bloqueur), la carte resterait grise : la partie passe sur le globe, sans noms ni frontières. */
+/* Si aucune imagerie ne charge (réseau filtré, bloqueur), la carte resterait grise : la partie repasse sur le globe s'il a fini de charger. */
 function tilesDead() {
   if (noTiles) return; noTiles = true;
-  if (level === 3 && $('home').hidden && !GG.on) { GG.use(true); if (GG.on) { resetView(); drawOverlay(); if (revealed && rounds[idx]) fitAll(rounds[idx]); } }
+  if ($('home').hidden && !GG.on) { GG.use(true); if (GG.on) { resetView(); drawOverlay(); if (revealed && rounds[idx]) guess ? fitTo(guess, rounds[idx]) : GG.fit([rounds[idx]]); } }
 }
 const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   { noWrap: false, maxNativeZoom: 17, maxZoom: 14, attribution: 'Fond : Esri, Maxar, Earthstar Geographics' }).addTo(map);
@@ -519,7 +483,7 @@ base.on('tileerror', () => {
     { noWrap: false, maxNativeZoom: 9, maxZoom: 12, attribution: 'Fond : Esri, USGS, NOAA' })
     .on('tileload', () => { ok++; }).on('tileerror', () => { if (!ok && ++ko >= 4) tilesDead(); }).addTo(map);
 });
-/* Pas de frontières sur la carte satellite (niveau difficile) : on ne voit que la photo.
+/* Pas de frontières sur la carte satellite (carte de secours si le globe ne charge pas) : on ne voit que la photo.
    Contours détaillés (1/50 millions), chargés une fois : le globe de jeu les utilise quand on zoome. */
 const ATLAS50 = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json').then(x => x.ok ? x.json() : null).catch(() => null);
 const layer = L.layerGroup().addTo(map);
@@ -550,13 +514,6 @@ const dot = (c, p, o) => L.circleMarker([p.a, o], { radius: 9, color: '#fff', we
 /* La bonne réponse : point corail avec le nom du lieu au-dessus (même rendu que sur le globe). */
 const placeName = p => (p.p || '').split(',')[0].trim();
 const truthDot = (p, o) => { const m = dot(cssv('--truth'), p, o), n = placeName(p); if (n) m.bindTooltip(n, { permanent: true, direction: 'top', offset: [0, -8], className: 'truthtip' }); return m; };
-function fitAll(r) {
-  if (GG.on) return GG.fit([r].concat(dg.filter(Boolean)));
-  const pts = [[r.a, r.o]].concat(dg.filter(Boolean).map(g => [g.a, near(g.o, r.o)]));
-  const xs = pts.map(q => q[1]), mid = (Math.min(...xs) + Math.max(...xs)) / 2, k = seen(mid) - mid;
-  const sh = pts.map(q => [q[0], q[1] + k]);
-  if (sh.length === 1) map.setView(sh[0], 4); else fitPts(sh);
-}
 function drawOverlay() {
   if (GG.on) return GG.kick();
   layer.clearLayers();
@@ -564,11 +521,11 @@ function drawOverlay() {
   /* Éléments exprimés sur la copie du monde la plus proche de la réponse (ou du repère), puis recopiés sur chaque monde visible. */
   const items = [], show = revealed && cur, ref = show ? cur.o : guess ? guess.o : 0, at = q => near(q.o, ref);
   if (show) {
-    const gs = players > 1 ? dg.map((g, i) => g && { g, c: PCOL[i] }).filter(Boolean) : guess ? [{ g: guess, c: '--guess' }] : [];
+    const gs = guess ? [{ g: guess, c: '--guess' }] : [];
     gs.forEach(x => items.push({ line: [[x.g.a, at(x.g)], [cur.a, cur.o]] }));
     items.push({ p: cur, c: '--truth', o: cur.o, truth: true });
     gs.forEach(x => items.push({ p: x.g, c: x.c, o: at(x.g) }));
-  } else if (guess) items.push({ p: guess, c: players > 1 ? PCOL[turn] : '--guess', o: guess.o });
+  } else if (guess) items.push({ p: guess, c: '--guess', o: guess.o });
   if (!items.length) return;
   const xs = items.flatMap(i => i.line ? i.line.map(q => q[1]) : [i.o]), lo = Math.min(...xs), hi = Math.max(...xs);
   for (let n = Math.ceil((W - hi) / 360); n <= Math.floor((E - lo) / 360); n++) {
@@ -594,7 +551,7 @@ const points = d => d < 25 ? 5000 : Math.round(5000 * Math.exp(-d / DECAY));
 
 /* ---- manches ---- */
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-/* ---- décompte de 3 secondes avant le début d'une partie (duel ou chronométrée) : cache la carte et l'indice ---- */
+/* ---- décompte de 3 secondes avant le début d'une partie chronométrée : cache la carte et l'indice ---- */
 let counting = false, cdTick = null;
 function endCountdown() { clearInterval(cdTick); cdTick = null; counting = false; $('countdown').hidden = true; document.body.classList.remove('cd'); }
 function countdown() {
@@ -604,12 +561,12 @@ function countdown() {
   let n = 3;
   const show = () => { $('cdnum').textContent = n; if (!RM) $('cdnum').animate([{ transform: 'scale(.82)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }); };
   show();
-  $('cdtxt').textContent = players > 1 ? 'Le Joueur 1 commence' : 'Préparez-vous';
+  $('cdtxt').textContent = 'Préparez-vous';
   $('countdown').hidden = false;
   cdTick = setInterval(() => { n--; if (n > 0) show(); else { endCountdown(); startTimer(); } }, 1000);
 }
-/* Choix des manches. Priorité : le niveau choisi (puis le niveau voisin s'il en manque), les questions pas encore vues
-   (ou vues il y a le plus longtemps sur cet appareil), puis, en « Tout », un thème différent à chaque manche. */
+/* Choix des manches. Priorité : les questions pas encore vues (ou vues il y a le plus longtemps sur cet appareil),
+   puis, en « Tout », un thème différent à chaque manche. */
 const SEEN_KEY = 'wikiguessr-vus';
 function seenLog() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
 function remember(list) {
@@ -630,15 +587,12 @@ function fill(sorted, ok, out = [], n = TOTAL) {
   return out;
 }
 function pick(pool) {
-  /* En Difficile, le titre est caché : on garde les questions écrites à la main, dont l'indice suffit à trouver.
-     Les questions tirées de Wikidata (questions-wikidata.js, champ id) ont des indices plus maigres. */
-  if (level === 3) { const main = pool.filter(d => !d.id); if (main.length >= TOTAL) pool = main; }
   const log = seenLog();
-  const sorted = shuffle(pool).sort((a, b) => Math.abs(a.lv - level) - Math.abs(b.lv - level) || (log[a.t] || 0) - (log[b.t] || 0));
+  const sorted = shuffle(pool).sort((a, b) => (log[a.t] || 0) - (log[b.t] || 0));
   const best = sorted[0];
-  return shuffle(fill(sorted, d => Math.abs(d.lv - level) === Math.abs(best.lv - level) && !log[d.t] === !log[best.t]));
+  return shuffle(fill(sorted, d => !log[d.t] === !log[best.t]));
 }
-/* Défi du jour : un tirage qui ne dépend que de la date, donc identique pour tout le monde ce jour-là (niveau moyen, tous les thèmes, 5 manches). */
+/* Défi du jour : un tirage qui ne dépend que de la date, donc identique pour tout le monde ce jour-là (tous les thèmes, 5 manches). */
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 function seeded(str) {
   let h = 1779033703 ^ str.length;
@@ -651,50 +605,41 @@ function pickDaily(day) {
   const rnd = seeded('wikiguessr-' + day), a = ALL.slice().sort((x, y) => x.t < y.t ? -1 : 1);
   const melange = l => { for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return l; };
   melange(a);
-  const out = fill(a.filter(d => d.id && d.lv === 2), () => true, [], DAILY_WIKI);
-  return melange(fill(a.filter(d => !d.id), d => d.lv === 2, out));
+  const out = fill(a.filter(d => d.id), () => true, [], DAILY_WIKI);
+  return melange(fill(a.filter(d => !d.id), () => true, out));
 }
 const DAILY_KEY = d => 'wikiguessr-defi-' + d;
 function dailyDone(d) { try { return JSON.parse(localStorage.getItem(DAILY_KEY(d))); } catch (e) { return null; } }
 function start() {
   endCountdown(); document.body.classList.remove('fin');
-  $('fsolo').hidden = false; $('fduel').hidden = true; $('frank').hidden = false;
   rounds = daily ? pickDaily(daily) : pick(ALL.filter(d => inMode(d, mode))); idx = 0; total = 0; results = [];
   $('rtot').textContent = TOTAL;
   remember(rounds);
-  players = daily ? 1 : sel.players; dtot = Array(players).fill(0); dres = [];
-  $('solo').hidden = players > 1; $('duo').hidden = players < 2; $('who').hidden = players < 2; $('t3wrap').hidden = players < 3;
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
-  ['t1', 't2', 't3'].forEach(id => { $(id).textContent = '0'; });
-  GG.use(level < 3 || !HAS_LEAFLET || noTiles); /* facile et moyen : globe ; difficile : carte satellite Leaflet (le globe si l'imagerie ne charge pas) */
+  GG.use(true); /* le globe en relief ; la carte satellite Leaflet ne sert que si le globe n'a pas pu charger */
   load();
 }
 function load() {
   const r = rounds[idx];
-  guess = null; revealed = false; turn = 0; dg = Array(players).fill(null); waiting = false;
-  $('handoff').hidden = true; document.body.classList.remove('ho'); updateWho();
+  guess = null; revealed = false;
   $('rnd').textContent = idx + 1;
   const sg = $('segs');
   if (sg.children.length !== TOTAL) { sg.textContent = ''; for (let i = 0; i < TOTAL; i++) sg.appendChild(document.createElement('i')); }
   [...sg.children].forEach((e, i) => { e.className = i < idx ? 'done' : i === idx ? 'on' : ''; });
   /* Pastille : thème · sous-catégorie · ce qu'il faut placer */
   $('chip').textContent = [THEMES[r.h].long, r.c === THEMES[r.h].long ? '' : r.c, r.q || TYPES[r.k].quoi].filter(Boolean).join(' · ');
-  /* En difficile, le titre est caché jusqu'à la réponse : il faut d'abord reconnaître le sujet à partir de l'indice. */
-  const hide = level === 3;
-  $('title').textContent = hide ? (r.k === 'perso' || r.k === 'vie' ? 'Qui est-ce ?' : 'De quoi s’agit-il ?') : r.t;
-  $('title').classList.toggle('mystery', hide);
+  $('title').textContent = r.t;
   $('extract').textContent = r.x;
-  $('photo').hidden = level === 3; /* en difficile, pas de photo */
   setPhoto(r);
   $('go').hidden = false; $('go').disabled = true;
   $('result').hidden = true; $('hint').hidden = false;
   resetView();
   $('card').className = r.k;
   if (!RM) $('card').animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-  /* Le décompte sert au duel (passer l'appareil) et au chrono ; en solo sans limite, la partie commence tout de suite. */
-  if (idx === 0 && (players > 1 || timeLimit)) countdown(); else startTimer();
+  /* Le décompte sert au chrono ; sans limite de temps, la partie commence tout de suite. */
+  if (idx === 0 && timeLimit) countdown(); else startTimer();
 }
-function showTitle(r) { $('title').textContent = r.t; $('title').classList.remove('mystery'); if (LATE[r.k]) setPhoto(r, true); }
+function showTitle(r) { $('title').textContent = r.t; if (LATE[r.k]) setPhoto(r, true); }
 /* Les vignettes qui sont des drapeaux, des cartes de localisation ou des blasons (souvent des .svg) donneraient la réponse : on les écarte. */
 const ICONS = { lieux: '🗺️', celeb: '⭐', sport: '🏅', politique: '🏛️', histoire: '📜', crime: '🕵️', culture: '🎭', evt: '📅', science: '🔬', pop: '🎬' };
 const SPOILER = /\.svg|flag|drapeau|map|carte|locat|orthographic|blason|armoiries|coat_of_arms/i;
@@ -720,105 +665,9 @@ function setPhoto(r, after) {
     } catch (e) {}
   }
 }
-/* ---- duel en écran partagé (2 ou 3 joueurs) : même manche pour tous, J1 puis J2 (puis J3), repères cachés jusqu'à la comparaison ---- */
-let players = 1, turn = 0, dg = [null, null], dtot = [0, 0], dres = [], dfr = [0, 0, 0], waiting = false;
-const PCOL = ['--guess', '--p2', '--p3'];
-function updateWho() {
-  const w = $('who');
-  w.textContent = players > 1 ? 'Joueur ' + (turn + 1) : '';
-  w.className = 'p' + (turn + 1);
-  $('hint').textContent = players > 1 ? 'Joueur ' + (turn + 1) + ' : touchez la carte pour poser un repère' : 'Touchez la carte pour poser un repère';
-}
-const dtext = x => x === null ? 'temps écoulé' : fmt(x) + ' km';
-function duelSubmit(force) {
-  if (revealed || waiting) return;
-  if (!guess && !force) return;
-  dfr[turn] = fracLeft();
-  stopTimer();
-  dg[turn] = guess;
-  if (turn < players - 1) {
-    waiting = true; guess = null; drawOverlay();
-    const nx = turn + 2;
-    $('hotitle').textContent = 'Au tour du Joueur ' + nx;
-    $('hotext').textContent = "Le Joueur " + (turn + 1) + " a joué. Passez l'appareil au Joueur " + nx + " sans montrer l'écran.";
-    $('ready').textContent = 'Joueur ' + nx + ' est prêt';
-    $('go').disabled = true; $('handoff').hidden = false; document.body.classList.add('ho');
-    $('clock').hidden = true; $('timebar').hidden = true; /* le chrono du joueur précédent ne reste pas affiché */
-    return;
-  }
-  revealed = true;
-  const r = rounds[idx];
-  const d = dg.map(g => g ? km(g.a, g.o, r.a, r.o) : null);
-  const base = d.map(x => x === null ? 0 : points(x)), b = base.map((x, i) => speedBonus(x, dfr[i])), p = base.map((x, i) => x + b[i]);
-  p.forEach((x, i) => { countUp($('t' + (i + 1)), dtot[i], dtot[i] + x); dtot[i] += x; });
-  dres.push({ t: r.t, r, g: dg.slice(), d, p, b });
-  showTitle(r);
-  const top = Math.max(...p), lead = p.map((x, i) => x === top ? i + 1 : 0).filter(Boolean);
-  $('dist').textContent = lead.length === 1 ? 'Manche pour le Joueur ' + lead[0] : 'Égalité sur cette manche';
-  $('pts').textContent = p.map(x => '+' + fmt(x)).join(' / ') + ' pts';
-  $('where').textContent = '';
-  const s = document.createElement('span');
-  const bt = x => x ? ' (dont ' + fmt(x) + ' de vitesse)' : '';
-  s.textContent = d.map((x, i) => 'J' + (i + 1) + ' : ' + dtext(x) + bt(b[i])).join(' · ') + ' — ' + TYPES[r.k].rep.toLowerCase() + r.p + ' · ';
-  const a = document.createElement('a');
-  a.href = 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((r.w || r.t).replace(/ /g, '_'));
-  a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Lire l’article sur Wikipédia';
-  $('where').append(s, a);
-  $('wiki').hidden = true; $('gauge').hidden = true; $('bonus').hidden = true;
-  learn(r);
-  $('next').textContent = idx + 1 < TOTAL ? 'Manche suivante' : 'Voir le résultat';
-  $('go').hidden = true; $('result').hidden = false;
-  drawOverlay(); fitAll(r);
-}
-function ready() {
-  $('handoff').hidden = true; document.body.classList.remove('ho'); waiting = false; turn += 1; guess = null;
-  resetView(); $('go').disabled = true; $('hint').hidden = false;
-  updateWho(); startTimer();
-}
-function finishDuel() {
-  $('fhead').textContent = 'Partie terminée · ' + LEVELS[level];
-  $('fsolo').hidden = true; $('frank').hidden = true; $('fduel').hidden = false;
-  const top = Math.max(...dtot), lead = dtot.map((x, i) => x === top ? i + 1 : 0).filter(Boolean);
-  const sc = $('fscores'); sc.textContent = '';
-  sc.style.gridTemplateColumns = 'repeat(' + players + ', 1fr)';
-  dtot.forEach((x, i) => {
-    const card = document.createElement('div'); card.className = 'ds p' + (i + 1) + (lead.includes(i + 1) && lead.length === 1 ? ' win' : '');
-    const n = document.createElement('span'); n.textContent = 'Joueur ' + (i + 1);
-    const v = document.createElement('b'); v.textContent = fmt(x);
-    if (players === 3) v.style.fontSize = '28px';
-    const u = document.createElement('i'); u.textContent = 'points';
-    card.append(n, v, u); sc.appendChild(card);
-  });
-  const w = $('fwinner');
-  w.textContent = lead.length === 1 ? 'Victoire du Joueur ' + lead[0] + ' !' : lead.length === players ? 'Égalité parfaite !' : 'Égalité entre les Joueurs ' + lead.join(' et ') + ' !';
-  w.className = lead.length === 1 ? 'p' + lead[0] : '';
-  const second = Math.max(...dtot.filter(x => x !== top), -1);
-  $('fdiff').textContent = lead.length > 1 ? 'Même total en tête.' : 'Avec ' + fmt(top - second) + ' points d’avance sur le deuxième' + (timeLimit ? ' (bonus de vitesse inclus).' : '.');
-  const tb = $('frows'); tb.textContent = '';
-  const head = document.createElement('tr');
-  ['Manche'].concat(dtot.map((_, i) => 'J' + (i + 1))).forEach((h, i) => { const c = document.createElement('td'); c.className = i ? 'n' : 't'; c.textContent = h; c.style.color = 'var(--muted)'; head.appendChild(c); });
-  tb.appendChild(head);
-  for (const r of dres) {
-    const tr = document.createElement('tr');
-    const c1 = document.createElement('td'); c1.className = 't'; c1.textContent = r.t;
-    const cell = (i) => {
-      const c = document.createElement('td'); c.className = 'n';
-      c.textContent = fmt(r.p[i]);
-      const sub = document.createElement('div'); sub.textContent = dtext(r.d[i]);
-      sub.style.cssText = 'font-size:11px;color:var(--muted);font-weight:400';
-      c.appendChild(sub);
-      if (r.p[i] === Math.max(...r.p) && r.p.filter(x => x === r.p[i]).length === 1) c.style.fontWeight = '700';
-      return c;
-    };
-    tr.append(c1, ...r.p.map((_, i) => cell(i))); tb.appendChild(tr);
-    moreRow(tb, tr, c1, r.r, 1 + r.p.length);
-  }
-  $('fbest').textContent = '';
-  $('final').hidden = false;
-}
 function place(lat, lon) {
-  if (revealed || waiting || counting) return;
-  lon = wrapLng(lon); /* la carte difficile défile sans fin : la longitude peut dépasser ±540° */
+  if (revealed || counting) return;
+  lon = wrapLng(lon); /* la carte Leaflet défile sans fin : la longitude peut dépasser ±540° */
   guess = { a: lat, o: lon };
   $('go').disabled = false; $('hint').hidden = true;
   drawOverlay();
@@ -843,7 +692,7 @@ function startTimer() {
     $('sec').textContent = Math.ceil(left / 1000);
     $('timefill').style.transform = 'scaleX(' + (left / (timeLimit * 1000)) + ')';
     $('clock').classList.toggle('low', low); $('timebar').classList.toggle('low', low);
-    if (left <= 0) { stopTimer(); if (!revealed) { if (players > 1) duelSubmit(true); else if (guess) reveal(); else timeUp(); } }
+    if (left <= 0) { stopTimer(); if (!revealed) { if (guess) reveal(); else timeUp(); } }
   };
   paint(); tick = setInterval(paint, 200);
 }
@@ -920,10 +769,9 @@ function moreRow(tb, tr, td, q, cols) {
 function rowDot(td, pts, d) { const i = document.createElement('i'); i.style.background = TILECOL[tile(pts, d)]; td.prepend(i); }
 function finish() {
   stopTimer();
-  $('fhead').textContent = (daily ? 'Défi du jour · ' + new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'Partie terminée') + ' · ' + LEVELS[level];
+  $('fhead').textContent = (daily ? 'Défi du jour · ' + new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'Partie terminée');
   $('clock').hidden = true; $('timebar').hidden = true;
   document.body.classList.add('fin');
-  if (players > 1) { finishDuel(); Recap.show(dres.map(x => ({ r: x.r, g: x.g }))); return; }
   const scale = timeLimit ? 1 + SPEED : 1;
   $('fof').textContent = 'sur ' + fmt(TOTAL * 5000 * scale) + ' points' + (timeLimit ? ' (bonus de vitesse inclus)' : '');
   countUp($('ftot'), 0, total);
@@ -944,10 +792,10 @@ function finish() {
     $('fbest').textContent = first.total === total && first.tiles === results.map(r => tile(r.pts, r.d)).join('') ? 'Revenez demain pour un nouveau défi.' : 'Votre premier essai du jour, celui qui compte : ' + fmt(first.total) + ' points.';
   } else {
     let best = 0;
-    /* Un meilleur score par durée, niveau, thème et nombre de manches : les clés historiques restent celles de « Tout » en 5 manches. */
-    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (level !== 2 ? '-d' + level : '') + (mode !== 'mixte' ? '-sujet-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
+    /* Un meilleur score par durée, thème et nombre de manches : les clés historiques restent celles de « Tout » en 5 manches. */
+    const key = 'wikiguessr-best' + (timeLimit ? '-' + timeLimit : '') + (mode !== 'mixte' ? '-sujet-' + mode : '') + (TOTAL !== 5 ? '-r' + TOTAL : '');
     try { best = +localStorage.getItem(key) || 0; if (total > best) { best = total; localStorage.setItem(key, String(best)); } } catch (e) {}
-    const what = [LEVELS[level].toLowerCase(), mode === 'mixte' ? '' : SUJET[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
+    const what = [mode === 'mixte' ? 'tous les sujets' : SUJET[mode].nom, timeLimit ? timeLimit + ' s par manche' : '', TOTAL !== 5 ? TOTAL + ' manches' : ''].filter(Boolean).join(', ');
     $('fbest').textContent = best ? 'Meilleur score sur cet appareil (' + what + ') : ' + fmt(best) : '';
   }
   $('final').hidden = false;
@@ -955,11 +803,7 @@ function finish() {
 }
 /* Partage : un petit texte à coller dans une conversation (score, rang, une pastille par manche, lien du jeu). */
 function shareText() {
-  const url = location.origin + location.pathname, head = 'Wikiguessr' + (daily ? ' · Défi du ' + new Date().toLocaleDateString('fr-FR') : '') + ' · ' + LEVELS[level];
-  if (players > 1) {
-    const lines = dtot.map((x, i) => 'J' + (i + 1) + ' ' + dres.map(r => tile(r.p[i], r.d[i])).join('') + ' ' + fmt(x));
-    return [head, ...lines, url].join('\n');
-  }
+  const url = location.origin + location.pathname, head = 'Wikiguessr' + (daily ? ' · Défi du ' + new Date().toLocaleDateString('fr-FR') : '');
   const scale = timeLimit ? 1 + SPEED : 1;
   return [head, results.map(r => tile(r.pts, r.d)).join('') + ' ' + fmt(total) + ' / ' + fmt(TOTAL * 5000 * scale), rank(total / scale * 5 / TOTAL), url].join('\n');
 }
@@ -976,17 +820,12 @@ $('zin').onclick = () => GG.on ? GG.zoomBy(1.6) : map.zoomIn();
 $('zout').onclick = () => GG.on ? GG.zoomBy(1 / 1.6) : map.zoomOut();
 /* ---- écran d'accueil : on choisit les réglages, puis « Lancer la partie » démarre le décompte ---- */
 /* ---- menu principal : construit à partir de menu.js (modes et sujets). Un mode et un sujet actifs, de vrais boutons radio.
-   Les réglages (difficulté, temps par question, joueurs en duel) sont dans la fenêtre Réglages ; tout est retenu sur l'appareil. ---- */
-const sel = { mode: MENU_DEFAUT.mode, sujet: MENU_DEFAUT.sujet, diff: 2, time: 30, duo: 2, players: 1 };
+   Le réglage du temps par question est dans la fenêtre Réglages ; tout est retenu sur l'appareil. ---- */
+const sel = { mode: MENU_DEFAUT.mode, sujet: MENU_DEFAUT.sujet, time: 30 };
 const MENU_KEY = 'wikiguessr-menu';
 try { Object.assign(sel, JSON.parse(localStorage.getItem(MENU_KEY)) || {}); } catch (e) {}
 if (!MODE[sel.mode]) sel.mode = MENU_DEFAUT.mode;
 if (!SUJET[sel.sujet]) sel.sujet = MENU_DEFAUT.sujet;
-const DIFFNOTE = {
-  1: 'Entrées très connues et barème indulgent : les points baissent lentement avec la distance.',
-  2: 'Un mélange d’entrées, avec le barème standard.',
-  3: 'Sujets moins connus ou lieux surprenants, barème strict et photo masquée.'
-};
 const CHECK = '<span class="chk" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg></span>';
 MENU_MODES.forEach(m => {
   const l = document.createElement('label'); l.className = 'mode';
@@ -1006,13 +845,12 @@ MENU_SUJETS.forEach((s, i) => {
 function paintHome() {
   document.querySelectorAll('#home input[name="mode"]').forEach(r => { r.checked = r.value === sel.mode; });
   document.querySelectorAll('#home input[name="sujet"]').forEach(r => { r.checked = r.value === sel.sujet; });
-  ['diff', 'time', 'duo'].forEach(k => document.querySelectorAll('#prefs input[name="' + k + '"]').forEach(r => { r.checked = +r.value === sel[k]; }));
-  $('diffnote').textContent = DIFFNOTE[sel.diff];
+  document.querySelectorAll('#prefs input[name="time"]').forEach(r => { r.checked = +r.value === sel.time; });
   const m = MODE[sel.mode], s = SUJET[sel.sujet];
   $('home').style.setProperty('--f', s.f); $('home').style.setProperty('--f-ink', s.ink);
   $('launch').textContent = m.bouton;
-  $('sum').textContent = [m.nom, s.nom, sel.diff !== 2 ? LEVELS[sel.diff] : ''].filter(Boolean).join(' · ');
-  try { localStorage.setItem(MENU_KEY, JSON.stringify({ mode: sel.mode, sujet: sel.sujet, diff: sel.diff, time: sel.time, duo: sel.duo })); } catch (e) {}
+  $('sum').textContent = m.nom + ' · ' + s.nom;
+  try { localStorage.setItem(MENU_KEY, JSON.stringify({ mode: sel.mode, sujet: sel.sujet, time: sel.time })); } catch (e) {}
 }
 $('home').addEventListener('change', e => {
   const r = e.target; if (r.type !== 'radio') return;
@@ -1032,7 +870,7 @@ setTimeout(() => document.querySelectorAll('#home .in').forEach(el => el.classLi
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
 function showHome() {
   stopTimer(); endCountdown(); document.body.classList.remove('fin');
-  $('final').hidden = true; $('handoff').hidden = true; document.body.classList.remove('ho');
+  $('final').hidden = true;
   $('home').hidden = false; $('home').style.pointerEvents = '';
   if (!RM) $('home').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
 }
@@ -1046,15 +884,14 @@ function leaveHome() {
 /* Point d'entrée du moteur de jeu : reçoit { mode, sujet } (identifiants de menu.js) et lance la partie avec les réglages. */
 function lancerPartie({ mode: m, sujet: s }) {
   const jeu = MODE[m].jeu;
-  daily = null; mode = s; level = sel.diff; DECAY = DECAYS[level]; TOTAL = jeu.manches;
-  sel.players = jeu.joueurs === 'duel' ? sel.duo : jeu.joueurs;
+  daily = null; mode = s; TOTAL = jeu.manches;
   timeLimit = jeu.chrono ? sel.time : 0;
   leaveHome();
 }
 $('launch').onclick = () => lancerPartie({ mode: sel.mode, sujet: sel.sujet });
-/* Défi du jour (à droite de l'en-tête) : réglages imposés (solo, moyen, tous les sujets, sans limite, 5 manches) pour que tout le monde joue la même partie. */
+/* Défi du jour (à droite de l'en-tête) : réglages imposés (tous les sujets, sans limite, 5 manches) pour que tout le monde joue la même partie. */
 $('daily').onclick = () => {
-  daily = today(); mode = 'mixte'; timeLimit = 0; level = 2; DECAY = DECAYS[2]; TOTAL = 5; sel.players = 1;
+  daily = today(); mode = 'mixte'; timeLimit = 0; TOTAL = 5;
   leaveHome();
 };
 /* Série : jours d'affilée où le défi a été fait, jusqu'à aujourd'hui (ou hier, si celui du jour reste à faire). */
@@ -1075,14 +912,14 @@ function dailyLabel() {
 dailyLabel();
 new MutationObserver(() => { if (!$('home').hidden) dailyLabel(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
 $('menu').onclick = () => {
-  /* Partie en cours : une manche jouée, un repère posé, ou un joueur qui a déjà validé en duel. */
-  const running = $('final').hidden && (results.length || dres.length || guess || revealed || waiting || dg.some(Boolean));
+  /* Partie en cours : une manche jouée ou un repère posé. */
+  const running = $('final').hidden && (results.length || guess || revealed);
   if (running && !confirm('Quitter la partie en cours et revenir au menu ?')) return;
   showHome();
 };
 $('tomenu').onclick = showHome;
 paintHome();
-/* ---- fond de globe partagé : l'accueil et le globe de jeu (facile, moyen) dessinent la même Terre.
+/* ---- fond de globe partagé : l'accueil et le globe de jeu dessinent la même Terre.
    Les contours des pays (world-atlas 110m) sont chargés une seule fois, par le globe de l'accueil, et rangés dans GEO. ---- */
 const GEO = { grat: null, land: null, borders: null, countries: null, topo: null };
 /* landFn (globe de jeu) dessine lui-même les terres, pays par pays ; s'il n'a rien à dessiner, on retombe sur la terre d'un seul tenant. */
@@ -1105,7 +942,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
 /* ---- globe de l'accueil, au centre du menu : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
-   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie, les points vifs sont ceux du niveau choisi.
+   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie.
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
 (function () {
   const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
@@ -1119,8 +956,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   let anim = null;
   function refresh() {
     pts = ALL.filter(d => inMode(d, sel.sujet));
-    const lvl = pts.filter(d => d.lv === sel.diff).length;
-    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe, dont ' + lvl + ' en ' + LEVELS[sel.diff].toLowerCase() + ' (points vifs)';
+    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe';
     kick();
   }
   /* Choisir un sujet fait pivoter le globe vers le centre de ses questions (moyenne des positions sur la sphère). */
@@ -1153,13 +989,13 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     pts.forEach((d, i) => {
       const a = d3.geoDistance([d.o, d.a], centre);
       if (a > 1.45) return;
-      const [x, y] = proj([d.o, d.a]), on = d.lv === sel.diff, edge = Math.min(1, (1.45 - a) * 3);
+      const [x, y] = proj([d.o, d.a]), edge = Math.min(1, (1.45 - a) * 3);
       const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
-      ctx.globalAlpha = edge * (on ? 0.28 : 0.12);
+      ctx.globalAlpha = edge * 0.28;
       ctx.fillStyle = THEMES[d.h].couleur;
-      ctx.beginPath(); ctx.arc(x, y, dot * (on ? 2.6 * pulse : 2), 0, 2 * Math.PI); ctx.fill();
-      ctx.globalAlpha = edge * (on ? 1 : 0.5);
-      ctx.beginPath(); ctx.arc(x, y, on ? dot : dot * 0.7, 0, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, dot * 2.6 * pulse, 0, 2 * Math.PI); ctx.fill();
+      ctx.globalAlpha = edge;
+      ctx.beginPath(); ctx.arc(x, y, dot, 0, 2 * Math.PI); ctx.fill();
     });
     ctx.globalAlpha = 1;
   }
@@ -1224,7 +1060,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   })();
 })();
 /* ---- ciel étoilé : des étoiles qui scintillent derrière le globe. Sur l'accueil, une petite fusée le traverse de temps en temps ;
-   pendant la partie (facile et moyen), des étoiles filantes, et le ciel glisse un peu quand on fait tourner le globe.
+   pendant la partie, des étoiles filantes, et le ciel glisse un peu quand on fait tourner le globe.
    Chaque ciel est dessiné sur son canvas, ne tourne que quand il est visible et reste fixe quand on préfère réduire les animations. ---- */
 function makeSky(cv, isOn, opt) {
   const ctx = cv.getContext('2d');
@@ -1334,19 +1170,17 @@ function makeSky(cv, isOn, opt) {
 const homeSky = makeSky($('sky'), () => !$('home').hidden, { rockets: true });
 new MutationObserver(() => { if (!$('home').hidden) homeSky.reset(); }).observe($('home'), { attributes: true, attributeFilter: ['hidden'] });
 const gameSky = makeSky($('gsky'), () => GG.on && $('final').hidden, { density: 1700, offset: () => GG.offset() });
-/* ---- globe de jeu, pour les niveaux facile et moyen : même Terre que l'accueil, frontières bien visibles,
-   noms des pays en facile seulement. On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −,
-   et un simple toucher pose le repère. Le niveau difficile garde la carte satellite Leaflet.
-   Si le globe de l'accueil n'a pas pu charger ses données, la partie se joue sur la carte Leaflet. ---- */
-const PAYS = {"100":"Bulgarie","104":"Birmanie","108":"Burundi","112":"Biélorussie","116":"Cambodge","120":"Cameroun","124":"Canada","140":"République centrafricaine","144":"Sri Lanka","148":"Tchad","152":"Chili","156":"Chine","158":"Taïwan","170":"Colombie","178":"Congo-Brazzaville","180":"Congo-Kinshasa","188":"Costa Rica","191":"Croatie","192":"Cuba","196":"Chypre","203":"Tchéquie","204":"Bénin","208":"Danemark","214":"République dominicaine","218":"Équateur","222":"Salvador","226":"Guinée équatoriale","231":"Éthiopie","232":"Érythrée","233":"Estonie","238":"Îles Malouines","242":"Fidji","246":"Finlande","250":"France","260":"Terres australes françaises","262":"Djibouti","266":"Gabon","268":"Géorgie","270":"Gambie","275":"Palestine","276":"Allemagne","288":"Ghana","300":"Grèce","304":"Groenland","320":"Guatemala","324":"Guinée","328":"Guyana","332":"Haïti","340":"Honduras","348":"Hongrie","352":"Islande","356":"Inde","360":"Indonésie","364":"Iran","368":"Irak","372":"Irlande","376":"Israël","380":"Italie","384":"Côte d’Ivoire","388":"Jamaïque","392":"Japon","398":"Kazakhstan","400":"Jordanie","404":"Kenya","408":"Corée du Nord","410":"Corée du Sud","414":"Koweït","417":"Kirghizstan","418":"Laos","422":"Liban","426":"Lesotho","428":"Lettonie","430":"Liberia","434":"Libye","440":"Lituanie","442":"Luxembourg","450":"Madagascar","454":"Malawi","458":"Malaisie","466":"Mali","478":"Mauritanie","484":"Mexique","496":"Mongolie","498":"Moldavie","499":"Monténégro","504":"Maroc","508":"Mozambique","512":"Oman","516":"Namibie","524":"Népal","528":"Pays-Bas","540":"Nouvelle-Calédonie","548":"Vanuatu","554":"Nouvelle-Zélande","558":"Nicaragua","562":"Niger","566":"Nigeria","578":"Norvège","586":"Pakistan","591":"Panama","598":"Papouasie-Nouvelle-Guinée","600":"Paraguay","604":"Pérou","608":"Philippines","616":"Pologne","620":"Portugal","624":"Guinée-Bissau","626":"Timor oriental","630":"Porto Rico","634":"Qatar","642":"Roumanie","643":"Russie","646":"Rwanda","682":"Arabie saoudite","686":"Sénégal","688":"Serbie","694":"Sierra Leone","703":"Slovaquie","704":"Viêt Nam","705":"Slovénie","706":"Somalie","710":"Afrique du Sud","716":"Zimbabwe","724":"Espagne","728":"Soudan du Sud","729":"Soudan","732":"Sahara occidental","740":"Suriname","748":"Eswatini","752":"Suède","756":"Suisse","760":"Syrie","762":"Tadjikistan","764":"Thaïlande","768":"Togo","780":"Trinité-et-Tobago","784":"Émirats arabes unis","788":"Tunisie","792":"Turquie","795":"Turkménistan","800":"Ouganda","804":"Ukraine","807":"Macédoine du Nord","818":"Égypte","826":"Royaume-Uni","834":"Tanzanie","840":"États-Unis","854":"Burkina Faso","858":"Uruguay","860":"Ouzbékistan","862":"Venezuela","887":"Yémen","894":"Zambie","032":"Argentine","044":"Bahamas","076":"Brésil","068":"Bolivie","084":"Belize","072":"Botswana","024":"Angola","012":"Algérie","050":"Bangladesh","064":"Bhoutan","004":"Afghanistan","051":"Arménie","040":"Autriche","008":"Albanie","056":"Belgique","090":"Îles Salomon","036":"Australie","031":"Azerbaïdjan","096":"Brunei","010":"Antarctique","070":"Bosnie-Herzégovine","Kosovo":"Kosovo"};
+/* ---- globe de jeu : même Terre que l'accueil, avec le relief (fleuves, lacs, montagnes, déserts) et les frontières, sans noms.
+   On le fait tourner en glissant, on zoome à la molette, en pinçant ou avec + et −, et un simple toucher pose le repère.
+   Si le globe de l'accueil n'a pas pu charger ses données, la partie se joue sur la carte satellite Leaflet. ---- */
 const GG = (function () {
   const cv = $('gglobe'), ctx = cv.getContext('2d');
   const ZMIN = 0.9, ZMAX = 24, clampLat = v => Math.max(-85, Math.min(85, v));
   const EASE_OUT = k => 1 - Math.pow(1 - k, 3), EASE_IO = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  let rot = [-10, -25], zoom = 1, zTarget = 1, vel = [0, 0], w = 0, h = 0, R = 0, proj = null, path = null, labels = null;
+  let rot = [-10, -25], zoom = 1, zTarget = 1, vel = [0, 0], w = 0, h = 0, R = 0, proj = null, path = null;
   let raf = 0, anim = null, pinch = 0, moved = 0, lastMove = 0;
   let low = null, high = null; /* contours 1/110 M (globe entier) et 1/50 M (quand on zoome) */
-  let relief = null, reliefAsked = false; /* fleuves, lacs, montagnes et déserts du niveau moyen (relief.json, Natural Earth 1/50 M) */
+  let relief = null, reliefAsked = false; /* fleuves, lacs, montagnes et déserts (relief.json, Natural Earth 1/50 M) */
   const born = new Map(); /* instant d'apparition de chaque repère, pour l'animer */
   const ptrs = new Map();
   const api = { on: false };
@@ -1383,19 +1217,6 @@ const GG = (function () {
       kick();
     }).catch(() => {});
   }
-  /* Noms : un par pays, posé au centre de sa plus grande terre, et classés du plus grand au plus petit pays. */
-  function buildLabels() {
-    labels = GEO.countries.map(f => {
-      const name = PAYS[f.id] || PAYS[f.properties.name]; if (!name) return null;
-      const polys = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates.map(c => ({ type: 'Polygon', coordinates: c })) : [f.geometry];
-      const big = polys.reduce((a, b) => d3.geoArea(b) > d3.geoArea(a) ? b : a);
-      return { name, at: d3.geoCentroid(big), area: d3.geoArea(big) };
-    }).filter(Boolean).sort((a, b) => b.area - a.area);
-  }
-  /* Océans et grandes mers (niveau facile), en italique bleu clair. */
-  const SEAS = [['Océan Atlantique', -38, 28], ['Océan Atlantique', -18, -22], ['Océan Pacifique', -145, 12], ['Océan Pacifique', -125, -28], ['Océan Pacifique', 165, 25],
-    ['Océan Indien', 78, -22], ['Océan Arctique', 60, 80], ['Océan Austral', 30, -60], ['Mer Méditerranée', 17, 34.5], ['Mer des Caraïbes', -76, 14.5],
-    ['Mer de Chine', 114, 13], ['Golfe de Guinée', 2, 1], ['Mer Rouge', 38.5, 21], ['Mer de Tasman', 160, -38]];
   /* Équateur, tropiques et cercles polaires, en pointillés discrets. */
   const PARALLELS = [0, 23.44, -23.44, 66.56, -66.56].map(a => ({ a, g: { type: 'LineString', coordinates: Array.from({ length: 121 }, (_, i) => [-180 + i * 3, a]) } }));
 
@@ -1422,7 +1243,7 @@ const GG = (function () {
       if (!set) return false;
       /* Terres, puis leur côte avec le même tracé (on ne reprojette pas deux fois), puis la glace. */
       ctx.beginPath(); seen(set.land).forEach(x => path(x.g)); ctx.fillStyle = '#3ecf5c'; ctx.fill();
-      const rel = level === 2 && relief;
+      const rel = relief;
       if (rel) {
         /* Déserts en sable, massifs montagneux en brun, coupés à la côte et fondus dans le vert : on ne peint que l'ombre floue
            des formes, décalée depuis hors de l'écran (shadowBlur marche partout, contrairement à ctx.filter). */
@@ -1444,32 +1265,10 @@ const GG = (function () {
         ctx.beginPath(); seen(rel.rivers.filter(x => x.rank <= rank)).forEach(x => path(x.g));
         ctx.strokeStyle = '#1673d6'; ctx.lineWidth = zoom >= 4 ? 2 : zoom >= 2 ? 1.5 : 1.2; ctx.lineJoin = 'round'; ctx.stroke();
       }
-      if (level !== 3) { /* difficile (globe de secours) : pas de frontières, comme sur la carte satellite */
-        ctx.beginPath(); seen(set.borders).forEach(x => path(x.g));
-        ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = zoom > 4 ? 1.3 : 0.9; ctx.stroke();
-      }
+      ctx.beginPath(); seen(set.borders).forEach(x => path(x.g));
+      ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = zoom > 4 ? 1.3 : 0.9; ctx.stroke();
       return true;
     });
-  }
-  function drawLabels() {
-    const c = centre(), boxes = [];
-    /* Les noms s'écartent des repères posés et de la bonne réponse, pour ne pas les cacher. */
-    const cur = rounds[idx];
-    [guess, ...(players > 1 ? dg : []), revealed ? cur : null].forEach(p => { if (p && visible(p)) { const [x, y] = proj([p.o, p.a]); boxes.push([x, y, 12]); } });
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
-    const put = (name, at, font, fill, halo) => {
-      if (d3.geoDistance(at, c) > 1.25) return;
-      ctx.font = font;
-      const [x, y] = proj(at), tw = ctx.measureText(name).width / 2 + 3, th = 9;
-      if (x < tw || x > w - tw || y < th || y > h - th) return;
-      if (boxes.some(b => Math.abs(b[0] - x) < b[2] + tw && Math.abs(b[1] - y) < 2 * th)) return;
-      boxes.push([x, y, tw]);
-      if (halo) { ctx.strokeStyle = halo; ctx.lineWidth = 3; ctx.strokeText(name, x, y); }
-      ctx.fillStyle = fill; ctx.fillText(name, x, y);
-    };
-    const sz = Math.round(Math.min(14, 10 + zoom));
-    SEAS.forEach(([n, o, a]) => put(n, [o, a], 'italic 700 ' + (sz - 1) + 'px "Bricolage Grotesque", system-ui, sans-serif', 'rgba(200,232,255,.85)', 'rgba(4,30,70,.55)'));
-    for (const l of labels) if (l.area * R * R >= 500) put(l.name, l.at, '700 ' + sz + 'px "Bricolage Grotesque", system-ui, sans-serif', '#f4f7f5', 'rgba(5,12,22,.85)');
   }
   /* Un repère apparaît en grossissant légèrement (pas depuis zéro), avec un halo qui s'efface. */
   function marker(p, c, now) {
@@ -1517,18 +1316,9 @@ const GG = (function () {
     ctx.setLineDash([6, 5]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
     return k < 1;
   }
-  /* Repères : mêmes règles que drawOverlay sur la carte Leaflet (en duel, les repères restent cachés jusqu'à la comparaison). */
+  /* Repères : mêmes règles que drawOverlay sur la carte Leaflet. */
   function drawMarks(now) {
     const cur = rounds[idx]; let busy = false;
-    if (players > 1) {
-      if (revealed && cur) {
-        dg.forEach(g => { if (g) busy = link(g, cur, now) || busy; });
-        busy = marker(cur, '--truth', now) || busy;
-        dg.forEach((g, i) => { if (g) busy = marker(g, PCOL[i], now) || busy; });
-        busy = truthLabel(cur, now) || busy;
-      } else if (guess) busy = marker(guess, PCOL[turn], now) || busy;
-      return busy;
-    }
     if (revealed && cur) { if (guess) busy = link(guess, cur, now) || busy; busy = marker(cur, '--truth', now) || busy; }
     if (guess) busy = marker(guess, '--guess', now) || busy;
     if (revealed && cur) busy = truthLabel(cur, now) || busy;
@@ -1553,7 +1343,6 @@ const GG = (function () {
     proj.scale(R).translate([w / 2, h / 2]).rotate([rot[0], rot[1]]);
     ctx.clearRect(0, 0, w, h);
     paint();
-    if (level === 1 && labels) drawLabels();
     if (drawMarks(t)) more = true;
     gameSky.kick();
     if (more) raf = requestAnimationFrame(frame);
@@ -1598,10 +1387,10 @@ const GG = (function () {
   /* Bascule globe / carte Leaflet au lancement d'une partie. */
   api.use = want => {
     api.on = !!(want && GEO.countries && window.d3);
-    if (api.on && !proj) { proj = d3.geoOrthographic().clipAngle(90).precision(0.3); path = d3.geoPath(proj, ctx); buildLabels(); low = build(GEO.topo); }
+    if (api.on && !proj) { proj = d3.geoOrthographic().clipAngle(90).precision(0.3); path = d3.geoPath(proj, ctx); low = build(GEO.topo); }
     cv.hidden = !api.on; $('gsky').hidden = gameSky.layer.hidden = !api.on; $('map').hidden = api.on;
     wrap.classList.toggle('globe', api.on);
-    if (api.on) { if (level === 2) loadRelief(); size(); gameSky.reset(); }
+    if (api.on) { loadRelief(); size(); gameSky.reset(); }
   };
   api.reset = () => { anim = null; vel = [0, 0]; rot = [-10, -25]; zoom = zTarget = 1; born.clear(); kick(); };
   api.kick = kick;
@@ -1648,7 +1437,7 @@ const Recap = (function () {
         const f = d3.geoInterpolate([g.o, g.a], [it.r.o, it.r.a]), n = 24;
         ctx.beginPath(); path({ type: 'LineString', coordinates: Array.from({ length: n + 1 }, (_, m) => f(k * m / n)) });
         ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.6; ctx.stroke(); ctx.setLineDash([]);
-        if (vis(g)) { const [x, y] = proj([g.o, g.a]); dotAt(x, y, 5.5, cssv(it.gs.length > 1 ? PCOL[j] : '--guess')); }
+        if (vis(g)) { const [x, y] = proj([g.o, g.a]); dotAt(x, y, 5.5, cssv('--guess')); }
       });
       if (k === 1 && vis(it.r)) {
         const [x, y] = proj([it.r.o, it.r.a]);
@@ -1669,7 +1458,7 @@ const Recap = (function () {
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   new ResizeObserver(size).observe(cv);
   return {
-    /* list : [{ r: question, g: repère, ou tableau de repères en duel }] */
+    /* list : [{ r: question, g: repère (null si le temps est écoulé) }] */
     show(list) {
       box.hidden = !(window.d3 && d3.geoOrthographic && GEO.land && list.length);
       if (box.hidden) return;
@@ -1681,16 +1470,15 @@ const Recap = (function () {
     }
   };
 })();
-$('ready').onclick = ready;
-$('go').onclick = () => players > 1 ? duelSubmit() : reveal();
+$('go').onclick = () => reveal();
 $('next').onclick = advance;
 $('again').onclick = start;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || !$('final').hidden || !$('home').hidden) return;
   /* Entrée sur un bouton ou un lien : c'est lui qui agit, pas le raccourci (sinon « Menu » + Entrée validait aussi le repère). */
   if (e.target.closest && e.target.closest('button, a, select, input, textarea')) return;
-  if (waiting || counting) return;
-  if (!revealed) { if (players > 1) duelSubmit(); else reveal(); } else advance();
+  if (counting) return;
+  if (!revealed) reveal(); else advance();
 });
 /* Dézoom limité : le monde doit remplir la carte (largeur et hauteur) avec une marge d'un niveau de zoom, pour ne jamais le voir en plusieurs exemplaires. */
 function fitMinZoom() {

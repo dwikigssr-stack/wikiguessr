@@ -2,19 +2,17 @@
 // Le script interroge Wikidata (il faut un accès à Internet), garde les sujets connus (beaucoup d'articles
 // Wikipédia dans le monde, un article en français, des coordonnées), écrit un indice qui ne nomme ni le lieu,
 // ni sa région, ni son pays, puis complète questions-wikidata.js sans toucher aux questions écrites à la main.
-// Le niveau dépend des visites de l'article Wikipédia en français : les plus visités vont en Facile, les autres en Moyen,
-// les presque jamais visités sont retirés.
+// Les sujets dont l'article Wikipédia en français n'est presque jamais visité sont retirés.
 // Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 3000 par défaut),
-// LISTE_VUES=1 (affiche les visites de chaque article, pour régler VUES_FACILE).
+// LISTE_VUES=1 (affiche les visites de chaque article, pour régler VUES_MIN).
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 const RACINE = path.join(__dirname, '..');
 const SORTIE = path.join(RACINE, 'questions-wikidata.js');
 const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 3000);
 const EXCLUS = path.join(__dirname, 'wikidata-exclus.txt');
-/* Visites par jour de l'article Wikipédia en français (médiane sur 60 jours) à partir desquelles une question va en Facile. */
-const VUES_FACILE = 60;
-/* En dessous de ce nombre de visites par jour, le sujet est trop peu connu pour le jeu et la question est retirée. */
+/* En dessous de ce nombre de visites par jour (médiane sur 60 jours de l'article Wikipédia en français),
+   le sujet est trop peu connu pour le jeu et la question est retirée. */
 const VUES_MIN = 2;
 const UA = 'Wikiguessr/1.0 (https://github.com/dwikigssr-stack/wikiguessr; jeu de géographie)';
 
@@ -269,7 +267,7 @@ async function main() {
 
     const { chaine, pays, mots } = await interdits(e);
     if (!pays.length) { rejet('pas de pays'); continue; }
-    for (const w of t.split(/[\s'’\-,]+/)) if (w.length >= 4 && !GENERIQUES.test(norm(w))) mots.add(norm(w)); /* le titre est caché en difficile */
+    for (const w of t.split(/[\s'’\-,]+/)) if (w.length >= 4 && !GENERIQUES.test(norm(w))) mots.add(norm(w)); /* l'indice ne doit pas non plus redonner le titre */
 
     const desc = e.descriptions && e.descriptions.fr ? e.descriptions.fr.value : '';
     const sousCat = c.cat.classes[c.cls];
@@ -299,10 +297,8 @@ async function main() {
     const p = [admins[0] || '', nomPays].filter(Boolean).join(', ');
     const localisation = admins.slice(0, 2).concat(nomPays).join(', ');
     const e2 = (desc ? maj(desc) + '. ' : '') + 'Localisation : ' + localisation + '.';
-    /* Niveau provisoire, recalculé plus bas d'après les visites de l'article. */
-    const n = 2;
     const iso = valeurs(paysR, 'P299')[0];
-    const d = { n, t, c: sousCat, x, e: e2, p, a, o, id: c.id };
+    const d = { t, c: sousCat, x, e: e2, p, a, o, id: c.id };
     if (iso) d.iso = iso;
     if (t !== c.titre) d.w = c.titre;
     nouvelles.push(Object.assign({ h: c.cat.h, k: c.cat.k }, d));
@@ -313,22 +309,19 @@ async function main() {
 
   let toutes = [...anciennes, ...nouvelles];
 
-  /* 3. Niveau : les questions Wikidata servent en Facile et en Moyen ; le Difficile, où le titre est caché, garde les
-     questions écrites à la main (voir pick dans index.html). Le nombre d'articles dans le monde ne dit pas si un sujet
-     est connu en France : des robots écrivent des articles sur des îles ou des lacs obscurs dans des dizaines de
-     langues. On prend donc les visites de l'article en français, recalculées à chaque lot pour toutes les questions.
-     Une question dont les visites n'ont pas pu être mesurées garde son niveau. */
+  /* 3. Sujets trop peu connus : le nombre d'articles dans le monde ne dit pas si un sujet est connu en France,
+     car des robots écrivent des articles sur des îles ou des lacs obscurs dans des dizaines de langues. On prend donc
+     les visites de l'article en français, recalculées à chaque lot pour toutes les questions.
+     Une question dont les visites n'ont pas pu être mesurées est gardée. */
   const vues = await visites(toutes.map(d => d.w || d.t));
   console.log('Visites mesurées : ' + vues.size + ' articles sur ' + toutes.length);
-  /* Un sujet presque jamais consulté en français serait une question de Difficile, niveau qui n'accepte pas les
-     questions Wikidata : on le retire. Il n'est pas exclu pour de bon et reviendra s'il devient plus visité. */
+  /* Un sujet presque jamais consulté en français est retiré. Il n'est pas exclu pour de bon et reviendra s'il devient plus visité. */
   const rares = new Set(toutes.filter(d => vues.has(d.w || d.t) && vues.get(d.w || d.t) < VUES_MIN));
   toutes = toutes.filter(d => !rares.has(d));
   console.log('Retirées, moins de ' + VUES_MIN + ' visites par jour : ' + rares.size + (rares.size ? ' (' + [...rares].slice(0, 8).map(d => d.t).join(', ') + '…)' : ''));
-  for (const d of toutes) if (vues.has(d.w || d.t)) d.n = vues.get(d.w || d.t) >= VUES_FACILE ? 1 : 2;
-  const parNiveau = {};
-  for (const d of toutes) { const z = parNiveau[d.h] = parNiveau[d.h] || { 1: 0, 2: 0 }; z[d.n]++; }
-  console.log('Facile / Moyen par thème : ' + Object.entries(parNiveau).map(([h, z]) => h + ' ' + z[1] + '/' + z[2]).join(', '));
+  const parTheme = {};
+  for (const d of toutes) parTheme[d.h] = (parTheme[d.h] || 0) + 1;
+  console.log('Questions par thème : ' + Object.entries(parTheme).map(([h, n]) => h + ' ' + n).join(', '));
   const vu = d => vues.get(d.w || d.t);
   const triees = toutes.filter(d => vues.has(d.w || d.t)).sort((a, b) => vu(b) - vu(a));
   const rang = f => triees.length ? vu(triees[Math.floor(f * (triees.length - 1))]) : 0;
@@ -337,7 +330,7 @@ async function main() {
 
   /* 4. On réécrit le fichier : anciennes questions d'abord, puis les nouvelles, par thème. */
   const champ = v => typeof v === 'number' ? String(v) : JSON.stringify(v);
-  const ligne = d => '{' + ['n', 't', 'w', 'c', 'x', 'e', 'p', 'a', 'o', 'id', 'iso'].filter(k => d[k] !== undefined).map(k => k + ':' + champ(d[k])).join(',') + '},';
+  const ligne = d => '{' + ['t', 'w', 'c', 'x', 'e', 'p', 'a', 'o', 'id', 'iso'].filter(k => d[k] !== undefined).map(k => k + ':' + champ(d[k])).join(',') + '},';
   let out = `/* Questions tirées automatiquement de Wikidata par outils/wikidata.js : ne pas modifier à la main
    (une question ratée se retire en ajoutant son identifiant Q… à outils/wikidata-exclus.txt, puis en relançant le script).
    Même format que questions.js ; chargé juste après lui. */\n`;
