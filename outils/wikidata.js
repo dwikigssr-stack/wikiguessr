@@ -2,7 +2,8 @@
 // Le script interroge Wikidata (il faut un accès à Internet), garde les sujets connus (beaucoup d'articles
 // Wikipédia dans le monde, un article en français, des coordonnées), écrit un indice qui ne nomme ni le lieu,
 // ni sa région, ni son pays, puis complète questions-wikidata.js sans toucher aux questions écrites à la main.
-// Le niveau dépend des visites de l'article Wikipédia en français : les plus visités vont en Facile, les autres en Moyen.
+// Le niveau dépend des visites de l'article Wikipédia en français : les plus visités vont en Facile, les autres en Moyen,
+// les presque jamais visités sont retirés.
 // Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 3000 par défaut),
 // LISTE_VUES=1 (affiche les visites de chaque article, pour régler VUES_FACILE).
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -13,6 +14,8 @@ const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 3000);
 const EXCLUS = path.join(__dirname, 'wikidata-exclus.txt');
 /* Visites par jour de l'article Wikipédia en français (médiane sur 60 jours) à partir desquelles une question va en Facile. */
 const VUES_FACILE = 60;
+/* En dessous de ce nombre de visites par jour, le sujet est trop peu connu pour le jeu et la question est retirée. */
+const VUES_MIN = 2;
 const UA = 'Wikiguessr/1.0 (https://github.com/dwikigssr-stack/wikiguessr; jeu de géographie)';
 
 /* Catégories : classes Wikidata (instance de), thème et type de manche du jeu, sous-catégorie affichée,
@@ -308,7 +311,7 @@ async function main() {
   }
   console.log('Nouvelles questions : ' + nouvelles.length + ' ; écartées : ' + JSON.stringify(rejets));
 
-  const toutes = [...anciennes, ...nouvelles];
+  let toutes = [...anciennes, ...nouvelles];
 
   /* 3. Niveau : les questions Wikidata servent en Facile et en Moyen ; le Difficile, où le titre est caché, garde les
      questions écrites à la main (voir pick dans index.html). Le nombre d'articles dans le monde ne dit pas si un sujet
@@ -316,8 +319,13 @@ async function main() {
      langues. On prend donc les visites de l'article en français, recalculées à chaque lot pour toutes les questions.
      Une question dont les visites n'ont pas pu être mesurées garde son niveau. */
   const vues = await visites(toutes.map(d => d.w || d.t));
-  for (const d of toutes) if (vues.has(d.w || d.t)) d.n = vues.get(d.w || d.t) >= VUES_FACILE ? 1 : 2;
   console.log('Visites mesurées : ' + vues.size + ' articles sur ' + toutes.length);
+  /* Un sujet presque jamais consulté en français serait une question de Difficile, niveau qui n'accepte pas les
+     questions Wikidata : on le retire. Il n'est pas exclu pour de bon et reviendra s'il devient plus visité. */
+  const rares = new Set(toutes.filter(d => vues.has(d.w || d.t) && vues.get(d.w || d.t) < VUES_MIN));
+  toutes = toutes.filter(d => !rares.has(d));
+  console.log('Retirées, moins de ' + VUES_MIN + ' visites par jour : ' + rares.size + (rares.size ? ' (' + [...rares].slice(0, 8).map(d => d.t).join(', ') + '…)' : ''));
+  for (const d of toutes) if (vues.has(d.w || d.t)) d.n = vues.get(d.w || d.t) >= VUES_FACILE ? 1 : 2;
   const parNiveau = {};
   for (const d of toutes) { const z = parNiveau[d.h] = parNiveau[d.h] || { 1: 0, 2: 0 }; z[d.n]++; }
   console.log('Facile / Moyen par thème : ' + Object.entries(parNiveau).map(([h, z]) => h + ' ' + z[1] + '/' + z[2]).join(', '));
