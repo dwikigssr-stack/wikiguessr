@@ -1,0 +1,398 @@
+# Questions Wikidata écartées : une par ligne, identifiant puis raison. Elles ne seront plus proposées.
+Q2946 Château de Versailles : même lieu que « Galerie des Glaces » (questions écrites à la main)
+Q187702 Église du Saint-Sépulcre : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q5484 Mer Caspienne : position hors du pays annoncé (Iran, code 364)
+Q16635 Guam : position hors du pays annoncé (États-Unis, code 840)
+Q79961 Statue du Christ Rédempteur : même lieu que « Christ Rédempteur » (questions écrites à la main)
+Q155093 Ligne Mannerheim : position hors du pays annoncé (Oblast de Léningrad, Finlande, code 246)
+Q12192963 Mosquée al-Aqsa : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q1865480 Bastille : même lieu que « Prise de la Bastille » (questions écrites à la main)
+Q80541 Mosquée bleue : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q194215 Île Amsterdam : position hors du pays annoncé (Îles Saint-Paul et Nouvelle-Amsterdam, France, code 250)
+Q1066 Lac Supérieur : position hors du pays annoncé (Michigan, Canada, code 124)
+Q192764 Parc national de Kaziranga : même indice que « Parc national du Serengeti »
+Q11274 Chrysler Building : même lieu que « Empire State Building » (questions écrites à la main)
+Q309426 Tombeaux des rois du Buganda à Kasubi : même indice que « Grotte d'Altamira »
+Q155188 Fort de Rohtas : même indice que « Château de Kronborg »
+Q170495 Palais de Topkapı : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q2047700 Mosquée Lala-Mustapha-Pacha : position hors du pays annoncé (Famagouste, Chypre, code 196)
+Q178643 Mosquée de Soliman : même lieu que « Soliman le Magnifique » (questions écrites à la main)
+Q29238 Pyramide du Soleil : indice trop court ; même lieu que « Teotihuacan » (questions écrites à la main)
+Q2918723 Remparts de Jérusalem : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q13353 Montserrat : position hors du pays annoncé (Territoire britannique d'outre-mer, Royaume-Uni, code 826)
+Q274131 Parc national des Everglades : même indice que « Parc national du Serengeti »
+Q613037 Temple d'Horus : indice trop court
+Q31063 Île Christmas : position hors du pays annoncé (Australie, code 036)
+Q42798 Temple de Borobudur : même lieu que « Borobudur » (questions écrites à la main)
+Q1136137 Mémorial du 11 septembre : même lieu que « Attentats du 11 septembre 2001 » (questions écrites à la main)
+Q34497 Sainte-Hélène : position hors du pays annoncé (Sainte-Hélène, Ascension et Tristan da Cunha, Royaume-Uni, code 826)
+Q134140 Temples d'Abou Simbel : même lieu que « Abou Simbel » (questions écrites à la main)
+Q1271457 Château de Kantara : position hors du pays annoncé (District d'İskele, Chypre, code 196)
+Q204821 Île Saint-Paul : position hors du pays annoncé (Îles Saint-Paul et Nouvelle-Amsterdam, France, code 250)
+Q1383 Lac Huron : position hors du pays annoncé (Ontario, Canada, code 124)
+Q145093 Palais du Vatican : position hors du pays annoncé (Vatican, code 336)
+Q683632 Grande mosquée de Djenné : même lieu que « Mosquée de Djenné » (questions écrites à la main)
+Q874234 Mausolée de Hô Chi Minh : même lieu que « Hô Chi Minh » (questions écrites à la main)
+Q1128327 Pyramide de Kukulcán : même lieu que « Chichén Itzá » (questions écrites à la main)
+Q753791 Temple de Vesta : même lieu que « Colisée » (questions écrites à la main)
+Q210610 Palais du Golestan : même indice que « Palais d'Été »
+Q147881 Tsar Pouchka : même lieu que « Kremlin » (questions écrites à la main)
+Q147875 Tsar Kolokol : même lieu que « Kremlin » (questions écrites à la main)
+Q797481 Temple de Bêl : même lieu que « Palmyre » (questions écrites à la main)
+Q643098 Mosquée du Chah : même lieu que « Place Naghsh-e Jahan » (questions écrites à la main)
+Q696803 Las Médulas : même indice que « Grotte d'Altamira »
+Q178835 Baalbek : même indice que « Samarra »
+Q130958 Sphinx de Gizeh : même lieu que « Pyramide de Khéops » (questions écrites à la main)
+Q4111 Vallée de Jiuzhaigou : même indice que « Parc national du Serengeti »
+Q508040 Koutammakou : même indice que « Grotte d'Altamira »
+Q173532 Byblos : même indice que « Samarra »
+Q457324 Parc national de Kahuzi-Biega : même indice que « Parc national du Serengeti »
+Q5724 Anurâdhapura : même indice que « Samarra »
+Q214855 Tour de la Bank of China : position hors du pays annoncé (Central and Western, République populaire de Chine, code 156)
+Q477157 Changdeokgung : même indice que « Palais d'Été »
+Q192680 New York Times Building : même lieu que « Empire State Building » (questions écrites à la main)
+Q1354033 Palais de l'Aljaferia : même indice que « Grotte d'Altamira »
+Q182137 Lac de Maracaibo : position hors du pays annoncé (Municipio Maracaibo, Venezuela, code 862)
+Q205952 Parc national des volcans d'Hawaï : même indice que « Parc national du Serengeti »
+Q23408 Île Bouvet : position hors du pays annoncé (Norvège, code 578)
+Q25359 Île de la Navasse : position hors du pays annoncé (Îles mineures éloignées des États-Unis, États-Unis, code 840)
+Q242681 Parc national de Mammoth Cave : même indice que « Parc national du Serengeti »
+Q168518 Uruk : même indice que « Thèbes »
+Q463141 Parc national de Doñana : même indice que « Parc national du Serengeti »
+Q1055311 Palais de Livadia : position hors du pays annoncé (Livadia, Ukraine, code 804)
+Q46197 Île de l'Ascension : position hors du pays annoncé (Sainte-Hélène, Ascension et Tristan da Cunha, Royaume-Uni, code 826)
+Q391620 Palais de Whitehall : même lieu que « Big Ben » (questions écrites à la main)
+Q328505 Bank of America Tower : même lieu que « Empire State Building » (questions écrites à la main)
+Q477613 Château de Villandry : même indice que « Château d'Ambras »
+Q1353643 Nid d'hirondelle : position hors du pays annoncé (Gaspra, Ukraine, code 804)
+Q25596 Saint-Martin : position hors du pays annoncé (Saint-Martin, France, code 250)
+Q1866166 Château de Loutsk : même indice que « Château de Vincennes »
+Q180212 Forum romain : même lieu que « Colisée » (questions écrites à la main)
+Q216243 Nâlandâ : même indice que « Samarra »
+Q216511 Citerne Basilique : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q824602 Parc national de la rivière souterraine de Puerto Princesa : même indice que « Parc national du Serengeti »
+Q743881 Hansaray : position hors du pays annoncé (Bakhtchyssaraï, Ukraine, code 804)
+Q193325 Merv : même indice que « Samarra »
+Q1482013 Château de Trakai : même indice que « Château de Heidelberg »
+Q26732 Ensemble monumental de Hampi : même indice que « Samarra » ; même lieu que « Hampi » (questions écrites à la main)
+Q502371 Lac de l'Ouest : indice trop court
+Q482423 Forteresse de Hwaseong : même indice que « Palais d'Été »
+Q61750 Tiwanaku : même indice que « Samarra »
+Q205976 Mont des Oliviers : même lieu que « Dôme du Rocher » (questions écrites à la main)
+Q161258 Île Clipperton : indice trop court ; position hors du pays annoncé (France, code 250)
+Q190048 Tassili n'Ajjer : même indice que « Samarra »
+Q1144576 Église des Saints-Serge-et-Bacchus : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q112640 Central Plaza : position hors du pays annoncé (District de Wan Chai, République populaire de Chine, code 156)
+Q131148 Stromboli : position hors du pays annoncé (Lipari, Italie, code 380)
+Q181427 Palenque : même indice que « Samarra »
+Q830976 Château de Devín : même indice que « Château de Heidelberg »
+Q622438 Domus aurea : même lieu que « Colisée » (questions écrites à la main)
+Q62218 Île Jarvis : indice trop court ; position hors du pays annoncé (Îles mineures éloignées des États-Unis, États-Unis, code 840)
+Q230025 Pasargades : même indice que « Samarra »
+Q131305 Île Howland : indice trop court ; position hors du pays annoncé (Îles mineures éloignées des États-Unis, États-Unis, code 840)
+Q1130266 Lambeth Palace : même lieu que « Big Ben » (questions écrites à la main)
+Q51679 Saipan : position hors du pays annoncé (Îles Mariannes du Nord, États-Unis, code 840)
+Q43286 Grottes de Mogao : même indice que « Samarra »
+Q638445 Chersonèse : position hors du pays annoncé (Sébastopol, Ukraine, code 804)
+Q13360213 Palais de Chaillot : même lieu que « Tour Eiffel » (questions écrites à la main)
+Q464482 MetLife Building : même lieu que « Empire State Building » (questions écrites à la main)
+Q652452 Metropolitan Life Tower : même lieu que « Empire State Building » (questions écrites à la main)
+Q9278 Abou Mena : même indice que « Samarra »
+Q272680 Bosra : même indice que « Samarra »
+Q1370087 Grand palais du Kremlin : même lieu que « Kremlin » (questions écrites à la main)
+Q1356809 Mosquée Ibrahim-al-Ibrahim : position hors du pays annoncé (Gibraltar, Royaume-Uni, code 826)
+Q866154 Château de Haapsalu : même indice que « Château de Toompea »
+Q16566 Tchehel-Sotoun : même lieu que « Place Naghsh-e Jahan » (questions écrites à la main)
+Q48472 Kunya-Urgench : même indice que « Samarra »
+Q3405693 Sercq : indice trop court ; position hors du pays annoncé (Guernesey, code 831)
+Q331603 Bhimbetka : même indice que « Samarra »
+Q459629 Timgad : même indice que « Samarra »
+Q2628708 Palais Vorontsov : position hors du pays annoncé (Aloupka, Ukraine, code 804)
+Q546010 Ani : même indice que « Samarra »
+Q521935 Gratte-ciel stalinien : indice trop parlant (« gratte »)
+Q130478 The Center : position hors du pays annoncé (Hong Kong, République populaire de Chine, code 156)
+Q107338 Lampedusa : position hors du pays annoncé (Lampedusa e Linosa, Italie, code 380)
+Q104784 Île Lord Howe : position hors du pays annoncé (Nouvelle-Galles du Sud, Australie, code 036)
+Q192784 Colonne Trajane : même lieu que « Colisée » (questions écrites à la main)
+Q214827 Copán : même indice que « Samarra »
+Q457362 Djemila : même indice que « Samarra »
+Q190053 Patmos : position hors du pays annoncé (Dodécanèse, Grèce, code 300)
+Q189113 L'Anse aux Meadows : même indice que « Samarra »
+Q687413 Condé Nast Building : même lieu que « Empire State Building » (questions écrites à la main)
+Q1052475 First Canadian Place : même lieu que « Tour CN » (questions écrites à la main)
+Q184851 Diego Garcia : position hors du pays annoncé (Territoire britannique de l’océan Indien, Royaume-Uni, code 826)
+Q272771 Calakmul : même indice que « Samarra »
+Q214007 Tsodilo : même indice que « Samarra »
+Q846967 Nan Madol : même indice que « Samarra » ; position hors du pays annoncé (Madolenihmw, États fédérés de Micronésie, code 583)
+Q207808 Circus Maximus : même lieu que « Colisée » (questions écrites à la main)
+Q179313 Aurigny : position hors du pays annoncé (Guernesey, code 831)
+Q272777 Villa d'Hadrien : même indice que « Samarra »
+Q191098 Comino : indice trop court ; position hors du pays annoncé (Għajnsielem, Malte, code 470)
+Q867586 Salt : même indice que « Samarra »
+Q379652 Philippes : même indice que « Samarra »
+Q1260331 Île de North Sentinel : position hors du pays annoncé (Îles Andaman-et-Nicobar, Inde, code 356)
+Q318422 Quiriguá : même indice que « Samarra »
+Q271287 Kavaratti : position hors du pays annoncé (Lakshadweep, Inde, code 356)
+Q19483 Île de Hong Kong : position hors du pays annoncé (Hong Kong, République populaire de Chine, code 156)
+Q242741 Érechthéion : même lieu que « Parthénon » (questions écrites à la main)
+Q1025825 Shahr-e Sokhteh : même indice que « Samarra »
+Q385086 Choirokoitia : même indice que « Samarra »
+Q178124 Surtsey : position hors du pays annoncé (Îles Vestmann, Islande, code 352)
+Q740104 Qal'at al-Bahreïn : même indice que « Samarra »
+Q208668 Rodrigues : position hors du pays annoncé (Maurice, code 480)
+Q215081 Île Cocos : position hors du pays annoncé (Puntarenas, Costa Rica, code 188)
+Q9468 Dholavira : même indice que « Samarra »
+Q393841 Villages antiques du Nord de la Syrie : même indice que « Samarra »
+Q724484 Mzab : même indice que « Samarra »
+Q870258 Plaine des Jarres : même indice que « Samarra »
+Q27985 Joya de Cerén : même indice que « Samarra »
+Q219279 Caral : même indice que « Samarra »
+Q48675 West Island : indice trop court ; position hors du pays annoncé (Îles Cocos, Australie, code 036)
+Q458167 Ambohimanga : même indice que « Samarra »
+Q193089 Île Europa : position hors du pays annoncé (Îles Éparses de l'océan Indien, France, code 250)
+Q1240598 Ruhnu : position hors du pays annoncé (Commune de Ruhnu, Estonie, code 233)
+Q651278 Sculptures rupestres de Dazu : même indice que « Samarra »
+Q319821 Liberty Island : même indice que « Délos » ; même lieu que « Statue de la Liberté » (questions écrites à la main)
+Q543419 Pilier de fer de Delhi : même lieu que « Qutb Minar » (questions écrites à la main)
+Q1674067 Grande île de la Terre de Feu : position hors du pays annoncé (Magallanes et l'Antarctique chilien, Chili, code 152)
+Q384813 Temple d'Athéna Nikè : même lieu que « Parthénon » (questions écrites à la main)
+Q732554 Chavín de Huántar : même indice que « Samarra »
+Q723887 Arc de Titus : même lieu que « Colisée » (questions écrites à la main)
+Q1160664 Lycée : même lieu que « Stade panathénaïque » (questions écrites à la main)
+Q943327 Tamgaly : même indice que « Samarra »
+Q584125 Ban Chiang : même indice que « Samarra »
+Q2727469 Zubarah : même indice que « Samarra »
+Q12193567 Al-Maghtas : même indice que « Samarra »
+Q212096 Kastellórizo : indice trop court ; position hors du pays annoncé (Dème de Megísti, Grèce, code 300)
+Q202023 Herm : position hors du pays annoncé (Saint-Pierre-Port, Guernesey, code 831)
+Q617550 Apamée : même indice que « Doura Europos »
+Q753895 El Tajín : même indice que « Samarra »
+Q241074 Atoll das Rocas : position hors du pays annoncé (Rio Grande do Norte, Brésil, code 076)
+Q842328 Site des premiers hommes de Sangiran : même indice que « Samarra »
+Q505935 Île Gough : position hors du pays annoncé (Île Tristan da Cunha, Royaume-Uni, code 826)
+Q797120 Xochicalco : même indice que « Samarra »
+Q457261 Redonda : indice trop court ; position hors du pays annoncé (Antigua-et-Barbuda, code 028)
+Q379759 Île Henderson : position hors du pays annoncé (Îles Pitcairn, Royaume-Uni, code 826)
+Q239748 Site funéraire de l'âge du bronze de Sammallahdenmäki : même indice que « Samarra »
+Q542854 Gordion : même indice que « Samarra »
+Q822842 Um er-Rasas : même indice que « Samarra »
+Q181544 Île de Queimada Grande : indice trop court ; position hors du pays annoncé (Microrégion d'Itanhaém, Brésil, code 076)
+Q737624 Vieques : position hors du pays annoncé (Porto Rico, États-Unis, code 840)
+Q1137202 Géorgie du Sud : position hors du pays annoncé (Géorgie du Sud-et-les Îles Sandwich du Sud, Royaume-Uni, code 826)
+Q849517 Monastère de Visoki Dečani : position hors du pays annoncé (Deçan, Serbie, code 688)
+Q938685 Khami : même indice que « Samarra »
+Q203767 Vis : position hors du pays annoncé (Split-Dalmatie, Croatie, code 191)
+Q162353 Arc de Septime Sévère : même lieu que « Colisée » (questions écrites à la main)
+Q237034 Île Juan de Nova : indice trop court ; position hors du pays annoncé (Îles Éparses de l'océan Indien, France, code 250)
+Q277525 Ensemble des tombes de Koguryo : même indice que « Samarra »
+Q422929 Sarazm : même indice que « Samarra »
+Q754791 Twyfelfontein : même indice que « Samarra »
+Q1123019 Olympiéion : même lieu que « Parthénon » (questions écrites à la main)
+Q876451 Fuerte de Samaipata : même indice que « Samarra »
+Q217667 Élis : même indice que « Halicarnasse »
+Q1017178 Çufut Qale : position hors du pays annoncé (Raïon de Bakhtchyssaraï, Ukraine, code 804)
+Q910180 Mausolée de l'empereur Qin : même indice que « Samarra »
+Q988400 Mangoup : position hors du pays annoncé (République autonome de Crimée, Ukraine, code 804)
+Q683110 Précipice à bisons Head-Smashed-In : même indice que « Samarra »
+Q832262 Art rupestre de Chongoni : même indice que « Samarra »
+Q568342 Tabularium : même lieu que « Colisée » (questions écrites à la main)
+Q1328165 Odéon d'Hérode Atticus : même lieu que « Parthénon » (questions écrites à la main)
+Q1404282 Roc de Kondoa : même indice que « Samarra »
+Q371921 Basilique de Maxence et Constantin : même lieu que « Colisée » (questions écrites à la main)
+Q552106 Sites d'art rupestre préhistorique de la vallée de Côa : même indice que « Samarra »
+Q1509537 Takalik Abaj : même indice que « Samarra »
+Q1165562 Kuk : même indice que « Samarra »
+Q1501940 Tarraco : même indice que « Samarra »
+Q1761052 Gravures rupestres de Tanum : même indice que « Samarra »
+Q25496 Sites archéologiques de Bat, Al-Khutm et Al-Ayn : même indice que « Samarra »
+Q1632877 Art rupestre de Huashan : même indice que « Samarra »
+Q705132 Arslantepe : même indice que « Samarra »
+Q856968 Forum de César : même lieu que « Colisée » (questions écrites à la main)
+Q1778458 Koh Ker : même indice que « Samarra »
+Q138908 Théâtre Bolchoï : même lieu que « Kremlin » (questions écrites à la main)
+Q202660 Collège de France : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q1140429 Musée historique d'État de Moscou : même lieu que « Kremlin » (questions écrites à la main)
+Q2909160 Institut du Temple : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q182955 Musées du Vatican : position hors du pays annoncé (Vatican, code 336)
+Q638423 Opéra Bastille : même lieu que « Prise de la Bastille » (questions écrites à la main)
+Q860166 Institut du monde arabe : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q178065 Centre national d'art et de culture Georges-Pompidou : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q238587 National Portrait Gallery : même lieu que « Big Ben » (questions écrites à la main)
+Q1133501 Théâtre de l'Odéon : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q4872 Musée des Beaux-Arts Pouchkine : même lieu que « Kremlin » (questions écrites à la main)
+Q333906 Musées du Capitole : même lieu que « Colisée » (questions écrites à la main)
+Q49133 Musée des Beaux-Arts : même lieu que « Fenway Park » (questions écrites à la main)
+Q860994 Musée national des Arts asiatiques - Guimet : même lieu que « Tour Eiffel » (questions écrites à la main)
+Q167863 Musée du Quai Branly - Jacques-Chirac : même lieu que « Tour Eiffel » (questions écrites à la main)
+Q301815 Tombe thrace de Kazanlak : même indice que « Villa romaine du Casale »
+Q861608 National Museum of Women in the Arts : même lieu que « Maison-Blanche » (questions écrites à la main)
+Q1124095 Musée de Cluny : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q421084 Musée de l'Acropole d'Athènes : même lieu que « Parthénon » (questions écrites à la main)
+Q2663377 Musée Frida-Kahlo : même lieu que « Frida Kahlo » (questions écrites à la main)
+Q1968711 Musée Nobel : même lieu que « Alfred Nobel » (questions écrites à la main)
+Q447441 Parc Wilhelmshöhe : même indice que « Villa romaine du Casale »
+Q1177765 Tour de David : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q1304121 Palais des Armures : même lieu que « Kremlin » (questions écrites à la main)
+Q851527 Musée océanographique de Monaco : même lieu que « Circuit de Monaco » (questions écrites à la main) ; position hors du pays annoncé (Monaco-Ville, Monaco, code 492)
+Q41977 Château de Hiroshima : même lieu que « Dôme de Genbaku » (questions écrites à la main)
+Q372376 Maison de la terreur : même indice que « Mini Israël »
+Q1142661 Pénitencier fédéral d'Alcatraz : même lieu que « Alcatraz » (questions écrites à la main)
+Q164027 Bernabéu : même lieu que « Stade Santiago-Bernabéu » (questions écrites à la main)
+Q406972 Scotiabank Arena : même lieu que « Tour CN » (questions écrites à la main)
+Q163521 FNB Stadium : même lieu que « Soccer City » (questions écrites à la main)
+Q4439098 Arena Baltika : même indice que « Mordovia Arena »
+Q173083 Circuit de Zandvoort : même indice que « Circuit de Silverstone »
+Q1139142 Palais national omnisports de Pékin : même lieu que « Nid d'oiseau » (questions écrites à la main)
+Q185741 Stade Ernst-Happel : même lieu que « Ernst-Happel-Stadion » (questions écrites à la main)
+Q547535 Circuit international de Losail : même indice que « Circuit international de Shanghai »
+Q174090 Circuit des 24 Heures : même lieu que « Catastrophe des 24 Heures de 1955 » (questions écrites à la main)
+Q172895 Circuit de Bremgarten : même indice que « Donington Park »
+Q172888 Circuit de Dijon-Prenois : même indice que « Circuit du Mugello »
+Q498245 Stade Centenario : même lieu que « Estadio Centenario » (questions écrites à la main)
+Q1347804 Misano World Circuit Marco Simoncelli : même indice que « Circuit d'Estoril »
+Q977529 Climate Pledge Arena : même lieu que « Space Needle » (questions écrites à la main)
+Q748774 Copper Box : même lieu que « Stade olympique de 2012 » (questions écrites à la main)
+Q622671 Stade Roi Baudouin : même lieu que « Atomium » (questions écrites à la main)
+Q209725 Stade de Twickenham : même lieu que « Twickenham Stadium » (questions écrites à la main)
+Q420494 Vélodrome Jacques-Anquetil : indice trop court
+Q1381223 AAMI Park : même lieu que « MCG » (questions écrites à la main)
+Q102327045 Observatoire astronomique d'Arecibo : position hors du pays annoncé (Arecibo, États-Unis, code 840)
+Q1037144 Centrale nucléaire de Khmelnitski : même indice que « Centrale nucléaire de Zaporijjia »
+Q301915 Centrale nucléaire de Rivné : même indice que « Centrale nucléaire de Zaporijjia »
+Q3279825 Centrale nucléaire de Leningrad : même indice que « Centrale nucléaire de Koursk »
+Q637936 Observatoire de l'université Harvard : même indice que « Observatoire de Poulkovo »
+Q186223 Centrale nucléaire d'Ukraine du Sud : même indice que « Centrale nucléaire de Zaporijjia »
+Q591923 Observatoire du Vatican : position hors du pays annoncé (Castel Gandolfo, Vatican, code 336)
+Q1739463 Centrale nucléaire de Rostov : même indice que « Centrale nucléaire de Koursk »
+Q1739474 Centrale nucléaire de Smolensk : même indice que « Centrale nucléaire de Koursk »
+Q833602 Centrale nucléaire de Bohunice : même indice que « Centrale nucléaire de Mochovce »
+Q1739418 Centrale nucléaire de Kalinine : même indice que « Centrale nucléaire de Koursk »
+Q1739448 Centrale nucléaire de Novovoronej : même indice que « Centrale nucléaire de Koursk »
+Q1739359 Centrale nucléaire de Beloïarsk : même indice que « Centrale nucléaire de Koursk »
+Q1739407 Centrale nucléaire de Gravelines : même indice que « Centrale nucléaire du Tricastin »
+Q496248 Centrale nucléaire de Hanul : même indice que « Centrale nucléaire de Hanbit »
+Q130754 Séisme et tsunami de 2004 dans l'océan Indien : position hors du pays annoncé (Indonésie, code 360)
+Q235344 Siège de Fort Alamo : indice trop court
+Q83224 Bataille d'Hastings : indice trop court
+Q27900 Siège de Constantinople : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q212618 Séisme de 1960 à Valdivia : indice trop court
+Q154182 Bataille de Berlin : même lieu que « Porte de Brandebourg » (questions écrites à la main)
+Q151290 Bataille de Moscou : même lieu que « Kremlin » (questions écrites à la main)
+Q180182 Bataille d'Iwo Jima : position hors du pays annoncé (Iwo Jima, Japon, code 392)
+Q1348910 Séisme du 28 décembre 1908 à Messine : indice trop court
+Q104535090 Séisme de 2020 à Petrinja : indice trop court
+Q38982786 Séisme de 2017 au Chiapas : position hors du pays annoncé (Chiapas, Mexique, code 484)
+Q815140 Siège de Dubrovnik : indice trop court
+Q203233 Bataille de Plassey : indice trop court
+Q383991 Séismes de 2012 à Sumatra : position hors du pays annoncé (Indonésie, code 360)
+Q611789 Bataille de Brest-Litovsk : même indice que « Siège de Léningrad »
+Q584613 Séisme de 2011 à Lorca : indice trop court
+Q111013915 Bataille de Tchernihiv : indice trop court
+Q815192 Siège de Paris : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q222520 Bataille de Bannockburn : indice trop court
+Q750144 Séisme de 2010 en Nouvelle-Zélande : indice trop court
+Q111017791 Bataille de Marioupol : indice trop court
+Q639827 Siège de Damas : indice trop court
+Q1066253 Siège de Vicksburg : même indice que « Bataille de Gettysburg »
+Q842621 Séisme de 2010 à Pichilemu : indice trop court
+Q1348954 Séisme du 21 juillet 365 en Crète : indice trop court ; position hors du pays annoncé (Crète, Grèce, code 300)
+Q111013514 Bataille de Soumy : indice trop court
+Q815167 Guerre entre Rus' et Byzantins : indice trop court
+Q685062 Siège de Madrid : indice trop court
+Q2426040 Siège de Thessalonique : indice trop court
+Q815128 Siège de Boston : indice trop court
+Q570204 Bataille de la Kalka : position hors du pays annoncé (Russie, code 643)
+Q32832 Bataille de Varna : indice trop court
+Q234188 Bataille de Sekigahara : indice trop court
+Q821283 Bataille de Varsovie : indice trop court
+Q745110 Bataille de Tchaldiran : indice trop court
+Q499626 Bataille du pont de Stirling : indice trop court
+Q589318 Bataille de Falkirk : indice trop court
+Q324916 Bataille de Solférino : indice trop court
+Q157873 Troisième bataille de Kharkov : même indice que « Bataille de Koursk »
+Q464512 Bataille de Balaklava : position hors du pays annoncé (Balaklava, Ukraine, code 804)
+Q111012552 Bataille navale de l'île des Serpents : indice trop court ; position hors du pays annoncé (Ukraine, code 804)
+Q505939 Bataille de Vukovar : indice trop court
+Q1259218 Troisième bataille de Panipat : indice trop court
+Q482456 Chute de Saïgon : indice trop court
+Q778010 Batailles de Lexington et de Concord : indice trop court
+Q52226 Bataille de Mogadiscio : indice trop court
+Q745979 Bataille de Chancellorsville : même indice que « Bataille de Gettysburg »
+Q769377 Opération Tempête : indice trop court
+Q327035 Bataille de Gazala : même indice que « Seconde bataille d'El Alamein »
+Q47465940 Bataille d'Afrine : indice trop court
+Q111012383 Bataille de Tchernobyl : indice trop court
+Q846674 Batailles de Saratoga : indice trop court
+Q609030 Bataille de Peleliu : position hors du pays annoncé (Palaos, code 585)
+Q111014380 Bataille de Kharkiv : indice trop court
+Q1123353 Bataille de Rorke's Drift : indice trop court
+Q247253 Bataille de Khe Sanh : position hors du pays annoncé (District de Gapyeong, Corée du Sud, code 410)
+Q41894 Bataille de La Nouvelle-Orléans : indice trop court
+Q111014904 Première bataille de Kherson : indice trop court
+Q660655 Première bataille des lacs de Mazurie : indice trop court ; position hors du pays annoncé (Russie, code 643)
+Q483039 Bataille d'Incheon : indice trop court
+Q233414 Deuxième bataille de Panipat : indice trop court
+Q111013267 Bataille de l'aéroport de Hostomel : indice trop court
+Q700705 Bataille de Saipan : position hors du pays annoncé (États-Unis, code 840)
+Q653664 Bataille de Trenton : indice trop court
+Q541626 Bataille d'Essling : même indice que « Bataille de Wagram »
+Q1121532 Bataille des Trois Rois : indice trop court
+Q934157 Bataille d'Ayacucho : indice trop court
+Q747589 Bataille d'Isandhlwana : indice trop court
+Q503347 Attaque de Mers el-Kébir : position hors du pays annoncé (France, code 250)
+Q1987213 Bataille de Dyrrachium : indice trop court
+Q687572 Bataille des Frontières : position hors du pays annoncé (Belgique, code 056)
+Q1078359 Bataille de Yamen : indice trop court
+Q696900 Bataille de Guam : position hors du pays annoncé (États-Unis, code 840)
+Q1308854 Noche Triste : indice trop court
+Q1061228 Bataille de Puebla : indice trop court
+Q697059 Bataille de Hong Kong : position hors du pays annoncé (Hong Kong britannique, Royaume-Uni, code 826)
+Q697022 Bataille de l'Escaut : même indice que « Bataille de Budapest » ; position hors du pays annoncé (Escaut, France, code 250)
+Q17594 Bataille de Dresde : indice trop court
+Q837787 Bataille de Novare : indice trop court
+Q111018336 Bataille de Vassylkiv : indice trop court
+Q780921 Bataille de Paris : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q1192616 Bataille de Didgori : indice trop court
+Q48202 Bataille de Custoza : indice trop court
+Q1327790 Bataille de Chickamauga : même indice que « Bataille de Gettysburg »
+Q662947 Bataille du Piave : même indice que « Bataille de Sardarapat »
+Q681430 Bataille de Magenta : indice trop court
+Q682699 Bataille de la Kolubara : même indice que « Bataille de Tannenberg »
+Q757870 Charge de la brigade légère : indice trop court
+Q541997 Bataille d'Alam el Halfa : même indice que « Seconde bataille d'El Alamein »
+Q1132579 Bataille de Princeton : indice trop court
+Q1141380 Bataille de l'atoll de Wake : position hors du pays annoncé (États-Unis, code 840)
+Q145588 Bataille de Gumbinnen : même indice que « Bataille de Stallupönen »
+Q326989 Bataille de Morgarten : indice trop court
+Q176915 Bataille de Tinian : position hors du pays annoncé (États-Unis, code 840)
+Q700710 Bataille de Villers-Bocage : même indice que « Bataille de Budapest »
+Q830878 Bataille de Stiklestad : indice trop court
+Q7879625 Bataille de Seelow : même indice que « Bataille de Königsberg »
+Q994316 Bataille de Khan Mayssaloun : indice trop court
+Q320394 Bataille d'Almansa : indice trop court
+Q223622 Bataille de Prague : même indice que « Bataille de Kolin »
+Q704921 Bataille de Tanga : même indice que « Bataille de Sarıkamış »
+Q717004 Bataille de Leyte : indice trop court
+Q696479 Bataille des Salomon orientales : position hors du pays annoncé (Îles Salomon, code 090)
+Q696557 Bombardement de Darwin : indice trop court
+Q269207 Percée de Sedan : indice trop court
+Q128996 Bataille d'Akroinon : indice trop court
+Q1280119 Bataille de l'Èbre : indice trop court
+Q1330136 Deuxième bataille de Falloujah : indice trop court
+Q1364346 Bataille de Bailén : indice trop court
+Q1425882 Bataille de la Wilderness : même indice que « Bataille de Cold Harbor »
+Q127872674 Bataille de la Neretva : indice trop court
+Q131355384 Prise d'Alep : indice trop court
+Q1537159 Première bataille de Falloujah : indice trop court
+Q684872 Seconde bataille des lacs de Mazurie : position hors du pays annoncé (Russie, code 643)
+Q697053 Bataille de Huế : indice trop court
+Q752555 Temple d'Antonin et Faustine : même lieu que « Colisée » (questions écrites à la main)
+Q856356 Mosquée du Cheikh Lotfallah : même lieu que « Place Naghsh-e Jahan » (questions écrites à la main)
+Q1572472 Mosquée Sokollu Mehmet Pacha : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q2151217 Mosquée d'Omar : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q1535247 Palais de Tokyo : même lieu que « Tour Eiffel » (questions écrites à la main)
+Q690489 Siège de Paris : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q48163 Bataille de Custoza : indice trop court
+Q586468 Temple de Jupiter capitolin : même lieu que « Colisée » (questions écrites à la main)
+Q1133288 Temple de César : même lieu que « Colisée » (questions écrites à la main)
+Q430792 Temple de Vénus et de Rome : même lieu que « Colisée » (questions écrites à la main)

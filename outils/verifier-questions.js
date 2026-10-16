@@ -1,15 +1,16 @@
-// Vérifie la base de questions : node outils/verifier-questions.js
+// Vérifie la base de questions (questions.js et questions-wikidata.js) : node outils/verifier-questions.js
 // Erreurs (le script échoue) : champ manquant, thème ou type inconnu, niveau invalide, coordonnées hors limites, doublon.
 // Avertissements : indice qui semble contenir le nom du lieu à trouver.
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const src = fs.readFileSync(path.join(__dirname, '..', 'questions.js'), 'utf8');
+const auto = path.join(__dirname, '..', 'questions-wikidata.js');
+const src = fs.readFileSync(path.join(__dirname, '..', 'questions.js'), 'utf8') + (fs.existsSync(auto) ? ';' + fs.readFileSync(auto, 'utf8') : '');
 const ctx = {};
 vm.runInNewContext(src + ';this.THEMES = THEMES; this.TYPES = TYPES; this.QUESTIONS = QUESTIONS;', ctx);
 const { THEMES, TYPES, QUESTIONS } = ctx;
 
 const errors = [], warnings = [], seen = new Map();
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '');
-const GENERIC = /^(pres|large|nord|sud|est|ouest|baie|musee|palais|chateau|stade|plage|pont|foret|desert|region|centre|prison|institut|galerie|viaduc)$/;
+const GENERIC = /^(pres|large|nord|sud|est|ouest|baie|musee|palais|chateau|stade|plage|pont|foret|desert|region|centre|prison|institut|galerie|viaduc|royaume|empire|etats|republique)$/;
 
 for (const d of QUESTIONS) {
   const who = '« ' + (d.t || '?') + ' »';
@@ -25,7 +26,7 @@ for (const d of QUESTIONS) {
   const place = (d.p || '').split(',')[0].replace(/\(.*?\)/g, ' ');
   for (const w of place.split(/[\s'’-]+/)) {
     if (w.length < 4 || GENERIC.test(norm(w))) continue;
-    if (new RegExp('(^|[^\\p{L}])' + w + '($|[^\\p{L}])', 'iu').test(d.x)) warnings.push(who + ' : l’indice contient « ' + w + ' »');
+    if (new RegExp('(^|[^\\p{L}])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^\\p{L}])', 'iu').test(d.x)) warnings.push(who + ' : l’indice contient « ' + w + ' »');
   }
 }
 

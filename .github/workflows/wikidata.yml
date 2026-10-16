@@ -1,0 +1,54 @@
+# Ajoute au jeu des questions tirées de Wikidata, contrôlées avant d'entrer dans le jeu.
+# - Sur la branche wikidata-contenu : à chaque changement des scripts, génère un lot et l'enregistre sur la branche.
+# - À la demande (onglet Actions > Questions Wikidata > Run workflow) : génère un lot et ouvre une PR.
+name: Questions Wikidata
+on:
+  push:
+    branches: [wikidata-contenu]
+    paths: ['outils/wikidata.js', 'outils/wikidata-mots.js', 'outils/valider-wikidata.js', '.github/workflows/wikidata.yml']
+  workflow_dispatch:
+    inputs:
+      max:
+        description: Nombre maximum de nouvelles questions
+        default: '3000'
+permissions:
+  contents: write
+  pull-requests: write
+concurrency: wikidata
+jobs:
+  generer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Outils du contrôle de position
+        run: npm install --no-save --no-package-lock d3-geo@3.1.1 topojson-client@3.1.0 world-atlas@2.0.2
+      - name: Tirer les questions de Wikidata
+        run: node outils/wikidata.js
+        env:
+          MAX_NOUVELLES: ${{ github.event.inputs.max || '3000' }}
+      - name: Contrôler le lot et retirer les questions refusées
+        run: node outils/valider-wikidata.js --corriger --rapport "$RUNNER_TEMP/rapport.md"
+      - name: Contrôle général des questions
+        run: node outils/verifier-questions.js
+      - name: Enregistrer le lot sur la branche
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add questions-wikidata.js outils/wikidata-exclus.txt
+          git diff --cached --quiet || { git commit -m "Questions Wikidata : nouveau lot contrôlé"; git push; }
+      - name: Ouvrir une PR avec le lot
+        if: github.event_name == 'workflow_dispatch'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: wikidata-lot
+          add-paths: |
+            questions-wikidata.js
+            outils/wikidata-exclus.txt
+          commit-message: "Questions Wikidata : nouveau lot contrôlé"
+          title: "Questions Wikidata : nouveau lot"
+          body-path: ${{ runner.temp }}/rapport.md
