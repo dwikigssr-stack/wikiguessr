@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:dark}body{margin:0;background:#050c16}img{max-width:100%}</style>
+<style>:root{color-scheme:dark}body{margin:0;background:#0B1530}img{max-width:100%}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -15,11 +15,12 @@
 <style>
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
-  /* La partie garde l'ambiance de l'accueil : nuit étoilée, cartes translucides, accent ambre. Toujours sombre, quel que soit le thème de l'appareil. */
-  --bg: #050c16;
+  /* La partie garde l'ambiance de l'accueil : nuit étoilée, cartes translucides, accent ambre. Toujours sombre, quel que soit le thème de l'appareil.
+     Le fond est le bleu nuit uni du menu (--navy de l'accueil). */
+  --bg: #0B1530;
   --sky: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.6), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.4), transparent),
     radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.5), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.35), transparent) 0 0/211px 211px,
-    radial-gradient(ellipse 70% 55% at 35% 20%, #13324d 0, transparent 70%), #050c16;
+    var(--bg);
   --card: rgba(16,32,50,.82);
   --sea: #0f2029;
   --land: #223f4a;
@@ -245,7 +246,7 @@ button.main:active:not(:disabled), .menubtn:active, .zoom button:active { transf
 }
 #timebar i { transform-origin: left center; transition: transform 200ms linear; will-change: transform; }
 #gsky { position: absolute; inset: 0; z-index: 499; width: 100%; height: 100%; display: block; pointer-events: none; }
-#mapwrap.globe { background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
+#mapwrap.globe { background: var(--bg); }
 @media (prefers-reduced-motion: no-preference) {
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
   @keyframes fadein { from { opacity: 0; } }
@@ -265,7 +266,7 @@ button.main:disabled { opacity: 1; background: var(--card); color: var(--muted);
   background: color-mix(in srgb, var(--rk, #ffb547) 18%, transparent); border: 1px solid color-mix(in srgb, var(--rk, #ffb547) 55%, transparent); color: var(--rk, #ffb547); }
 #frank::before { content: var(--rki, "★"); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--rk, #ffb547); color: #050c16; font-size: 15px; }
 #recap { position: relative; flex: none; height: clamp(240px, 42vh, 380px); border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
-  background: radial-gradient(ellipse 70% 60% at 40% 35%, #13324d 0, transparent 70%), #050c16; }
+  background: var(--bg); }
 #recap[hidden] { display: none; }
 #rglobe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #rglobe:active { cursor: grabbing; }
@@ -943,8 +944,8 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
 /* ---- globe de l'accueil, au centre du menu : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
-   on zoome à la molette ou en pinçant. Chaque point est une question du jeu (la couleur suit la catégorie), posé au hasard sur les terres
-   pour ne pas montrer où sont les réponses.
+   on zoome à la molette ou en pinçant. Les points sont un échantillon de POINTS questions du sujet (la couleur suit la catégorie), posés au hasard
+   sur les terres pour ne pas montrer où sont les réponses : un point par question chargeait trop le globe.
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
 (function () {
   const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
@@ -955,9 +956,12 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   let raf = 0, lastInput = -1e4, pinch = 0;
   const ptrs = new Map();
 
+  const POINTS = 70, rang = new Map();
   function refresh() {
-    pts = ALL.filter(d => inMode(d, sel.sujet));
-    $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe';
+    const pool = ALL.filter(d => inMode(d, sel.sujet));
+    for (const d of pool) if (!rang.has(d)) rang.set(d, seeded('point-' + d.t)());
+    pts = pool.sort((a, b) => rang.get(a) - rang.get(b)).slice(0, POINTS);
+    $('poolnote').innerHTML = '<b>' + fmt(pool.length) + ' questions</b> à jouer';
     kick();
   }
   /* Position d'un point : tirée au hasard sur les terres (entre 56° S et 72° N), toujours la même pour une question donnée.
@@ -1101,7 +1105,7 @@ function makeSky(cv, isOn, opt) {
     tile.toBlob(b => { if (!b) return; if (url) URL.revokeObjectURL(url); url = URL.createObjectURL(b); inner.style.backgroundImage = 'url(' + url + ')'; });
     kick();
   }
-  /* Une fusée part d'un bord, traverse en arc vers l'autre bord et laisse une traînée orangée. */
+  /* Une fusée part d'un bord, traverse en arc vers l'autre bord et laisse une traînée orangée. Elle porte un petit drapeau breton qui flotte. */
   function launch(t) {
     const left = Math.random() < 0.5, y0 = h * (0.12 + Math.random() * 0.6);
     rockets.push({ t0: t, dur: 6000 + Math.random() * 4000, x0: left ? -30 : w + 30, x1: left ? w + 30 : -30,
@@ -1119,6 +1123,8 @@ function makeSky(cv, isOn, opt) {
     });
     ctx.globalAlpha = 1;
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(r.size, r.size);
+    if (Math.cos(ang) < 0) ctx.scale(1, -1); /* vers la gauche, on retourne la fusée pour garder le drapeau au-dessus */
+    drawFlag(t);
     const f = 7 + Math.sin(t / 45) * 2.5;
     ctx.fillStyle = '#ff6f3c'; ctx.beginPath(); ctx.moveTo(-9, -3.2); ctx.lineTo(-9 - f, 0); ctx.lineTo(-9, 3.2); ctx.fill();
     ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.moveTo(-9, -1.7); ctx.lineTo(-9 - f * 0.6, 0); ctx.lineTo(-9, 1.7); ctx.fill();
@@ -1130,6 +1136,27 @@ function makeSky(cv, isOn, opt) {
     ctx.strokeStyle = '#0a1622'; ctx.lineWidth = 0.8; ctx.stroke();
     ctx.restore();
     return true;
+  }
+  /* Gwenn-ha-du sur un mât planté sur le dos de la fusée : 9 bandes (5 noires, 4 blanches), un canton blanc semé d'hermines.
+     Le drapeau est dessiné en tranches verticales décalées par une onde, plus forte au bout qu'au mât. */
+  function drawFlag(t) {
+    const M = -2, H = 9, L = 14, top = -17.5, N = 7, sw = L / N, cw = 3 * sw;
+    ctx.strokeStyle = '#c5d2da'; ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(M, -3.5); ctx.lineTo(M, top - 0.8); ctx.stroke();
+    /* haut de la tranche i (0 au mât) */
+    const yAt = i => top + Math.sin((M - (i + 0.5) * sw) / 3 + t / 110) * 0.9 * (i + 0.5) / N;
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; /* liseré clair : les bandes noires restent visibles sur le ciel */
+    for (let i = 0; i < N; i++) ctx.fillRect(M - (i + 1) * sw - 0.35, yAt(i) - 0.35, sw + 0.7, H + 0.7);
+    for (let i = 0; i < N; i++) {
+      const x = M - (i + 1) * sw, y = yAt(i);
+      ctx.fillStyle = '#fff'; ctx.fillRect(x, y, sw + 0.05, H);
+      ctx.fillStyle = '#111';
+      for (let k = 0; k < 9; k += 2) if (k >= 5 || i * sw >= cw) ctx.fillRect(x, y + k, sw + 0.05, 1);
+    }
+    /* hermines : de petites taches noires en quinconce dans le canton */
+    [[0, 1.2], [0, 3.8], [1, 2.5], [2, 1.2], [2, 3.8]].forEach(([i, dy]) => {
+      [0.55, 1.45].forEach(dx => ctx.fillRect(M - (i + 1) * sw + dx - 0.3, yAt(i) + dy - 0.4, 0.6, 0.85));
+    });
   }
   /* Étoile filante : un trait fin qui file en diagonale et s'éteint en moins d'une seconde. */
   function shoot(t) {
