@@ -30,6 +30,7 @@ jobs:
         run: node outils/wikidata.js
         env:
           MAX_NOUVELLES: ${{ github.event.inputs.max || '3000' }}
+          LISTE_VUES: '1'
       - name: Contrôler le lot et retirer les questions refusées
         run: node outils/valider-wikidata.js --corriger --rapport "$RUNNER_TEMP/rapport.md"
       - name: Contrôle général des questions
