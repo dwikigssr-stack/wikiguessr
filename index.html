@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:dark}body{margin:0;background:#0B1530}img{max-width:100%}</style>
+<style>:root{color-scheme:dark}body{margin:0;background:#1A1A19}img{max-width:100%}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -16,12 +16,12 @@
 /* Layout: écran unique. Article en haut, carte du monde plein cadre, barre d'action en bas. */
 :root {
   /* La partie garde l'ambiance de l'accueil : nuit étoilée, cartes translucides, accent ambre. Toujours sombre, quel que soit le thème de l'appareil.
-     Le fond est le bleu nuit uni du menu (--navy de l'accueil). */
-  --bg: #0B1530;
+     Le fond est le noir uni du menu en thème sombre (#1A1A19), comme derrière le globe de l'accueil. */
+  --bg: #1A1A19;
   --sky: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.6), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,.4), transparent),
     radial-gradient(1.5px 1.5px at 40% 60%, rgba(255,255,255,.5), transparent) 0 0/137px 137px, radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.35), transparent) 0 0/211px 211px,
     var(--bg);
-  --card: rgba(16,32,50,.82);
+  --card: rgba(38,38,37,.85);
   --sea: #0f2029;
   --land: #223f4a;
   --border: rgba(255,255,255,.3);
@@ -31,7 +31,7 @@
   --guess: #ffb547;
   --truth: #FF5A6E;
   --truth-ink: #2a0a10;
-  --surf: #0f2236;
+  --surf: #262625;
   --btn-ink: #1a1206;
   --btn: #ffb547;
   color-scheme: dark;
@@ -126,7 +126,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 .field.wide .pic { width: 64px; top: 50%; margin-top: -32px; }
 
 /* Globe : une fenêtre sur l'espace, en aplat bleu nuit. On le fait tourner au doigt ; choisir un sujet le fait pivoter vers ses questions. */
-.stage { position: relative; overflow: hidden; background: var(--navy); color: #fff; min-height: 300px; }
+.stage { position: relative; overflow: hidden; background: #1A1A19; color: #fff; min-height: 300px; }
 #globe, #sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #globe { touch-action: none; cursor: grab; }
 #globe:active { cursor: grabbing; }
@@ -136,7 +136,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 .noglobe .stage::before { display: block; }
 #home #poolnote { position: absolute; left: 20px; top: 16px; max-width: 30ch; font-size: var(--step-small); line-height: 1.4; color: rgba(255,255,255,.75); pointer-events: none; }
 #poolnote b { color: #fff; font-weight: 600; }
-#home .globehint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: var(--step-small); color: #fff; background: rgba(11,21,48,.8); padding: 6px 12px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
+#home .globehint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: var(--step-small); color: #fff; background: rgba(26,26,25,.8); padding: 6px 12px; pointer-events: none; white-space: nowrap; transition: opacity .4s; }
 .spun .globehint, .noglobe .globehint { opacity: 0; }
 
 /* Réglages : ce que le menu ne montre pas (temps par question). */
