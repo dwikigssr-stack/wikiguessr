@@ -386,3 +386,10 @@ Q131355384 Prise d'Alep : indice trop court
 Q1537159 Première bataille de Falloujah : indice trop court
 Q684872 Seconde bataille des lacs de Mazurie : position hors du pays annoncé (Russie, code 643)
 Q697053 Bataille de Huế : indice trop court
+Q752555 Temple d'Antonin et Faustine : même lieu que « Colisée » (questions écrites à la main)
+Q856356 Mosquée du Cheikh Lotfallah : même lieu que « Place Naghsh-e Jahan » (questions écrites à la main)
+Q1572472 Mosquée Sokollu Mehmet Pacha : même lieu que « Sainte-Sophie » (questions écrites à la main)
+Q2151217 Mosquée d'Omar : même lieu que « Mur des Lamentations » (questions écrites à la main)
+Q1535247 Palais de Tokyo : même lieu que « Tour Eiffel » (questions écrites à la main)
+Q690489 Siège de Paris : même lieu que « Notre-Dame de Paris » (questions écrites à la main)
+Q48163 Bataille de Custoza : indice trop court
