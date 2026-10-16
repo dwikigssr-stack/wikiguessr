@@ -59,7 +59,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
    prennent la couleur du sujet choisi (--f, --f-ink). Les données des modes et des sujets sont dans menu.js. */
 #home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden;
   --font: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --ground: #F3F3F0; --ink: #1C1C1B; --ink-2: #484846; --navy: #0B1530;
+  --ground: #F3F3F0; --ink: #1C1C1B; --ink-2: #484846; --navy: #1A1A19;
   --step-hero: clamp(2.75rem, 5.4vw, 5.5rem); --step-title: clamp(1.75rem, 2.7vw, 2.6rem); --step-body: 1.0625rem; --step-small: .9375rem;
   --gutter: clamp(16px, 3vw, 40px); --gap: 12px; --dur-fast: 160ms; --dur-base: 220ms;
   --f: #FFC400; --f-ink: #2B1A00;
@@ -75,7 +75,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #home .skip { position: absolute; left: var(--gutter); top: -80px; background: var(--ink); color: var(--ground); padding: 12px 16px; z-index: 10; text-decoration: none; }
 #home .skip:focus { top: 12px; }
 
-.mhead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px var(--gutter); background: var(--navy); color: #fff; }
+.mhead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px var(--gutter); background: var(--navy); color: #fff; border-bottom: 1px solid rgba(255,255,255,.1); }
 .mhead :focus-visible { outline-color: #fff !important; }
 .mhead wg-logo { font-size: 30px; padding: 6px 0 8px; }
 .mhead nav ul { display: flex; gap: 4px; }
