@@ -57,7 +57,7 @@ for (const d of auto) {
   if (!ctx.T[d.h]) raisons.push('thème inconnu');
   if (!ctx.K[d.k]) raisons.push('type inconnu');
   if (!/^Q\d+$/.test(d.id || '')) raisons.push('identifiant Wikidata manquant');
-  if (d.m !== undefined && (typeof d.m !== 'string' || !d.m.includes('…'))) raisons.push('titre masqué invalide');
+  if (d.m !== undefined && (typeof d.m !== 'string' || !d.m.trim())) raisons.push('titre de manche invalide');
   if (!(Math.abs(d.a) <= 90 && Math.abs(d.o) <= 180) || (Math.abs(d.a) < 0.5 && Math.abs(d.o) < 0.5)) raisons.push('coordonnées invalides');
 
   const x = d.x || '';

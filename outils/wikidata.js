@@ -38,7 +38,7 @@ const CATEGORIES = [
 
 /* Mots trop courants pour signaler un indice trop parlant (repris de verifier-questions.js, plus les noms d'entités administratives). */
 const GENERIQUES = require('./wikidata-mots.js');
-const { masquer } = require('./titre-masque.js');
+const { nommeLieu } = require('./titre-lieu.js');
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '');
 const pause = ms => new Promise(r => setTimeout(r, ms));
 const nb = x => Math.round(x).toLocaleString('fr-FR').replace(/[  ]/g, ' ');
@@ -299,14 +299,14 @@ async function main() {
     const localisation = admins.slice(0, 2).concat(nomPays).join(', ');
     const e2 = (desc ? maj(desc) + '. ' : '') + 'Localisation : ' + localisation + '.';
     const iso = valeurs(paysR, 'P299')[0];
-    const d = { t, c: sousCat, x, e: e2, p, a, o, id: c.id };
-    if (iso) d.iso = iso;
-    /* Titre de la manche : le pays, une capitale ou une ville de 250 000 habitants ou plus où se trouve la réponse y est caché
-       (« Observatoire de Paris » devient « Observatoire de … ») ; le vrai titre s'affiche après la réponse. */
+    /* Un titre qui nomme le pays, une capitale ou une ville de 250 000 habitants ou plus où se trouve la réponse la donnerait
+       (« Observatoire de Paris ») : le sujet est écarté. Les questions de ce genre déjà dans le jeu ont une description
+       écrite à la main (champ m), affichée pendant la manche à la place du titre. */
     const habitants = z => Math.max(0, ...valeurs(z, 'P1082').map(v => +v.amount || 0));
     const connus = [paysR, ...pays, lieuEvt, ...chaine].filter(z => z && (z === paysR || pays.includes(z) || valeurs(z, 'P1376').length || habitants(z) >= 250000));
-    const m = masquer(t, [nomPays, ...connus.flatMap(z => [etiquette(z), ...valeurs(z, 'P1813').filter(v => v.language === 'fr').map(v => v.text)])]);
-    if (m) d.m = m;
+    if (nommeLieu(t, [nomPays, ...connus.flatMap(z => [etiquette(z), ...valeurs(z, 'P1813').filter(v => v.language === 'fr').map(v => v.text)])])) { rejet('le titre nomme le lieu'); continue; }
+    const d = { t, c: sousCat, x, e: e2, p, a, o, id: c.id };
+    if (iso) d.iso = iso;
     if (t !== c.titre) d.w = c.titre;
     nouvelles.push(Object.assign({ h: c.cat.h, k: c.cat.k }, d));
     titres.add(norm(t));

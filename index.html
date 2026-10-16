@@ -628,7 +628,7 @@ function load() {
   [...sg.children].forEach((e, i) => { e.className = i < idx ? 'done' : i === idx ? 'on' : ''; });
   /* Pastille : thème · sous-catégorie · ce qu'il faut placer */
   $('chip').textContent = [THEMES[r.h].long, r.c === THEMES[r.h].long ? '' : r.c, r.q || TYPES[r.k].quoi].filter(Boolean).join(' · ');
-  /* Titre de la manche : m cache le pays ou la grande ville qui donnerait la réponse ; le vrai titre s'affiche après (showTitle). */
+  /* Titre de la manche : m, une description, remplace un titre qui nommerait le pays ou la grande ville de la réponse ; le vrai titre s'affiche après (showTitle). */
   $('title').textContent = r.m || r.t;
   $('extract').textContent = r.x;
   setPhoto(r);

@@ -18,7 +18,7 @@ for (const d of QUESTIONS) {
   if (!THEMES[d.h]) errors.push(who + ' : thème inconnu ' + d.h);
   if (!TYPES[d.k]) errors.push(who + ' : type inconnu ' + d.k);
   if (!(Math.abs(d.a) <= 90 && Math.abs(d.o) <= 180)) errors.push(who + ' : coordonnées invalides');
-  if (d.m !== undefined && (typeof d.m !== 'string' || !d.m.includes('…') || d.m === d.t)) errors.push(who + ' : titre masqué m invalide');
+  if (d.m !== undefined && (typeof d.m !== 'string' || !d.m.trim() || d.m === d.t)) errors.push(who + ' : titre de manche m invalide');
   const key = norm(d.t || '');
   if (seen.has(key)) errors.push(who + ' : doublon de « ' + seen.get(key) + ' »');
   seen.set(key, d.t);
