@@ -56,8 +56,8 @@ for (const d of auto) {
   for (const f of ['t', 'c', 'x', 'e', 'p']) if (typeof d[f] !== 'string' || !d[f].trim()) raisons.push('champ ' + f + ' manquant');
   if (!ctx.T[d.h]) raisons.push('thème inconnu');
   if (!ctx.K[d.k]) raisons.push('type inconnu');
-  if (![1, 2, 3].includes(d.n)) raisons.push('niveau invalide');
   if (!/^Q\d+$/.test(d.id || '')) raisons.push('identifiant Wikidata manquant');
+  if (d.m !== undefined && (typeof d.m !== 'string' || !d.m.trim())) raisons.push('titre de manche invalide');
   if (!(Math.abs(d.a) <= 90 && Math.abs(d.o) <= 180) || (Math.abs(d.a) < 0.5 && Math.abs(d.o) < 0.5)) raisons.push('coordonnées invalides');
 
   const x = d.x || '';
@@ -90,11 +90,11 @@ for (const d of auto) {
   else { vusTitre.set(norm(d.t), d.t); vusIndice.set(norm(x), d.t); }
 }
 
-/* Équilibre du lot : un thème qui écrase les autres ou un lot sans question facile mérite un coup d'œil. */
+/* Équilibre du lot : un thème qui écrase les autres mérite un coup d'œil. */
 const nouvelles = auto.filter(estNouvelle), refusIds = new Set(refus.map(r => r.d.id));
 const gardees = nouvelles.filter(d => !refusIds.has(d.id));
-const parTheme = {}, parNiveau = { 1: 0, 2: 0, 3: 0 };
-for (const d of gardees) { parTheme[d.h] = (parTheme[d.h] || 0) + 1; parNiveau[d.n]++; }
+const parTheme = {};
+for (const d of gardees) parTheme[d.h] = (parTheme[d.h] || 0) + 1;
 for (const [h, n] of Object.entries(parTheme)) if (gardees.length >= 50 && n / gardees.length > 0.6) avertissements.push('le thème ' + ctx.T[h].long + ' fait ' + Math.round(100 * n / gardees.length) + ' % du lot');
 
 const lignes = [];
@@ -102,7 +102,6 @@ lignes.push('## Contrôle des questions Wikidata', '');
 lignes.push(`- Questions Wikidata dans le jeu : **${auto.length - refus.length}** (dont **${gardees.length}** nouvelles dans ce lot)`);
 lignes.push(`- Refusées : **${refus.length}**` + (corriger ? ' (retirées et ajoutées à outils/wikidata-exclus.txt)' : ''));
 lignes.push('- Nouvelles par thème : ' + Object.entries(parTheme).map(([h, n]) => ctx.T[h].long + ' ' + n).join(', '));
-lignes.push(`- Nouvelles par niveau : facile ${parNiveau[1]}, moyen ${parNiveau[2]}, difficile ${parNiveau[3]}`);
 if (avertissements.length) lignes.push('', '### À regarder', '', ...avertissements.map(a => '- ' + a));
 if (refus.length) {
   lignes.push('', '### Refusées', '');
@@ -112,8 +111,8 @@ if (refus.length) {
 }
 if (gardees.length) {
   const pas = Math.max(1, Math.floor(gardees.length / 30));
-  lignes.push('', '### Échantillon à relire', '', '| Titre | Indice | Réponse | Niveau |', '|---|---|---|---|');
-  lignes.push(...gardees.filter((_, i) => i % pas === 0).slice(0, 30).map(d => `| ${d.t} | ${d.x.replace(/\|/g, '/')} | ${d.p} | ${d.n} |`));
+  lignes.push('', '### Échantillon à relire', '', '| Titre | Indice | Réponse |', '|---|---|---|');
+  lignes.push(...gardees.filter((_, i) => i % pas === 0).slice(0, 30).map(d => `| ${d.t} | ${d.x.replace(/\|/g, '/')} | ${d.p} |`));
 }
 const rapport = lignes.join('\n');
 console.log(rapport);
