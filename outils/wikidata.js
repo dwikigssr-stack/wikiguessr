@@ -10,8 +10,8 @@ const RACINE = path.join(__dirname, '..');
 const SORTIE = path.join(RACINE, 'questions-wikidata.js');
 const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 3000);
 const EXCLUS = path.join(__dirname, 'wikidata-exclus.txt');
-/* Visites de l'article Wikipédia en français sur 60 jours à partir desquelles une question va en Facile. */
-const VUES_FACILE = 30000;
+/* Visites par jour de l'article Wikipédia en français (médiane sur 60 jours) à partir desquelles une question va en Facile. */
+const VUES_FACILE = 70;
 const UA = 'Wikiguessr/1.0 (https://github.com/dwikigssr-stack/wikiguessr; jeu de géographie)';
 
 /* Catégories : classes Wikidata (instance de), thème et type de manche du jeu, sous-catégorie affichée,
@@ -60,8 +60,8 @@ async function sparql(q) {
   return j.results.bindings;
 }
 
-/* Visites de chaque article de Wikipédia en français sur les 60 derniers jours, 50 articles par requête.
-   Un titre absent du résultat n'a pas pu être mesuré. */
+/* Visites par jour de chaque article de Wikipédia en français : la médiane des 60 derniers jours, pour qu'un pic
+   d'actualité ou de robots ne compte pas. 50 articles par requête ; un titre absent du résultat n'a pas pu être mesuré. */
 async function visites(titres) {
   const res = new Map(), uniques = [...new Set(titres)];
   for (let i = 0; i < uniques.length; i += 50) {
@@ -77,7 +77,10 @@ async function visites(titres) {
       } catch (e) { console.log('Visites : requête échouée (' + e.message.slice(0, 60) + ')'); break; }
       const q = j.query || {};
       for (const r of [...(q.normalized || []), ...(q.redirects || [])]) renvois.set(r.from, r.to);
-      for (const p of q.pages || []) if (p.pageviews) total.set(p.title, Object.values(p.pageviews).reduce((s, v) => s + (v || 0), 0));
+      for (const p of q.pages || []) if (p.pageviews) {
+        const jours = Object.values(p.pageviews).filter(v => v !== null).sort((a, b) => a - b);
+        total.set(p.title, jours.length ? jours[Math.floor(jours.length / 2)] : 0);
+      }
       suite = j.continue || null;
     }
     for (const t of lot) {
@@ -320,7 +323,7 @@ async function main() {
   const vu = d => vues.get(d.w || d.t);
   const triees = toutes.filter(d => vues.has(d.w || d.t)).sort((a, b) => vu(b) - vu(a));
   const rang = f => triees.length ? vu(triees[Math.floor(f * (triees.length - 1))]) : 0;
-  console.log('Visites sur 60 jours, du plus visité au moins visité : 10 % ' + rang(0.1) + ', 25 % ' + rang(0.25) + ', moitié ' + rang(0.5) + ', 75 % ' + rang(0.75) + ', 90 % ' + rang(0.9));
+  console.log('Visites par jour, du plus visité au moins visité : 10 % ' + rang(0.1) + ', 25 % ' + rang(0.25) + ', moitié ' + rang(0.5) + ', 75 % ' + rang(0.75) + ', 90 % ' + rang(0.9));
   if (process.env.LISTE_VUES) for (const d of triees) console.log('VUES\t' + vu(d) + '\t' + d.h + '\t' + d.c + '\t' + d.id + '\t' + d.t);
 
   /* 4. On réécrit le fichier : anciennes questions d'abord, puis les nouvelles, par thème. */
