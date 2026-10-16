@@ -3,7 +3,8 @@
 // Wikipédia dans le monde, un article en français, des coordonnées), écrit un indice qui ne nomme ni le lieu,
 // ni sa région, ni son pays, puis complète questions-wikidata.js sans toucher aux questions écrites à la main.
 // Le niveau dépend des visites de l'article Wikipédia en français : les plus visités vont en Facile, les autres en Moyen.
-// Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 3000 par défaut).
+// Réglages par variables d'environnement : MAX_NOUVELLES (nombre maximum de questions ajoutées, 3000 par défaut),
+// LISTE_VUES=1 (affiche les visites de chaque article, pour régler VUES_FACILE).
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 const RACINE = path.join(__dirname, '..');
@@ -11,7 +12,7 @@ const SORTIE = path.join(RACINE, 'questions-wikidata.js');
 const MAX_NOUVELLES = +(process.env.MAX_NOUVELLES || 3000);
 const EXCLUS = path.join(__dirname, 'wikidata-exclus.txt');
 /* Visites par jour de l'article Wikipédia en français (médiane sur 60 jours) à partir desquelles une question va en Facile. */
-const VUES_FACILE = 70;
+const VUES_FACILE = 60;
 const UA = 'Wikiguessr/1.0 (https://github.com/dwikigssr-stack/wikiguessr; jeu de géographie)';
 
 /* Catégories : classes Wikidata (instance de), thème et type de manche du jeu, sous-catégorie affichée,
