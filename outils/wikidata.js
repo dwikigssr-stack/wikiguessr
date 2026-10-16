@@ -38,6 +38,7 @@ const CATEGORIES = [
 
 /* Mots trop courants pour signaler un indice trop parlant (repris de verifier-questions.js, plus les noms d'entités administratives). */
 const GENERIQUES = require('./wikidata-mots.js');
+const { masquer } = require('./titre-masque.js');
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '');
 const pause = ms => new Promise(r => setTimeout(r, ms));
 const nb = x => Math.round(x).toLocaleString('fr-FR').replace(/[  ]/g, ' ');
@@ -300,6 +301,12 @@ async function main() {
     const iso = valeurs(paysR, 'P299')[0];
     const d = { t, c: sousCat, x, e: e2, p, a, o, id: c.id };
     if (iso) d.iso = iso;
+    /* Titre de la manche : le pays, une capitale ou une ville de 250 000 habitants ou plus où se trouve la réponse y est caché
+       (« Observatoire de Paris » devient « Observatoire de … ») ; le vrai titre s'affiche après la réponse. */
+    const habitants = z => Math.max(0, ...valeurs(z, 'P1082').map(v => +v.amount || 0));
+    const connus = [paysR, ...pays, lieuEvt, ...chaine].filter(z => z && (z === paysR || pays.includes(z) || valeurs(z, 'P1376').length || habitants(z) >= 250000));
+    const m = masquer(t, [nomPays, ...connus.flatMap(z => [etiquette(z), ...valeurs(z, 'P1813').filter(v => v.language === 'fr').map(v => v.text)])]);
+    if (m) d.m = m;
     if (t !== c.titre) d.w = c.titre;
     nouvelles.push(Object.assign({ h: c.cat.h, k: c.cat.k }, d));
     titres.add(norm(t));
@@ -330,7 +337,7 @@ async function main() {
 
   /* 4. On réécrit le fichier : anciennes questions d'abord, puis les nouvelles, par thème. */
   const champ = v => typeof v === 'number' ? String(v) : JSON.stringify(v);
-  const ligne = d => '{' + ['t', 'w', 'c', 'x', 'e', 'p', 'a', 'o', 'id', 'iso'].filter(k => d[k] !== undefined).map(k => k + ':' + champ(d[k])).join(',') + '},';
+  const ligne = d => '{' + ['t', 'm', 'w', 'c', 'x', 'e', 'p', 'a', 'o', 'id', 'iso'].filter(k => d[k] !== undefined).map(k => k + ':' + champ(d[k])).join(',') + '},';
   let out = `/* Questions tirées automatiquement de Wikidata par outils/wikidata.js : ne pas modifier à la main
    (une question ratée se retire en ajoutant son identifiant Q… à outils/wikidata-exclus.txt, puis en relançant le script).
    Même format que questions.js ; chargé juste après lui. */\n`;
@@ -343,7 +350,7 @@ async function main() {
   fs.writeFileSync(SORTIE, out);
   console.log('Écrit : ' + path.relative(RACINE, SORTIE) + ' (' + toutes.length + ' questions)');
   console.log('\nExemples :');
-  for (const d of nouvelles.filter((_, i) => i % Math.max(1, Math.floor(nouvelles.length / 40)) === 0).slice(0, 40)) console.log('- [' + d.h + ' n' + d.n + '] ' + d.t + ' | ' + d.x + ' | ' + d.p);
+  for (const d of nouvelles.filter((_, i) => i % Math.max(1, Math.floor(nouvelles.length / 40)) === 0).slice(0, 40)) console.log('- [' + d.h + '] ' + d.t + (d.m ? ' (pendant la manche : ' + d.m + ')' : '') + ' | ' + d.x + ' | ' + d.p);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

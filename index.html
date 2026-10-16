@@ -628,7 +628,8 @@ function load() {
   [...sg.children].forEach((e, i) => { e.className = i < idx ? 'done' : i === idx ? 'on' : ''; });
   /* Pastille : thème · sous-catégorie · ce qu'il faut placer */
   $('chip').textContent = [THEMES[r.h].long, r.c === THEMES[r.h].long ? '' : r.c, r.q || TYPES[r.k].quoi].filter(Boolean).join(' · ');
-  $('title').textContent = r.t;
+  /* Titre de la manche : m cache le pays ou la grande ville qui donnerait la réponse ; le vrai titre s'affiche après (showTitle). */
+  $('title').textContent = r.m || r.t;
   $('extract').textContent = r.x;
   setPhoto(r);
   $('go').hidden = false; $('go').disabled = true;
@@ -856,7 +857,7 @@ $('home').addEventListener('change', e => {
   const r = e.target; if (r.type !== 'radio') return;
   sel[r.name] = r.name === 'mode' || r.name === 'sujet' ? r.value : +r.value;
   paintHome();
-  if (window.homeGlobe) { homeGlobe.refresh(); if (r.name === 'sujet') homeGlobe.focus(sel.sujet); }
+  if (window.homeGlobe) homeGlobe.refresh();
 });
 $('openprefs').onclick = () => $('prefs').showModal();
 /* Stats et Classement : points d'entrée prévus, pas encore construits. */
@@ -942,7 +943,8 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   ctx.beginPath(); path(sphere); ctx.fillStyle = g; ctx.fill();
 }
 /* ---- globe de l'accueil, au centre du menu : projection orthographique d3-geo dessinée sur un canvas. On le fait tourner au doigt, à la souris ou aux flèches,
-   on zoome à la molette ou en pinçant. Chaque point est une question du jeu : la couleur suit la catégorie.
+   on zoome à la molette ou en pinçant. Chaque point est une question du jeu (la couleur suit la catégorie), posé au hasard sur les terres
+   pour ne pas montrer où sont les réponses.
    Les bibliothèques et les contours des pays sont chargés à la demande ; si rien ne charge, une sphère dessinée en CSS prend la place. ---- */
 (function () {
   const cv = $('globe'), ctx = cv.getContext('2d'), home = $('home');
@@ -953,24 +955,30 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
   let raf = 0, lastInput = -1e4, pinch = 0;
   const ptrs = new Map();
 
-  let anim = null;
   function refresh() {
     pts = ALL.filter(d => inMode(d, sel.sujet));
     $('poolnote').innerHTML = '<b>' + pts.length + ' questions</b> sur le globe';
     kick();
   }
-  /* Choisir un sujet fait pivoter le globe vers le centre de ses questions (moyenne des positions sur la sphère). */
-  function focus(id) {
-    const D = Math.PI / 180, list = ALL.filter(d => inMode(d, id));
-    let x = 0, y = 0, z = 0;
-    list.forEach(d => { x += Math.cos(d.a * D) * Math.cos(d.o * D); y += Math.cos(d.a * D) * Math.sin(d.o * D); z += Math.sin(d.a * D); });
-    if (!list.length) return;
-    const to = [-Math.atan2(y, x) / D, clampLat(-Math.atan2(z, Math.hypot(x, y)) / D)];
-    vel = [0, 0]; lastInput = performance.now() + 900;
-    if (still) { rot = to; kick(); return; }
-    let dl = ((to[0] - rot[0]) % 360 + 540) % 360 - 180;
-    anim = { from: rot.slice(), d: [dl, to[1] - rot[1]], t0: performance.now(), z0: zoom };
-    kick();
+  /* Position d'un point : tirée au hasard sur les terres (entre 56° S et 72° N), toujours la même pour une question donnée.
+     Les terres viennent d'un masque de 720 × 360 pixels, dessiné une fois quand les contours des pays sont chargés. */
+  const MW = 720, MH = 360, LEURRES = new Map(), SUD = Math.sin(-56 * Math.PI / 180), NORD = Math.sin(72 * Math.PI / 180);
+  let terre = null;
+  function masqueTerre() {
+    const c = document.createElement('canvas'); c.width = MW; c.height = MH;
+    const g = c.getContext('2d'), pr = d3.geoEquirectangular().scale(MW / (2 * Math.PI)).translate([MW / 2, MH / 2]);
+    g.beginPath(); d3.geoPath(pr, g)(GEO.land); g.fill();
+    const px = g.getImageData(0, 0, MW, MH).data;
+    terre = new Uint8Array(MW * MH); for (let i = 0; i < MW * MH; i++) terre[i] = px[i * 4 + 3] > 127 ? 1 : 0;
+  }
+  function leurre(d) {
+    let p = LEURRES.get(d); if (p) return p;
+    const rnd = seeded('globe-' + d.t);
+    for (let k = 0; k < 80; k++) {
+      p = [rnd() * 360 - 180, Math.asin(SUD + rnd() * (NORD - SUD)) * 180 / Math.PI];
+      if (terre[Math.min(MH - 1, Math.floor((90 - p[1]) / 180 * MH)) * MW + Math.min(MW - 1, Math.floor((p[0] + 180) / 360 * MW))]) break;
+    }
+    LEURRES.set(d, p); return p;
   }
   function size() {
     const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
@@ -985,11 +993,13 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     proj.scale(R).translate([cx, cy]).rotate([rot[0], rot[1]]);
     ctx.clearRect(0, 0, w, h);
     paintEarth(ctx, path, cx, cy, R, 0.3, 0.5);
+    if (!terre && GEO.land) masqueTerre();
+    if (!terre) return;
     const centre = proj.invert([cx, cy]), dot = Math.max(1.6, Math.min(3.4, R / 90));
     pts.forEach((d, i) => {
-      const a = d3.geoDistance([d.o, d.a], centre);
+      const q = leurre(d), a = d3.geoDistance(q, centre);
       if (a > 1.45) return;
-      const [x, y] = proj([d.o, d.a]), edge = Math.min(1, (1.45 - a) * 3);
+      const [x, y] = proj(q), edge = Math.min(1, (1.45 - a) * 3);
       const pulse = still ? 1 : 1 + 0.35 * Math.sin(t / 500 + i * 1.7);
       ctx.globalAlpha = edge * 0.28;
       ctx.fillStyle = THEMES[d.h].couleur;
@@ -1003,16 +1013,12 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     raf = 0;
     if (home.hidden || !proj || !w) return;
     const moving = Math.abs(vel[0]) + Math.abs(vel[1]) > 0.02;
-    if (anim && !ptrs.size) {
-      const p = Math.min(1, (t - anim.t0) / 950), e = 1 - Math.pow(1 - p, 3), bump = Math.sin(p * Math.PI) * 0.12;
-      rot = [anim.from[0] + anim.d[0] * e, anim.from[1] + anim.d[1] * e]; zoom = anim.z0 * (1 - bump);
-      if (p >= 1) { anim = null; zoom = Math.max(0.75, zoom); }
-    } else if (!ptrs.size) {
+    if (!ptrs.size) {
       if (moving) { rot[0] += vel[0]; rot[1] = clampLat(rot[1] + vel[1]); vel = vel.map(v => v * 0.95); }
       else if (!still && t - lastInput > 2500) rot[0] += 0.06;
     }
     draw(t);
-    if (!still || moving || ptrs.size || anim) raf = requestAnimationFrame(frame);
+    if (!still || moving || ptrs.size) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   function touched() { lastInput = performance.now(); home.classList.add('spun'); kick(); }
@@ -1020,7 +1026,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
 
   cv.addEventListener('pointerdown', e => {
     cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-    vel = [0, 0]; if (anim) { zoom = anim.z0; anim = null; } if (ptrs.size === 2) pinch = gap(); touched();
+    vel = [0, 0]; if (ptrs.size === 2) pinch = gap(); touched();
   });
   cv.addEventListener('pointermove', e => {
     const p = ptrs.get(e.pointerId); if (!p) return;
@@ -1037,10 +1043,10 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     const m = { ArrowLeft: [8, 0], ArrowRight: [-8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[e.key];
     if (!m) return; e.preventDefault(); rot[0] += m[0]; rot[1] = clampLat(rot[1] + m[1]); vel = [0, 0]; touched();
   });
-  window.homeGlobe = { refresh, focus };
+  window.homeGlobe = { refresh };
   new ResizeObserver(size).observe(cv);
   new MutationObserver(() => { if (!home.hidden) { size(); kick(); } }).observe(home, { attributes: true, attributeFilter: ['hidden'] });
-  refresh(); if (sel.sujet !== 'mixte') focus(sel.sujet);
+  refresh();
 
   const J = 'https://cdn.jsdelivr.net/npm/';
   const load = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
