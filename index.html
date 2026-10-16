@@ -55,17 +55,16 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 button.main.alt { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 /* Accueil : le menu principal. En-tête bleu nuit avec le logo, puis à gauche le titre, les modes et le bouton d'action,
    à droite la grille des sujets. Style plat : aplats, angles droits, ni dégradé ni ombre (le relief du logo est la seule exception).
-   Clair ou sombre selon l'appareil ; les couleurs des sujets restent les mêmes. Le bouton d'action et le contour du globe du logo
+   Toujours sombre, quel que soit le réglage de l'appareil, comme le reste du jeu. Le bouton d'action et le contour du globe du logo
    prennent la couleur du sujet choisi (--f, --f-ink). Les données des modes et des sujets sont dans menu.js. */
 #home { position: fixed; inset: 0; z-index: 3000; overflow-y: auto; overflow-x: hidden;
   --font: "Bricolage Grotesque", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --ground: #F3F3F0; --ink: #1C1C1B; --ink-2: #484846; --navy: #1A1A19;
+  --ground: #1A1A19; --ink: #ECECEA; --ink-2: #C4C4C0; --navy: #1A1A19;
   --step-hero: clamp(2.75rem, 5.4vw, 5.5rem); --step-title: clamp(1.75rem, 2.7vw, 2.6rem); --step-body: 1.0625rem; --step-small: .9375rem;
   --gutter: clamp(16px, 3vw, 40px); --gap: 12px; --dur-fast: 160ms; --dur-base: 220ms;
   --f: #FFC400; --f-ink: #2B1A00;
-  color-scheme: light; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font);
+  color-scheme: dark; background: var(--ground); color: var(--ink); font: 400 var(--step-body)/1.5 var(--font);
   display: flex; flex-direction: column; }
-@media (prefers-color-scheme: dark) { #home { --ground: #1A1A19; --ink: #ECECEA; --ink-2: #C4C4C0; color-scheme: dark; } }
 #home h1, #home h2, #home p, #home ul, #home fieldset { margin: 0; padding: 0; }
 #home fieldset { border: 0; min-width: 0; }
 #home ul { list-style: none; }
