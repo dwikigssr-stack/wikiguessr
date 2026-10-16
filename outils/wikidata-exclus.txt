@@ -395,3 +395,4 @@ Q690489 Siège de Paris : même lieu que « Notre-Dame de Paris » (questions é
 Q48163 Bataille de Custoza : indice trop court
 Q586468 Temple de Jupiter capitolin : même lieu que « Colisée » (questions écrites à la main)
 Q1133288 Temple de César : même lieu que « Colisée » (questions écrites à la main)
+Q430792 Temple de Vénus et de Rome : même lieu que « Colisée » (questions écrites à la main)
