@@ -1,0 +1,24 @@
+# Temporaire : relevé des miniatures Wikipédia pour la relecture des photos-indices.
+name: Relevé des photos
+on:
+  push:
+    branches: [photos-releve]
+    paths: ['outils/photos-releve.js', '.github/workflows/photos-releve.yml']
+permissions:
+  contents: write
+jobs:
+  releve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: mkdir -p photos-tmp && node outils/photos-releve.js
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add photos-tmp
+          git commit -m "Relevé des miniatures"
+          git push
