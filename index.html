@@ -414,6 +414,7 @@ a.sec:active { transform: scale(.97); }
 
 <script src="questions.js"></script>
 <script src="questions-wikidata.js" onerror="void 0"></script>
+<script src="photos-indices.js" onerror="void 0"></script>
 <script src="menu.js"></script>
 <script src="logo.js"></script>
 <script>
@@ -641,20 +642,22 @@ function load() {
   /* Le décompte sert au chrono ; sans limite de temps, la partie commence tout de suite. */
   if (idx === 0 && timeLimit) countdown(); else startTimer();
 }
-function showTitle(r) { $('title').textContent = r.t; if (LATE[r.k]) setPhoto(r, true); }
+function showTitle(r) { $('title').textContent = r.t; if (!indicePhoto(r)) setPhoto(r, true); }
 /* Les vignettes qui sont des drapeaux, des cartes de localisation ou des blasons (souvent des .svg) donneraient la réponse : on les écarte. */
 const ICONS = { lieux: '🗺️', celeb: '⭐', sport: '🏅', politique: '🏛️', histoire: '📜', crime: '🕵️', culture: '🎭', evt: '📅', science: '🔬', pop: '🎬' };
 const SPOILER = /\.svg|flag|drapeau|map|carte|locat|orthographic|blason|armoiries|coat_of_arms/i;
-/* La photo d'un lieu, d'un événement ou d'une histoire montre souvent l'endroit lui-même (monument, paysage, panneau, affiche) :
-   pour ces manches, elle n'apparaît qu'avec la réponse. Portraits et œuvres restent affichés pendant la manche. */
-const LATE = { lieu: 1, evt: 1, recit: 1 };
-/* Photo : champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
+/* Pendant la manche, seule une photo relue à l'œil et sans indice géographique (photos-indices.js) s'affiche ;
+   les autres (monument, paysage, panneau, carte…) n'apparaissent qu'avec la réponse. */
+const indicePhoto = r => typeof PHOTOS_INDICES === 'object' ? PHOTOS_INDICES[r.id || r.t] : undefined;
+/* Photo : photo-indice relue, sinon champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r, after) {
-  const hold = LATE[r.k] && !after; /* on va quand même chercher la miniature, pour qu'elle s'affiche tout de suite à la réponse */
+  const indice = indicePhoto(r);
+  const hold = !indice && !after; /* on va quand même chercher la miniature, pour qu'elle s'affiche tout de suite à la réponse */
   const im = $('img'); im.hidden = true; im.removeAttribute('src');
   $('mono').textContent = ICONS[r.h] || '🌍';
   $('photo').style.background = 'color-mix(in srgb, ' + THEMES[r.h].couleur + ' 28%, #0f2029)';
   const show = u => { if (rounds[idx] === r && !(hold && !revealed)) { im.onload = () => { im.hidden = false; }; im.src = u; } };
+  if (indice) return show(indice);
   if (r.img) return show(r.img);
   if (r.thumb) return show(r.thumb);
   if (r.thumb === undefined) {
