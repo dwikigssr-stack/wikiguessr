@@ -38,6 +38,14 @@ const rows = Object.keys(THEMES).map(h => {
 console.log(''.padEnd(24) + '  À la main Wikidata    Total');
 console.log(rows.join('\n'));
 console.log(''.padEnd(24) + [QUESTIONS.filter(d => !d.id), QUESTIONS.filter(d => d.id), QUESTIONS].map(x => String(x.length).padStart(9)).join(''));
+/* Chaque photo-indice (photos-indices.js) doit correspondre à une question (identifiant Wikidata ou titre). */
+const photos = path.join(__dirname, '..', 'photos-indices.js');
+if (fs.existsSync(photos)) {
+  const p = {}; vm.runInNewContext(fs.readFileSync(photos, 'utf8') + ';this.P = PHOTOS_INDICES;', p);
+  const cles = new Set(QUESTIONS.map(d => d.id || d.t));
+  for (const k of Object.keys(p.P)) if (!cles.has(k)) errors.push('photo-indice sans question : « ' + k + ' »');
+  console.log('\nPhotos-indices : ' + Object.keys(p.P).length);
+}
 if (warnings.length) console.log('\nÀ vérifier :\n' + warnings.join('\n'));
 if (errors.length) { console.error('\nErreurs :\n' + errors.join('\n')); process.exit(1); }
 console.log('\nAucune erreur.');
