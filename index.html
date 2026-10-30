@@ -107,6 +107,7 @@ button.main.alt { background: transparent; color: var(--ink); border: 1px solid 
 #launch { display: block; width: 100%; min-height: 68px; padding: 16px 24px; border: 0; border-radius: 0; background: var(--f); color: var(--f-ink); font: 600 1.375rem/1.2 var(--font); letter-spacing: -.01em; text-align: left; cursor: pointer;
   transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
 #launch:active { transform: scale(.985); }
+#launch:disabled, .streak:disabled { opacity: .55; cursor: default; transform: none; }
 
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
 .field { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: clamp(120px, 15vh, 170px); padding: 16px;
@@ -425,6 +426,9 @@ const ALL = QUESTIONS;
    « mixte » (tous les thèmes) reste utilisé en interne par le défi du jour. */
 const SUJET = Object.fromEntries(MENU_SUJETS.map(s => [s.id, s])), MODE = Object.fromEntries(MENU_MODES.map(m => [m.id, m]));
 const inMode = (d, m) => m === 'mixte' || (SUJET[m] ? !SUJET[m].themes || SUJET[m].themes.includes(d.h) : d.h === m);
+/* Questions jouables pour un sujet. Sans question (base vide ou en reconstruction), l'accueil le dit et ne lance pas de partie. */
+const nbQuestions = m => ALL.filter(d => inMode(d, m)).length;
+const poolNote = n => n ? '<b>' + fmt(n) + ' questions</b> à jouer' : '<b>Aucune question</b> pour l’instant : le contenu du jeu est en préparation.';
 /* Barème : 5 000 points à moins de 25 km, puis les points baissent avec la distance (environ la moitié à 1 000 km). */
 const DECAY = 1500;
 let TOTAL = 5; /* manches par partie : 5 ou 10 */
@@ -615,6 +619,7 @@ function dailyDone(d) { try { return JSON.parse(localStorage.getItem(DAILY_KEY(d
 function start() {
   endCountdown(); document.body.classList.remove('fin');
   rounds = daily ? pickDaily(daily) : pick(ALL.filter(d => inMode(d, mode))); idx = 0; total = 0; results = [];
+  TOTAL = Math.min(TOTAL, rounds.length); /* moins de questions que de manches : la partie est plus courte */
   $('rtot').textContent = TOTAL;
   remember(rounds);
   $('final').hidden = true; $('ftot').style.fontSize = ''; $('tot').textContent = '0';
@@ -646,8 +651,8 @@ function showTitle(r) { $('title').textContent = r.t; if (!indicePhoto(r)) setPh
 /* Les vignettes qui sont des drapeaux, des cartes de localisation ou des blasons (souvent des .svg) donneraient la réponse : on les écarte. */
 const ICONS = { lieux: '🗺️', celeb: '⭐', sport: '🏅', politique: '🏛️', histoire: '📜', crime: '🕵️', culture: '🎭', evt: '📅', science: '🔬', pop: '🎬' };
 const SPOILER = /\.svg|flag|drapeau|map|carte|locat|orthographic|blason|armoiries|coat_of_arms/i;
-/* Pendant la manche, seule une photo relue à l'œil et sans indice géographique (photos-indices.js) s'affiche ;
-   les autres (monument, paysage, panneau, carte…) n'apparaissent qu'avec la réponse. */
+/* Pendant la manche, seule une question listée dans photos-indices.js montre sa photo : l'adresse de la photo relue,
+   ou true pour la miniature Wikipédia de l'article. Les autres n'ont leur photo qu'avec la réponse. */
 const indicePhoto = r => typeof PHOTOS_INDICES === 'object' ? PHOTOS_INDICES[r.id || r.t] : undefined;
 /* Photo : photo-indice relue, sinon champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r, after) {
@@ -657,7 +662,7 @@ function setPhoto(r, after) {
   $('mono').textContent = ICONS[r.h] || '🌍';
   $('photo').style.background = 'color-mix(in srgb, ' + THEMES[r.h].couleur + ' 28%, #0f2029)';
   const show = u => { if (rounds[idx] === r && !(hold && !revealed)) { im.onload = () => { im.hidden = false; }; im.src = u; } };
-  if (indice) return show(indice);
+  if (typeof indice === 'string') return show(indice);
   if (r.img) return show(r.img);
   if (r.thumb) return show(r.thumb);
   if (r.thumb === undefined) {
@@ -855,7 +860,10 @@ function paintHome() {
   document.querySelectorAll('#prefs input[name="time"]').forEach(r => { r.checked = +r.value === sel.time; });
   const m = MODE[sel.mode], s = SUJET[sel.sujet];
   $('home').style.setProperty('--f', s.f); $('home').style.setProperty('--f-ink', s.ink);
-  $('launch').textContent = m.bouton;
+  const n = nbQuestions(sel.sujet);
+  $('launch').textContent = n ? m.bouton : 'Pas encore de questions';
+  $('launch').disabled = !n;
+  $('poolnote').innerHTML = poolNote(n);
   $('sum').textContent = m.nom + ' · ' + s.nom;
   try { localStorage.setItem(MENU_KEY, JSON.stringify({ mode: sel.mode, sujet: sel.sujet, time: sel.time })); } catch (e) {}
 }
@@ -890,6 +898,7 @@ function leaveHome() {
 }
 /* Point d'entrée du moteur de jeu : reçoit { mode, sujet } (identifiants de menu.js) et lance la partie avec les réglages. */
 function lancerPartie({ mode: m, sujet: s }) {
+  if (!nbQuestions(s)) return;
   const jeu = MODE[m].jeu;
   daily = null; mode = s; TOTAL = jeu.manches;
   timeLimit = jeu.chrono ? sel.time : 0;
@@ -898,6 +907,7 @@ function lancerPartie({ mode: m, sujet: s }) {
 $('launch').onclick = () => lancerPartie({ mode: sel.mode, sujet: sel.sujet });
 /* Défi du jour (à droite de l'en-tête) : réglages imposés (tous les sujets, sans limite, 5 manches) pour que tout le monde joue la même partie. */
 $('daily').onclick = () => {
+  if (!ALL.length) return;
   daily = today(); mode = 'mixte'; timeLimit = 0; TOTAL = 5;
   leaveHome();
 };
@@ -912,6 +922,8 @@ function streak() {
 function dailyLabel() {
   const done = dailyDone(today()), n = streak(), b = $('daily');
   b.innerHTML = n ? '<b></b> · Défi du jour' : '<b>Défi du jour</b>';
+  b.disabled = !ALL.length;
+  if (!ALL.length) { b.title = 'Pas de défi tant que le jeu n’a pas de questions'; b.setAttribute('aria-label', 'Défi du jour indisponible : pas encore de questions'); return; }
   if (n) b.querySelector('b').textContent = n + (n > 1 ? ' jours de suite' : ' jour de suite');
   b.title = done ? 'Défi du jour fait : ' + done.tiles + ' ' + fmt(done.total) + ' pts. Seul le premier essai compte.' : 'Les mêmes 5 questions pour tout le monde aujourd’hui';
   b.setAttribute('aria-label', (n ? 'Série de ' + n + ' jours. ' : '') + 'Jouer le défi du jour' + (done ? ', déjà fait aujourd’hui' : ''));
@@ -966,7 +978,7 @@ function paintEarth(ctx, path, cx, cy, R, borderAlpha, borderWidth, landFn) {
     const pool = ALL.filter(d => inMode(d, sel.sujet));
     for (const d of pool) if (!rang.has(d)) rang.set(d, seeded('point-' + d.t)());
     pts = pool.sort((a, b) => rang.get(a) - rang.get(b)).slice(0, POINTS);
-    $('poolnote').innerHTML = '<b>' + fmt(pool.length) + ' questions</b> à jouer';
+    $('poolnote').innerHTML = poolNote(pool.length);
     kick();
   }
   /* Position d'un point : tirée au hasard sur les terres (entre 56° S et 72° N), toujours la même pour une question donnée.
