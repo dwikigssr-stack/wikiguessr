@@ -651,8 +651,8 @@ function showTitle(r) { $('title').textContent = r.t; if (!indicePhoto(r)) setPh
 /* Les vignettes qui sont des drapeaux, des cartes de localisation ou des blasons (souvent des .svg) donneraient la réponse : on les écarte. */
 const ICONS = { lieux: '🗺️', celeb: '⭐', sport: '🏅', politique: '🏛️', histoire: '📜', crime: '🕵️', culture: '🎭', evt: '📅', science: '🔬', pop: '🎬' };
 const SPOILER = /\.svg|flag|drapeau|map|carte|locat|orthographic|blason|armoiries|coat_of_arms/i;
-/* Pendant la manche, seule une photo relue à l'œil et sans indice géographique (photos-indices.js) s'affiche ;
-   les autres (monument, paysage, panneau, carte…) n'apparaissent qu'avec la réponse. */
+/* Pendant la manche, seule une question listée dans photos-indices.js montre sa photo : l'adresse de la photo relue,
+   ou true pour la miniature Wikipédia de l'article. Les autres n'ont leur photo qu'avec la réponse. */
 const indicePhoto = r => typeof PHOTOS_INDICES === 'object' ? PHOTOS_INDICES[r.id || r.t] : undefined;
 /* Photo : photo-indice relue, sinon champ img de l'entrée, sinon miniature Wikipédia si la page peut interroger Wikipédia. Sans photo, une pastille d'initiales reste affichée. */
 function setPhoto(r, after) {
@@ -662,7 +662,7 @@ function setPhoto(r, after) {
   $('mono').textContent = ICONS[r.h] || '🌍';
   $('photo').style.background = 'color-mix(in srgb, ' + THEMES[r.h].couleur + ' 28%, #0f2029)';
   const show = u => { if (rounds[idx] === r && !(hold && !revealed)) { im.onload = () => { im.hidden = false; }; im.src = u; } };
-  if (indice) return show(indice);
+  if (typeof indice === 'string') return show(indice);
   if (r.img) return show(r.img);
   if (r.thumb) return show(r.thumb);
   if (r.thumb === undefined) {
